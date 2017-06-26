@@ -3,6 +3,7 @@
 #	somatic_variant_callings.pl #
 ###	updated date: 04/05/2017 ###
 ### updated date: 04/18/2017 ###
+### add vcf2maf.pl ###
 
 #!/usr/bin/perl
 use strict;
@@ -76,6 +77,7 @@ my $sample_full_path = "";
 my $sample_name = "";
 my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
 my $h37_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
+my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $h37_REF_bai="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite-chr_with_chrM.fa.fai";
 my $pindel="/gscuser/qgao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
@@ -109,6 +111,7 @@ if ($step_number < 10) {
 				   &bsub_vep();
 				   &bsub_parse_pindel();
 				   &bsub_merge_vcf();
+				   &bsub_vcf_2_maf();
 				  # &bsub_pindel();	
 				}
                  elsif ($step_number == 1) {
@@ -126,10 +129,12 @@ if ($step_number < 10) {
                     &bsub_vep(1);
                 }elsif ($step_number == 7) {
                     &bsub_parse_pindel(1);
-                }
-				elsif ($step_number == 8) {
+                }elsif ($step_number == 8) {
                     &bsub_merge_vcf(1);
+                }elsif ($step_number == 9) {
+                    &bsub_vcf_2_maf(1);
                 }
+
 				# how to run pindel #
 				# /gscmnt/gc8001/info/model_data/8ad63791a648435b95a4be23ac3a18a5/buildb8e7ade8c3244bd483c274edeceeb8b7/alignments/cfa9c81317e346f5aa458e5e9220f41e.bam 500 TCGA-EX-A1H5-01A-31D-A34H-09 #
 #/gscmnt/gc8001/info/model_data/c777ae8a6fdb49b7bf400056d15a6788/build8057e74cc9f64a50a13c33763af10116/alignments/b127fcaaecc54abb833316fa3153e492.bam 500 TCGA-EX-A1H5-10A-01D-A200-09#	
@@ -898,4 +903,42 @@ sub bsub_merge_vcf{
 	close MERGE;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);
-	}	
+	}
+
+sub bsub_vcf_2_maf{
+  
+    my ($step_by_step) = @_;
+    if ($step_by_step) {
+        $hold_job_file = "";
+    }else{
+        $hold_job_file = $current_job_file;
+    }
+
+    $current_job_file = "j9_vcf_2_maf.".$sample_name.".sh";
+    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
+    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+
+    open(MAF, ">$job_files_dir/$current_job_file") or die $!;
+    print MAF "#!/bin/bash\n";
+    print MAF "#BSUB -n 1\n";
+    print MAF "#BSUB -R \"rusage[mem=30000]\"","\n";
+    print MAF "#BSUB -M 30000000\n";
+    print MAF "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
+    print MAF "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
+    print MAF "#BSUB -J $current_job_file\n";
+    print MAF "#BSUB -q ding-lab\n";
+    print MAF "#BSUB -w \"$hold_job_file\"","\n";
+    print MAF "F_VCF_1=".$sample_full_path."/merged.vcf\n";
+	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".vcf\n";
+    print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.vcf\n";
+    print MAF "F_VEP_2=".$sample_full_path."/".$sample_name.".vep.vcf\n";
+	print MAF "F_maf=".$sample_full_path."/".$sample_name.".maf\n";
+	print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
+	print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
+	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\S{F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $h37_REF --filter-vcf $f_exac\n";
+    close MAF;
+    $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
+    system ($bsub_com);
+
+	}
+ 
