@@ -37,6 +37,7 @@ $cyan 		 [5]  Run Pindel
 $gray 		 [6]  Run VEP annotation
 $gray 		 [7]  Parse Pindel
 $gray 		 [8]  Merge vcf files  
+$gray 		 [9] generate maf file 
 $normal
 OUT
 
