@@ -936,7 +936,7 @@ sub bsub_vcf_2_maf{
 	print MAF "F_maf=".$sample_full_path."/".$sample_name.".maf\n";
 	print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
 	print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
-	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\S{F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $h37_REF --filter-vcf $f_exac\n";
+	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $h37_REF --filter-vcf $f_exac\n";
     close MAF;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);
