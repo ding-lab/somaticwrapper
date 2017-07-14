@@ -4,6 +4,8 @@
 ###	updated date: 04/05/2017 ###
 ### updated date: 04/18/2017 ###
 ### add vcf2maf.pl ###
+### 07/14/2017 ##
+### add mutect and cosmic databse for improving filtering ##
 
 #!/usr/bin/perl
 use strict;
@@ -31,13 +33,15 @@ $yellow     Usage: perl $0 <run_folder> <step_number> $normal
 
 $green       [1]  Run streka
 $red 		 [2]  Run Varscan
-$yellow 	 [3]  Parse streka result
-$purple 	 [4]  Parse VarScan result
-$cyan 		 [5]  Run Pindel
-$gray 		 [6]  Run VEP annotation
-$gray 		 [7]  Parse Pindel
-$gray 		 [8]  Merge vcf files  
-$gray 		 [9] generate maf file 
+$normal 	 [3]  Run Mutect
+$yellow 	 [4]  Parse streka result
+$purple 	 [5]  Parse VarScan result
+$normal      [6]  Parse Mutect result
+$cyan 		 [7]  Run Pindel
+$gray 		 [8]  Run VEP annotation
+$gray 		 [9]  Parse Pindel
+$gray 		 [10]  Merge vcf files  
+$gray 		 [11] generate maf file 
 $normal
 OUT
 
@@ -76,6 +80,7 @@ my $hold_job_file = "";
 my $bsub_com = "";
 my $sample_full_path = "";
 my $sample_name = "";
+my $mutect="/gscuser/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
 my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
 my $h37_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
@@ -106,6 +111,7 @@ if ($step_number < 10) {
                 {  
 				   &bsub_strelka();
 				   &bsub_varscan();
+				   &bsub_mutect();
 				   &bsub_parse_strelka();
 				   &bsub_parse_varscan();
 				   &bsub_pindel();
@@ -119,20 +125,23 @@ if ($step_number < 10) {
                     &bsub_strelka();
                 } elsif ($step_number == 2) {
                     &bsub_varscan(1);
-                }elsif ($step_number == 3) {
+                } elsif ($step_number == 3) {
+                    &bsub_mutect(1);
+                }
+				elsif ($step_number == 4) {
                     &bsub_parse_strelka(1);
                 } 
-				elsif ($step_number == 4) {
+				elsif ($step_number == 5) {
                     &bsub_parse_varscan(1);
-                }elsif ($step_number == 5) {
-                    &bsub_pindel(1);
                 }elsif ($step_number == 6) {
-                    &bsub_vep(1);
+                    &bsub_pindel(1);
                 }elsif ($step_number == 7) {
-                    &bsub_parse_pindel(1);
+                    &bsub_vep(1);
                 }elsif ($step_number == 8) {
-                    &bsub_merge_vcf(1);
+                    &bsub_parse_pindel(1);
                 }elsif ($step_number == 9) {
+                    &bsub_merge_vcf(1);
+                }elsif ($step_number == 10) {
                     &bsub_vcf_2_maf(1);
                 }
 
@@ -348,6 +357,75 @@ sub bsub_varscan{
     system ( $bsub_com );
 }
 
+sub bsub_mutect{
+    #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
+    $current_job_file = "j3_mutect_".$sample_name.".sh";
+    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
+    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+    if (! -e $IN_bam_T) {#make sure there is a input fasta file 
+        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
+        print "Warning: Died because there is no input bam file for bwa:\n";
+        print "File $IN_bam_T does not exist!\n";
+        die "Please check command line argument!", $normal, "\n\n";
+
+    }
+    if (! -s $IN_bam_T) {#make sure input fasta file is not empty
+        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
+        die "Warning: Died because $IN_bam_T is empty!", $normal, "\n\n";
+    }
+    if (! -e $IN_bam_N) {#make sure there is a input fasta file 
+        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
+        print "Warning: Died because there is no input bam file for bwa:\n";
+        print "File $IN_bam_N does not exist!\n";
+        die "Please check command line argument!", $normal, "\n\n";
+
+    }
+
+    if (! -s $IN_bam_N) {#make sure input fasta file is not empty
+        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
+        die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
+    }
+
+    open(MUTECT, ">$job_files_dir/$current_job_file") or die $!;
+    print MUTECT "#!/bin/bash\n";
+    print MUTECT "#BSUB -n 1\n";
+    print MUTECT "#BSUB -R \"rusage[mem=30000]\"","\n";
+    print MUTECT "#BSUB -M 30000000\n";
+    print MUTECT "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
+    print MUTECT "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
+    print MUTECT "#BSUB -J $current_job_file\n";
+    print MUTECT "scr_t0=\`date \+\%s\`\n";
+    print MUTECT "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
+    print MUTECT "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
+    print MUTECT "myRUNDIR=".$sample_full_path."/mutect\n";
+	print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
+	print MUTECT "rawvcfgvip=".$sample_full_path."/mutect/mutect.raw.gvip.vcf\n";
+	print MUTECT "rawvcfsnv=".$sample_full_path."/mutect/mutect.raw.gvip.snv.vcf\n";
+	print MUTECT "rawvcfindel=".$sample_full_path."/mutect/mutect.raw.gvip.indel.vcf\n";
+    print MUTECT "RUNDIR=".$sample_full_path."\n";
+    print MUTECT "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
+    print MUTECT "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+    print MUTECT "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
+    print MUTECT "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
+    print MUTECT "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
+    print MUTECT "if [ ! -d \${myRUNDIR} ]\n";
+    print MUTECT "then\n";
+    print MUTECT "mkdir \${myRUNDIR}\n";
+    print MUTECT "fi\n";
+    print MUTECT "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+    print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
+    print MUTECT "else\n";
+    print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
+    print MUTECT "fi\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor $IN_bam_N -I:normal $IN_bam_T  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${raw.vcf}\n";
+    print MUTECT "     ".$run_script_path."genomevip_label.pl mutect \${rawvcf} \${rawvcfgvip}\n";
+    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip}  -o  \${rawvcfsnv}   -selectType SNP -selectType MNP\n";
+	print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip} -o \${rawvcfindel}  -selectType INDEL\n";
+	close MUTECT;
+	$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
+    system ( $bsub_com );
+}
+
 sub bsub_parse_strelka{
 
     my ($step_by_step) = @_;
@@ -358,7 +436,7 @@ sub bsub_parse_strelka{
     }
 
 
-    $current_job_file = "j3_parse_strelka".$sample_name.".sh";
+    $current_job_file = "j4_parse_strelka".$sample_name.".sh";
 
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
@@ -471,7 +549,7 @@ sub bsub_parse_varscan{
     }
 
 
-  	$current_job_file = "j4_parse_varscan".$sample_name.".sh";
+  	$current_job_file = "j5_parse_varscan".$sample_name.".sh";
 
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
@@ -506,6 +584,14 @@ sub bsub_parse_varscan{
 	print VARSCANP "varscan.dbsnp.snv.passfile  = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
 	print VARSCANP "varscan.dbsnp.snv.dbsnpfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf\n";
 	print VARSCANP "EOF\n";
+ # 	print VARSCANP "cat > \${RUNDIR}/varscan/vs_cosmic_check.snv.input <<EOF\n";
+ #  print VARSCANP "varscan.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
+ #  print VARSCANP "varscan.dbsnp.snv.db = /gscmnt/gc2525/dinglab/rmashl/Software/bin/dbSNP/NCBI/snp142/GRCh37/00-All.brief.vcf\n";
+ #  print VARSCANP "varscan.dbsnp.snv.rawvcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf\n";
+ #  print VARSCANP "varscan.dbsnp.snv.mode = filter\n";
+ #  print VARSCANP "varscan.dbsnp.snv.passfile  = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
+ #  print VARSCANP "varscan.dbsnp.snv.dbsnpfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf\n";
+ #  print VARSCANP "EOF\n";
 	print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.indel.input <<EOF\n";
 	print VARSCANP "varscan.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
 	print VARSCANP "varscan.dbsnp.indel.db = /gscmnt/gc2525/dinglab/rmashl/Software/bin/dbSNP/NCBI/snp142/GRCh37/00-All.brief.vcf\n";
@@ -644,7 +730,7 @@ sub bsub_pindel{
         $hold_job_file = $current_job_file;
     }
 
-	$current_job_file = "j5_pindel".$sample_name.".sh";  
+	$current_job_file = "j6_pindel".$sample_name.".sh";  
 	my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
     open(PINDEL, ">$job_files_dir/$current_job_file") or die $!;
@@ -681,7 +767,7 @@ sub bsub_vep{
         $hold_job_file = $current_job_file;
     }
 
-    $current_job_file = "j6_vep".$sample_name.".sh";
+    $current_job_file = "j7_vep".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
     open(VEP, ">$job_files_dir/$current_job_file") or die $!; 
@@ -795,7 +881,7 @@ sub bsub_parse_pindel {
         $hold_job_file = $current_job_file;
     }
 
-    $current_job_file = "j7_parse_pindel".$sample_name.".sh";
+    $current_job_file = "j8_parse_pindel".$sample_name.".sh";
 
     open(PP, ">$job_files_dir/$current_job_file") or die $!;
     print PP "#!/bin/bash\n";
@@ -860,7 +946,7 @@ sub bsub_merge_vcf{
         $hold_job_file = $current_job_file;
     }
 
-    $current_job_file = "j8_merge_vcf.".$sample_name.".sh";
+    $current_job_file = "j9_merge_vcf.".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
@@ -915,7 +1001,7 @@ sub bsub_vcf_2_maf{
         $hold_job_file = $current_job_file;
     }
 
-    $current_job_file = "j9_vcf_2_maf.".$sample_name.".sh";
+    $current_job_file = "j10_vcf_2_maf.".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
