@@ -468,7 +468,7 @@ sub bsub_parse_strelka{
     print STREKAP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print STREKAP "cat > \${myRUNDIR}/strelka_out/results/strelka_dbsnp_filter.snv.input <<EOF\n";
     print STREKAP "streka.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-    print STREKAP "streka.dbsnp.snv.db = /gscmnt/gc2525/dinglab/rmashl/Software/bin/dbSNP/NCBI/snp142/GRCh37/00-All.brief.vcf\n";
+    print STREKAP "streka.dbsnp.snv.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
     print STREKAP "streka.dbsnp.snv.rawvcf = ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
     print STREKAP "streka.dbsnp.snv.mode = filter\n";
     print STREKAP "streka.dbsnp.snv.passfile  = ./strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
@@ -492,7 +492,7 @@ sub bsub_parse_strelka{
   #  print STREKAP "EOF\n";  
 	print STREKAP "cat > \${myRUNDIR}/strelka_out/results/strelka_dbsnp_filter.indel.input <<EOF\n";
    	print STREKAP "streka.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-    print STREKAP "streka.dbsnp.indel.db = /gscmnt/gc2525/dinglab/rmashl/Software/bin/dbSNP/NCBI/snp142/GRCh37/00-All.brief.vcf\n";
+    print STREKAP "streka.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
     print STREKAP "streka.dbsnp.indel.rawvcf = ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";
     print STREKAP "streka.dbsnp.indel.mode = filter\n";
     print STREKAP "streka.dbsnp.indel.passfile  = ./strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
@@ -526,8 +526,10 @@ sub bsub_parse_strelka{
 	print STREKAP "cd \${STRELKA_OUT}/results\n";
 	print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.snvs.vcf ./strelka.somatic.snv.all.gvip.vcf\n";
     print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.indels.vcf ./strelka.somatic.indel.all.gvip.vcf\n";
-    print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.snvs.vcf ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
-    print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.indels.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n"; 
+	print STREKAP " 	"."cp ./strelka.somatic.snv.all.gvip.vcf ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
+	print STREKAP "     "."cp ./strelka.somatic.indel.all.gvip.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";
+   # print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.snvs.vcf ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
+   # print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.indels.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n"; 
 	print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.snv.input\n";
     print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.indel.input\n";
     print STREKAP "     ".$run_script_path."snv_filter.pl ./strelka_fpfilter.snv.input\n";  
@@ -578,7 +580,7 @@ sub bsub_parse_varscan{
     print VARSCANP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input <<EOF\n";
 	print VARSCANP "varscan.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-	print VARSCANP "varscan.dbsnp.snv.db = /gscmnt/gc2525/dinglab/rmashl/Software/bin/dbSNP/NCBI/snp142/GRCh37/00-All.brief.vcf\n";
+	print VARSCANP "varscan.dbsnp.snv.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
 	print VARSCANP "varscan.dbsnp.snv.rawvcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf\n";
 	print VARSCANP "varscan.dbsnp.snv.mode = filter\n";
 	print VARSCANP "varscan.dbsnp.snv.passfile  = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
@@ -594,7 +596,7 @@ sub bsub_parse_varscan{
  #  print VARSCANP "EOF\n";
 	print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.indel.input <<EOF\n";
 	print VARSCANP "varscan.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-	print VARSCANP "varscan.dbsnp.indel.db = /gscmnt/gc2525/dinglab/rmashl/Software/bin/dbSNP/NCBI/snp142/GRCh37/00-All.brief.vcf\n";
+	print VARSCANP "varscan.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
 	print VARSCANP "varscan.dbsnp.indel.rawvcf = ./varscan.out.som_indel.gvip.Somatic.hc.vcf\n";
 	print VARSCANP "varscan.dbsnp.indel.mode = filter\n";
 	print VARSCANP "varscan.dbsnp.indel.passfile  = ./varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
@@ -909,6 +911,14 @@ sub bsub_parse_pindel {
 	print PP "pindel.filter.somatic.remove_complex_indels = \"true\"\n";
 	print PP "pindel.filter.somatic.max_num_homopolymer_repeat_units = 6\n";
 	print PP "EOF\n";
+    print PP "cat > \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input <<EOF\n";
+    print PP "pindel.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
+    print PP "pindel.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
+    print PP "pindel.dbsnp.indel.rawvcf = ./pindel.out.current_final.gvip.Somatic.vcf\n";
+    print PP "pindel.dbsnp.indel.mode = filter\n";
+    print PP "pindel.dbsnp.indel.passfile  = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
+    print PP "pindel.dbsnp.indel.dbsnpfile = ./pindel.out.current_final.gvip.dbsnp_present.vcf\n";
+    print PP "EOF\n";
 	print PP "cd \${RUNDIR}/pindel\n";
 	print PP "outlist=pindel.out.filelist\n";
 	print PP "find \. -name \'*_D\' -o -name \'*_SI\' -o -name \'*_INV\' -o -name \'*_TD\'  > \./\${outlist}\n";
@@ -922,8 +932,9 @@ sub bsub_parse_pindel {
 	print PP "done\n";
 	print PP 'current_final=${pin_var_file/%raw/current_final.gvip.Somatic.vcf}'."\n";
 	print PP 'cat ./${pre_current_final/%vcf/gvip.vcf} > ./$current_final'."\n";
+    print PP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";	
 	print PP "cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF\n";
-	print PP "pindel.vep.vcf = ./pindel.out.current_final.gvip.Somatic.vcf\n";
+	print PP "pindel.vep.vcf = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
 	print PP "pindel.vep.output = ./pindel.out.current_final.gvip.Somatic.VEP.vcf\n";
 	print PP "pindel.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
 	print PP "pindel.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
@@ -934,7 +945,6 @@ sub bsub_parse_pindel {
 	close PP;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);
-
 	}
 
 sub bsub_merge_vcf{
