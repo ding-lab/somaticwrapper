@@ -55,15 +55,15 @@ my $HOME = $ENV{HOME};
 my $working_name= (split(/\//,$run_dir))[-2];
 my $HOME1="/gscmnt/gc2524/dinglab";
 #store job files here
-if (! -d $HOME1."/tmpsomatic") {
-    `mkdir $HOME1"/tmpsomatic"`;
+if (! -d $HOME1."/tmpsomatic2") {
+    `mkdir $HOME1"/tmpsomatic2"`;
 }
-my $job_files_dir = $HOME1."/tmpsomatic";
+my $job_files_dir = $HOME1."/tmpsomatic2";
 #store SGE output and error files here
-if (! -d $HOME1."/LSF_DIR_SOMATIC") {
-    `mkdir $HOME1"/LSF_DIR_SOMATIC"`;
+if (! -d $HOME1."/LSF_DIR_SOMATIC2") {
+    `mkdir $HOME1"/LSF_DIR_SOMATIC2"`;
 }
-my $lsf_file_dir = $HOME1."/LSF_DIR_SOMATIC";
+my $lsf_file_dir = $HOME1."/LSF_DIR_SOMATIC2";
 #GENOMEVIP_SCRIPTS=/gscmnt/gc2525/dinglab/rmashl/Software/bin/genomevip
 # obtain script path
 my $script_dir="/gscuser/scao/scripts/git/somaticwrapper";
@@ -109,7 +109,7 @@ if ($step_number < 10) {
                 {  
 				   &bsub_strelka();
 				   &bsub_varscan();
-				   &bsub_mutect();
+				   #&bsub_mutect();
 				   &bsub_parse_strelka();
 				   &bsub_parse_varscan();
 				   #&bsub_pindel();
@@ -147,7 +147,7 @@ if ($step_number < 10) {
 				# how to run pindel #
 				# /gscmnt/gc8001/info/model_data/8ad63791a648435b95a4be23ac3a18a5/buildb8e7ade8c3244bd483c274edeceeb8b7/alignments/cfa9c81317e346f5aa458e5e9220f41e.bam 500 TCGA-EX-A1H5-01A-31D-A34H-09 #
 #/gscmnt/gc8001/info/model_data/c777ae8a6fdb49b7bf400056d15a6788/build8057e74cc9f64a50a13c33763af10116/alignments/b127fcaaecc54abb833316fa3153e492.bam 500 TCGA-EX-A1H5-10A-01D-A200-09#	
-# bsub -q ding-lab -M 16000000 -n 4 -R 'span[hosts=1] rusage[mem=16000]' -oo /gscmnt/gc2532/dinglab/scao/pindel/CESC/pindel-logs/TCGA-C5-A0TN.chr9.log /gscuser/kye/gc2532/projects/PCGP_rerun/pindel -T 4 -f /gscmnt/gc2532/dinglab/projects/PCGP_rerun/GRCh37-lite.fa -i /gscmnt/gc2532/dinglab/scao/pindel/CESC/pindel-configs/TCGA-C5-A0TN.config -o /gscmnt/gc2532/dinglab/scao/pindel/CESC/pindel-outputs/TCGA-C5-A0TN/TCGA-C5-A0TN.chr9 -c 9 -m 6 -w 1 -J /gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed #
+# bsub -q long -M 16000000 -n 4 -R 'span[hosts=1] rusage[mem=16000]' -oo /gscmnt/gc2532/dinglab/scao/pindel/CESC/pindel-logs/TCGA-C5-A0TN.chr9.log /gscuser/kye/gc2532/projects/PCGP_rerun/pindel -T 4 -f /gscmnt/gc2532/dinglab/projects/PCGP_rerun/GRCh37-lite.fa -i /gscmnt/gc2532/dinglab/scao/pindel/CESC/pindel-configs/TCGA-C5-A0TN.config -o /gscmnt/gc2532/dinglab/scao/pindel/CESC/pindel-outputs/TCGA-C5-A0TN/TCGA-C5-A0TN.chr9 -c 9 -m 6 -w 1 -J /gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed #
  
            }
         }
@@ -382,7 +382,7 @@ sub bsub_parse_strelka{
     print STREKAP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print STREKAP "#BSUB -J $current_job_file\n";
 	print STREKAP "#BSUB -w \"$hold_job_file\"","\n";
-    print STREKAP "#BSUB -q ding-lab\n";
+    print STREKAP "#BSUB -q long\n";
     print STREKAP "scr_t0=\`date \+\%s\`\n";
     print STREKAP "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print STREKAP "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
@@ -432,7 +432,7 @@ sub bsub_parse_strelka{
 	print STREKAP "FP_BAM=\`awk \'{if(NR==1){print \$1}}\' \${RUNDIR}/varscan/bamfilelist.inp\`\n";
 	print STREKAP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_fpfilter.snv.input <<EOF\n";
 	print STREKAP "strelka.fpfilter.snv.bam_readcount = /gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount\n";
-	print STREKAP "strelka.fpfilter.snv.bam_file = \${FP_BAM}\n";
+	print STREKAP "strelka.fpfilter.snv.bam_file = $IN_bam_T\n";
 	print STREKAP "strelka.fpfilter.snv.REF = $h37_REF\n"; 
 	print STREKAP "strelka.fpfilter.snv.variants_file = \${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
 	print STREKAP "strelka.fpfilter.snv.passfile = \${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp_pass.vcf\n";
@@ -496,7 +496,7 @@ sub bsub_parse_varscan{
     print VARSCANP "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print VARSCANP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print VARSCANP "#BSUB -J $current_job_file\n"; 
-    print VARSCANP "#BSUB -q ding-lab\n";
+    print VARSCANP "#BSUB -q long\n";
 	print VARSCANP "#BSUB -w \"$hold_job_file\"","\n";
     print VARSCANP "scr_t0=\`date \+\%s\`\n";
 	print VARSCANP "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
@@ -711,7 +711,7 @@ sub bsub_vep{
     print VEP "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print VEP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print VEP "#BSUB -J $current_job_file\n";
-    print VEP "#BSUB -q ding-lab\n";
+    print VEP "#BSUB -q long\n";
     print VEP "#BSUB -w \"$hold_job_file\"","\n";
     print VEP "scr_t0=\`date \+\%s\`\n";
     print VEP "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
@@ -824,7 +824,7 @@ sub bsub_parse_pindel {
     print PP "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print PP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print PP "#BSUB -J $current_job_file\n";
-    print PP "#BSUB -q ding-lab\n";
+    print PP "#BSUB -q long\n";
     print PP "#BSUB -w \"$hold_job_file\"","\n";
     print PP "RUNDIR=".$sample_full_path."\n";
 	print PP "cat > \${RUNDIR}/pindel/pindel_filter.input <<EOF\n";
@@ -899,7 +899,7 @@ sub bsub_merge_vcf{
     print MERGE "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print MERGE "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print MERGE "#BSUB -J $current_job_file\n";
-    print MERGE "#BSUB -q ding-lab\n";
+    print MERGE "#BSUB -q long\n";
     print MERGE "#BSUB -w \"$hold_job_file\"","\n";
     print MERGE "scr_t0=\`date \+\%s\`\n";
     print MERGE "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
@@ -954,7 +954,7 @@ sub bsub_vcf_2_maf{
     print MAF "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print MAF "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print MAF "#BSUB -J $current_job_file\n";
-    print MAF "#BSUB -q ding-lab\n";
+    print MAF "#BSUB -q long\n";
     print MAF "#BSUB -w \"$hold_job_file\"","\n";
     print MAF "F_VCF_1=".$sample_full_path."/merged.vcf\n";
 	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".vcf\n";
