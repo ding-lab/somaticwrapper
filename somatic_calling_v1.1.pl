@@ -5,7 +5,6 @@
 ### updated date: 04/18/2017 ###
 ### add vcf2maf.pl ###
 ### 07/14/2017 ##
-### add mutect and cosmic databse for improving filtering ##
 
 #!/usr/bin/perl
 use strict;
