@@ -3,7 +3,8 @@
 # @name GenomeVIP SNVs false-positives filter using VarScan
 # @author Beifang Niu 
 # @author R. Jay Mashl <rmashl@genome.wustl.edu>
-# 
+# @author song cao
+# @version 0.7 do not use tmp file: 
 # @version 0.6 (rjm): make pass test explicit for extensibility
 # @version 0.5 (rjm): workaround for stat on AWS
 # @version 0.4 (rjm): handle zero-input case
@@ -39,7 +40,8 @@ unless ( -e $paras{'variants_file'} ) { die "Variants input file could not be fo
 
 # Create readcounts input
 my $input_fh = IO::File->new( $paras{'variants_file'} ) or die "Input variants file could not be opened.";
-my ( undef, $read_count_input ) = tempfile();
+my $read_count_input  = $paras{'rc_in'};
+
 my $read_count_input_fh = IO::File->new( $read_count_input, ">" ) or die "Temporary file could not be created. ";
 my %seen = ();
 map { unless( /^#/ ) { chomp; my @t = split /\t/; my $k = join( "\t", @t[0,1,1] ); $seen{$k} = 1;} } <$input_fh>;
@@ -50,12 +52,15 @@ $input_fh->close        || die "Error on closing input variants file";
 my $fs = `wc -l < $read_count_input`;
 if( $fs !=  0)  {
 
-    my ( undef, $read_count_output ) = tempfile();
+	my $read_count_output =$paras{'rc_out'};
+
+    #my ( undef, $read_count_output ) = tempfile();
     my $cmd_run_read_count = "$paras{'bam_readcount'} -w 10 -l $read_count_input -q $paras{'min_mapping_qual'} -b $paras{'min_base_qual'} -f $paras{'REF'}  $paras{'bam_file'}  > $read_count_output"; 
     print $cmd_run_read_count."\n";
     system( $cmd_run_read_count );
+	my $fp_output_file = $paras{'fp_out'};
 
-    my ( undef, $fp_output_file ) = tempfile();
+   # my ( undef, $fp_output_file ) = tempfile();
     my $cmd_run_varscan = "java $ENV{'JAVA_OPTS'} -jar $ENV{'VARSCAN_DIR'}/VarScan.jar fpfilter $paras{'variants_file'} $read_count_output --output-file $fp_output_file --keep-failures 1 --min-var-count $paras{'min_num_var_supporting_reads'} --min-var-freq $paras{'min_var_allele_freq'} --min-var-readpos $paras{'min_avg_rel_read_position'} --min-var-dist3 $paras{'min_avg_rel_dist_to_3prime_end'} --min-strandedness $paras{'min_var_strandedness'} --min-strand-reads $paras{'min_allele_depth_for_testing_strandedness'} --min-ref-basequal $paras{'min_ref_allele_avg_base_qual'} --min-var-basequal  $paras{'min_var_allele_avg_base_qual'} --max-rl-diff $paras{'max_rel_read_length_difference'} --max-var-mmqs $paras{'max_mismatch_qual_sum_for_var_reads'} --max-mmqs-diff $paras{'max_avg_mismatch_qual_sum_difference'} --min-ref-mapqual $paras{'min_ref_allele_avg_mapping_qual'} --min-var-mapqual $paras{'min_var_allele_avg_mapping_qual'} --max-mapqual-diff $paras{'max_avg_mapping_qual_difference'} ";
     print $cmd_run_varscan."\n";
     system( $cmd_run_varscan );
@@ -80,8 +85,8 @@ if( $fs !=  0)  {
     $input_fh_failed->close || die "Error on closing failed calls file";
     $input_fh_passed->close || die "Error on closing passed calls file";
     $input_fh->close        || die "Error on closing input variants file";
-    $cmd="rm -f $read_count_input $read_count_output $fp_output_file";
-    print $cmd."\n";
+    #$cmd="rm -f $read_count_input $read_count_output $fp_output_file";
+    #print $cmd."\n";
     system( $cmd );
 
 } else {
