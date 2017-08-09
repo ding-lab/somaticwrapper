@@ -87,7 +87,7 @@ if( $fs !=  0)  {
     $input_fh->close        || die "Error on closing input variants file";
     #$cmd="rm -f $read_count_input $read_count_output $fp_output_file";
     #print $cmd."\n";
-    system( $cmd );
+   # system( $cmd );
 
 } else {
 
