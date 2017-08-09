@@ -111,7 +111,7 @@ if ($step_number < 10) {
 				   #&bsub_mutect();
 				   &bsub_parse_strelka();
 				   &bsub_parse_varscan();
-				   #&bsub_pindel();
+				   &bsub_pindel();
 				   &bsub_vep();
 				   &bsub_parse_pindel();
 				   &bsub_merge_vcf();
