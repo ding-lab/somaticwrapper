@@ -48,7 +48,6 @@ if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
 die $usage unless ($step_number >=0)&&(($step_number <= 10));
-my $email = "scao\@wustl\.edu";
 # everything else below should be automated
 my $HOME = $ENV{HOME};
 my $working_name= (split(/\//,$run_dir))[-2];
@@ -154,27 +153,8 @@ if ($step_number < 10) {
 }
 
 #######################################################################
-# send email to notify the finish of the analysis
-if (($step_number == 0) || ($step_number == 10)) {
-    print $yellow, "Submitting the job for sending an email when the run finishes ",$sample_name, "...",$normal, "\n";
-    $hold_job_file = $current_job_file;
-    $current_job_file = "Email_run_".$$.".sh";
-    open(EMAIL, ">$job_files_dir/$current_job_file") or die $!;
-    print EMAIL "#!/bin/bash\n";
-    print EMAIL "#BSUB -n 1\n";
-    print EMAIL "#BSUB -o $lsf_file_dir","\n";
-    print EMAIL "#BSUB -e $lsf_file_dir","\n";
-    print EMAIL "#BSUB -J $current_job_file\n";
-    print EMAIL "#BSUB -w \"$hold_job_file\"","\n";
-    print EMAIL $run_script_path."send_email.pl ".$run_dir." ".$email."\n";
-    close EMAIL;
-    $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    #$bsub_com = "qsub -V -hold_jid $hold_job_file -e $lsf_file_dir -o $lsf_file_dir $job_files_dir/$current_job_file\n";
-    system ($bsub_com);
-}
-#######################################################################
 if ($step_number == 0) {
-    print $green, "All jobs are submitted! You will get email notification when this run is completed.\n",$normal;
+    print $green, "All jobs are submitted!\n",$normal;
 }
 
 exit;
