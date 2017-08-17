@@ -7,4 +7,7 @@ IMAGE="somatic-wrapper"
 
 docker run -v $DATA_DIR:/data -it $IMAGE
 
+# To start another terminal in running container, first get name of running container with `docker ps`,
+# then start bash in it with,
+# `docker exec -it <container_name> bash`
 
