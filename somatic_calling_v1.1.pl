@@ -77,7 +77,7 @@ my $sample_full_path = "";
 my $sample_name = "";
 
 my $STRELKA_DIR="/usr/local/strelka-2.7.1.centos5_x86_64/bin";
-my $h37_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
+my $h37_REF="/data/A_Reference/GRCh37-lite.fa";
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $pindel="/gscuser/qgao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
@@ -203,7 +203,7 @@ sub bsub_strelka{
     print STREKA "RUNDIR=".$sample_full_path."\n";
     print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
     print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
-    print STREKA "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+    print STREKA "export SAMTOOLS_DIR=/usr/local/bin\n";
     print STREKA "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
     print STREKA "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
     print STREKA "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
