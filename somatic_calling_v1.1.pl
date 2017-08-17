@@ -50,15 +50,15 @@ if ($run_dir =~/(.+)\/$/) {
 die $usage unless ($step_number >=0)&&(($step_number <= 10));
 # everything else below should be automated
 my $working_name= (split(/\//,$run_dir))[-2];
-my $HOME1="/tmp";
+my $HOME1="/usr/local/somaticwrapper/runtime";
 #store job files here
 if (! -d $HOME1."/tmpsomatic2") {
-    `mkdir $HOME1"/tmpsomatic2"`;
+    `mkdir -p $HOME1"/tmpsomatic2"`;
 }
 my $job_files_dir = $HOME1."/tmpsomatic2";
 #store SGE output and error files here
 if (! -d $HOME1."/LSF_DIR_SOMATIC2") {
-    `mkdir $HOME1"/LSF_DIR_SOMATIC2"`;
+    `mkdir -p $HOME1"/LSF_DIR_SOMATIC2"`;
 }
 my $lsf_file_dir = $HOME1."/LSF_DIR_SOMATIC2";
 
@@ -204,7 +204,7 @@ sub bsub_strelka{
     print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
     print STREKA "CONFDIR=/usr/local/somaticwrapper/config\n";
     print STREKA "export SAMTOOLS_DIR=/usr/local/bin\n";
-    print STREKA "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
+    print STREKA "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre\n";
     print STREKA "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
     print STREKA "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print STREKA "if [ ! -d \${myRUNDIR} ]\n";
@@ -226,6 +226,8 @@ sub bsub_strelka{
     print STREKA "statfile=incomplete.strelka\n";
     print STREKA "localstatus=".$sample_full_path."/status/\$statfile\n";
     print STREKA "touch \$localstatus\n";
+### TODO: investigate /gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin
+### Where does /configureStrelkaWorkflow.pl come from?
     print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config \$CONFDIR/strelka.ini --output-dir \$STRELKA_OUT\n";
     print STREKA "cd \$STRELKA_OUT\n";
     print STREKA "make -j 16\n";

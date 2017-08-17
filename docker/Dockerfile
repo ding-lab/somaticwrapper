@@ -13,6 +13,8 @@ RUN cd /usr/local \
 
 RUN apt-get update && apt-get install -y \
     libncurses-dev \
+    vim \
+    default-jre \
     && apt-get clean
 
 RUN cd /usr/local \

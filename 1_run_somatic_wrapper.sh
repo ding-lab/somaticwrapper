@@ -1,3 +1,3 @@
 # Test case
-
-perl somatic_calling_v1.1.pl /data/data 0
+# running just Strelka
+perl somatic_calling_v1.1.pl /data/data 1
