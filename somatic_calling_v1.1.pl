@@ -202,7 +202,7 @@ sub bsub_strelka{
     print STREKA "SG_DIR=".$sample_full_path."/strelka\n"; 
     print STREKA "RUNDIR=".$sample_full_path."\n";
     print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
-    print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
+    print STREKA "CONFDIR=/usr/local/somaticwrapper/config\n";
     print STREKA "export SAMTOOLS_DIR=/usr/local/bin\n";
     print STREKA "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
     print STREKA "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
@@ -288,7 +288,7 @@ sub bsub_varscan{
     print VARSCAN "RUNDIR=".$sample_full_path."\n";
 #print VARSCAN "numgps=10\n";
 #print VARSCAN "SEQS=\"1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 X Y\"\n";
-    print VARSCAN "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
+    print VARSCAN "CONFDIR=/usr/local/somaticwrapper/config\n";  # is this necessary?
     print VARSCAN "GENOMEVIP_SCRIPTS=/gscmnt/gc2525/dinglab/rmashl/Software/bin/genomevip\n";
     print VARSCAN "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print VARSCAN "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
