@@ -76,8 +76,10 @@ my $bsub_com = "";
 my $sample_full_path = "";
 my $sample_name = "";
 
-my $STRELKA_DIR="/usr/local/strelka-2.7.1.centos5_x86_64/bin";
-my $h37_REF="/data/A_Reference/GRCh37-lite.fa";
+#my $STRELKA_DIR="/usr/local/strelka-2.7.1.centos5_x86_64/bin";
+# using older version of strelka
+my $STRELKA_DIR="/usr/local/strelka";
+my $h37_REF="/data/A_Reference/GRCh37-lite.fa";  # This does not work with strelka demo data because wrong reference
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $pindel="/gscuser/qgao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
@@ -198,6 +200,7 @@ sub bsub_strelka{
     print STREKA "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
     print STREKA "myRUNDIR=".$sample_full_path."/strelka\n";
     print STREKA "STATUSDIR=".$sample_full_path."/status\n";
+    print STREKA "mkdir -p \$STATUSDIR\n";
     print STREKA "RESULTSDIR=".$sample_full_path."/results\n";
     print STREKA "SG_DIR=".$sample_full_path."/strelka\n"; 
     print STREKA "RUNDIR=".$sample_full_path."\n";
@@ -215,7 +218,7 @@ sub bsub_strelka{
     print STREKA "then\n";
     print STREKA "rm -rf \${STRELKA_OUT}\n";
     print STREKA "fi\n";
-    print STREKA "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n"; 
+    print STREKA "if \[ -z \"\$LD_LIBRARY_PATH\" \] \; then\n"; 
     print STREKA "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
     print STREKA "else\n";
     print STREKA "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
@@ -226,9 +229,7 @@ sub bsub_strelka{
     print STREKA "statfile=incomplete.strelka\n";
     print STREKA "localstatus=".$sample_full_path."/status/\$statfile\n";
     print STREKA "touch \$localstatus\n";
-### TODO: investigate /gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin
-### Where does /configureStrelkaWorkflow.pl come from?
-    print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config \$CONFDIR/strelka.ini --output-dir \$STRELKA_OUT\n";
+    print STREKA "   ".$STRELKA_DIR."/bin/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config \$CONFDIR/strelka.ini --output-dir \$STRELKA_OUT\n";
     print STREKA "cd \$STRELKA_OUT\n";
     print STREKA "make -j 16\n";
     close STREKA;

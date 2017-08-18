@@ -14,8 +14,13 @@ RUN cd /usr/local \
 # Note that SomaticWrapper v1.1 uses strelka 1.0.14.  We download that too
 RUN cd /usr/local \
     && wget https://sites.google.com/site/strelkasomaticvariantcaller/home/download/strelka_workflow-1.0.15.tar.gz \
-    && tar -zxf strelka_workflow-1.0.15 \
-    && rm strelka_workflow-1.0.15.tar.gz
+    && tar -zxf strelka_workflow-1.0.15.tar.gz \
+    && cd /usr/local/strelka_workflow-1.0.15 \
+    && ./configure --prefix=/usr/local/strelka \
+    && make \
+    && make install \
+    && ln -s /usr/local/samtools /usr/local/strelka_workflow-1.0.15/src/perl/opt
+#    && rm strelka_workflow-1.0.15.tar.gz
 
 RUN apt-get update && apt-get install -y \
     libncurses-dev \
