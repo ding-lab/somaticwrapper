@@ -839,7 +839,7 @@ sub bsub_parse_pindel {
 	print PP "pindel.filter.mode = somatic\n";
 	print PP "pindel.filter.apply_filter = true\n";
 	print PP "pindel.filter.somatic.min_coverages = 10\n";
-	print PP "pindel.filter.somatic.min_var_allele_freq = 0.10\n";
+	print PP "pindel.filter.somatic.min_var_allele_freq = 0.05\n";
 	print PP "pindel.filter.somatic.require_balanced_reads = \"true\"\n";
 	print PP "pindel.filter.somatic.remove_complex_indels = \"true\"\n";
 	print PP "pindel.filter.somatic.max_num_homopolymer_repeat_units = 6\n";
@@ -928,7 +928,7 @@ sub bsub_merge_vcf{
 	print MERGE "VARSCAN_INDEL="."\${RUNDIR}/varscan/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
 	print MERGE "MERGER_OUT="."\${RUNDIR}/merged.vcf\n";
     print MERGE "cat > \${RUNDIR}/vep.merged.input <<EOF\n";
-    print MERGE "merged.vep.vcf = ./merged.vcf\n"; 
+    print MERGE "merged.vep.vcf = ./merged.filtered.vcf\n"; 
     print MERGE "merged.vep.output = ./merged.VEP.vcf\n";
     print MERGE "merged.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
     print MERGE "merged.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
@@ -936,6 +936,7 @@ sub bsub_merge_vcf{
     print MERGE "merged.vep.assembly = GRCh37\n";
     print MERGE "EOF\n";
 	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
+	print MERGE "     ".$run_script_path."vaf_filter.pl \${RUNDIR}\n";
 	print MERGE "cd \${RUNDIR}\n";
 	print MERGE "     ".$run_script_path."vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";	
 	close MERGE;
@@ -966,11 +967,13 @@ sub bsub_vcf_2_maf{
     print MAF "#BSUB -J $current_job_file\n";
     print MAF "#BSUB -q long\n";
     print MAF "#BSUB -w \"$hold_job_file\"","\n";
-    print MAF "F_VCF_1=".$sample_full_path."/merged.vcf\n";
+    print MAF "F_VCF_1=".$sample_full_path."/merged.filtered.vcf\n";
 	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".vcf\n";
     print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.vcf\n";
     print MAF "F_VEP_2=".$sample_full_path."/".$sample_name.".vep.vcf\n";
 	print MAF "F_maf=".$sample_full_path."/".$sample_name.".maf\n";
+	print MAF "rm \${F_VCF_2}\n";
+	print MAF "rm \${F_VEP_2}\n"; 
 	print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
 	print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
 	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $h37_REF --filter-vcf $f_exac\n";
