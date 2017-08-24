@@ -321,11 +321,11 @@ sub bsub_varscan{
     print VARSCAN "then\n";
     print VARSCAN "mkdir \${myRUNDIR}\n";
     print VARSCAN "fi\n";
-    print VARSCAN "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-    print VARSCAN "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-    print VARSCAN "else\n";
+   # print VARSCAN "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+   # print VARSCAN "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
+    #print VARSCAN "else\n";
     print VARSCAN "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-    print VARSCAN "fi\n";
+    #print VARSCAN "fi\n";
     print VARSCAN "put_cmd=\"ln -s\"\n";
     print VARSCAN "del_cmd=\"rm -f\"\n";
     print VARSCAN "del_local=\"rm -f\"\n";
@@ -581,11 +581,11 @@ sub bsub_parse_varscan{
     print VARSCANP "then\n";
     print VARSCANP "mkdir \${myRUNDIR}\n";
     print VARSCANP "fi\n";
-    print VARSCANP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-    print VARSCANP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-    print VARSCANP "else\n";
+   # print VARSCANP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+  #  print VARSCANP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
+    #print VARSCANP "else\n";
     print VARSCANP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-    print VARSCANP "fi\n";
+   # print VARSCANP "fi\n";
     print VARSCANP "put_cmd=\"ln -s\"\n";
     print VARSCANP "del_cmd=\"rm -f\"\n";
     print VARSCANP "del_local=\"rm -f\"\n";
@@ -792,6 +792,7 @@ sub bsub_vep{
     print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
     print VEP "strelka.vep.assembly = GRCh37\n";
     print VEP "EOF\n";
+    print VEP ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
 	print VEP "cd \${RUNDIR}/varscan\n";
     print VEP "     ".$run_script_path."vep_annotator.pl ./vs_vep.snv.input >& ./vs_vep.snv.log\n";
     print VEP "     ".$run_script_path."vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";
@@ -901,6 +902,7 @@ sub bsub_parse_pindel {
 	print PP "pindel.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
 	print PP "pindel.vep.assembly = GRCh37\n";
 	print PP "EOF\n";
+    print PP ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
 	print PP "     ".$run_script_path."vep_annotator.pl ./pindel_vep.input >& ./pindel_vep.log\n";  
 	close PP;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
