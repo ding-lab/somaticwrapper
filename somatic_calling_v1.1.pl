@@ -227,7 +227,7 @@ sub bsub_strelka{
    	print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
  	print STREKA "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
 	print STREKA "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
-	print STREKA "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
+	print STREKA "export JAVA_OPTS=\"-Xmx2g\"\n";
 	print STREKA "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print STREKA "if [ ! -d \${myRUNDIR} ]\n";
 	print STREKA "then\n";
@@ -315,7 +315,7 @@ sub bsub_varscan{
 	print VARSCAN "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
 	print VARSCAN "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print VARSCAN "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
-    print VARSCAN "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
+    print VARSCAN "export JAVA_OPTS=\"-Xmx2g\"\n";
     print VARSCAN "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print VARSCAN "if [ ! -d \${myRUNDIR} ]\n";
     print VARSCAN "then\n";
@@ -394,7 +394,7 @@ sub bsub_parse_strelka{
 	print STREKAP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print STREKAP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print STREKAP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
-    print STREKAP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
+    print STREKAP "export JAVA_OPTS=\"-Xmx2g\"\n";
     print STREKAP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print STREKAP "cat > \${myRUNDIR}/strelka_out/results/strelka_dbsnp_filter.snv.input <<EOF\n";
     print STREKAP "streka.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
@@ -509,7 +509,8 @@ sub bsub_parse_varscan{
     print VARSCANP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print VARSCANP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print VARSCANP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
-    print VARSCANP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
+#    print VARSCANP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
+	print VARSCANP "export JAVA_OPTS=\"-Xmx2g\"\n";
     print VARSCANP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input <<EOF\n";
 	print VARSCANP "varscan.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
@@ -724,7 +725,7 @@ sub bsub_vep{
     print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print VEP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print VEP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
-    print VEP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
+    print VEP "export JAVA_OPTS=\"-Xmx2g\"\n";
     print VEP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print VEP "cat > \${RUNDIR}/varscan/vs_vep.snv.input <<EOF\n";
     print VEP "varscan.vep.vcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
@@ -852,7 +853,10 @@ sub bsub_parse_pindel {
     print PP "pindel.dbsnp.indel.passfile  = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
     print PP "pindel.dbsnp.indel.dbsnpfile = ./pindel.out.current_final.gvip.dbsnp_present.vcf\n";
     print PP "EOF\n";
+	print PP "pindelout=\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
 	print PP "cd \${RUNDIR}/pindel\n";
+	print PP '	if [ ! -f $pindelout ]',"\n";	
+	print PP "	then\n";	
 	print PP "outlist=pindel.out.filelist\n";
 	print PP "find \. -name \'*_D\' -o -name \'*_SI\' -o -name \'*_INV\' -o -name \'*_TD\'  > \./\${outlist}\n";
 	print PP 'list=$(xargs -a  ./$outlist)'."\n";
@@ -865,15 +869,30 @@ sub bsub_parse_pindel {
 	print PP "done\n";
 	print PP 'current_final=${pin_var_file/%raw/current_final.gvip.Somatic.vcf}'."\n";
 	print PP 'cat ./${pre_current_final/%vcf/gvip.vcf} > ./$current_final'."\n";
+	print PP "fi\n";
     print PP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
-    print PP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
+    #print PP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
+	print PP "export JAVA_OPTS=\"-Xmx2g\"\n";
     print PP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    print PP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-    print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-    print PP "else\n";
+    #print PP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+    #print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
+    #print PP "else\n";
     print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-    print PP "fi\n";
+    #print PP "fi\n";
+	#print RefG '	if [ ! -f $ ]',"\n";
+    print PP '  if [ ! -f $pindelout ]',"\n";
+	print PP "  then\n"; 	
 	print PP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";	
+	print PP "	else\n";
+	print PP '		grep "Error occurred during initialization of VM" ${pindelout}',"\n";# one possible blast error (see the end of this script). 
+	print PP '		CHECK=$?',"\n";
+	print PP '		while [ ${CHECK} -eq 0 ]',"\n";
+	print PP "		do\n";	
+    print PP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";
+ 	print PP '      grep "Error occurred during initialization of VM" ${pindelout}',"\n";
+	print PP '			CHECK=$?',"\n";
+	print PP "		done\n";
+	print PP "	fi\n";
 	print PP "cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF\n";
 	print PP "pindel.vep.vcf = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
 	print PP "pindel.vep.output = ./pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf\n";
@@ -938,10 +957,12 @@ sub bsub_merge_vcf{
 	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
 	print MERGE "     ".$run_script_path."vaf_filter.pl \${RUNDIR}\n";
 	print MERGE "cd \${RUNDIR}\n";
+	print MERGE ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n"; 
 	print MERGE "     ".$run_script_path."vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";	
 	close MERGE;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    system ($bsub_com);
+	#$bsub_com = "sh $job_files_dir/$current_job_file\n";
+   	system ($bsub_com);
 	}
 
 sub bsub_vcf_2_maf{

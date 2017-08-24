@@ -27,12 +27,10 @@ sub checksize {
     return 1;
 }
 
-
 # get paras from config file
 my (%paras);
 map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; print $v."\n";  $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
 # map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
-
 
 # Use uncompressed db to avoid being bitten by java compression bug
 my $anno=$paras{'rawvcf'}."dbsnp_anno.vcf";
@@ -40,7 +38,8 @@ if ($paras{'rawvcf'} =~ /\.vcf$/) {
     ($anno = $paras{'rawvcf'}) =~ s/\.vcf$/\.dbsnp_anno\.vcf/;
 }
 
-my $cmd = "java $ENV{'JAVA_OPTS'} -jar $paras{'annotator'} annotate -id $paras{'db'} $paras{'rawvcf'} > $anno";
+
+my $cmd = "/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64/bin/java $ENV{'JAVA_OPTS'} -jar $paras{'annotator'} annotate -id $paras{'db'} $paras{'rawvcf'} > $anno";
 print "$cmd\n";
 system($cmd);
 checksize($anno, $paras{'rawvcf'});

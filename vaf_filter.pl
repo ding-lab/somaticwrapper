@@ -9,6 +9,9 @@ my ($run_dir)=@ARGV;
 my $f_m=$run_dir."/merged.vcf"; 
 my $f_filter_out=$run_dir."/merged.filtered.vcf";
 my $f_vaf_out=$run_dir."/merged.vaf";
+my $min_vaf_somatic=0.10;
+my $max_vaf_germline=0.01; 
+my $min_coverage=10; 
 
 open(OUT1,">$f_filter_out");
 open(OUT2,">$f_vaf_out"); 
@@ -35,7 +38,8 @@ foreach my $l (`cat $f_m`)
 		 my $ndp_var;
 		 my $tdp_ref;
 		 my $tdp_var; 
-		 
+#		 print $ltr,"\n"; 
+ 
 		 if($info=~/strelka/) 
 		 {
 		
@@ -90,8 +94,10 @@ foreach my $l (`cat $f_m`)
 		#<STDIN>;
 		print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$rc{$ref},"\t",$rc{$ref}/$r_tot,"\t",$rcvar,"\t",$rcvar/$r_tot,"\t",$rc2{$ref},"\t",$rc2{$ref}/$r_tot2,"\t",$rc2var,"\t",$rc2var/$r_tot2,"\n"; 
 
-		if($rc2var/$r_tot2>=0.05) {
-		        print OUT1 $ltr,"\n";} 	
+		if($rc2var/$r_tot2>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_tot2>=$min_coverage && $r_tot>=$min_coverage) 
+			{
+		        print OUT1 $ltr,"\n";
+			} 	
 		}
 	
 		elsif($info=~/varscan/ || $info=~/varindel/)
@@ -109,10 +115,10 @@ foreach my $l (`cat $f_m`)
 			#print $ndp_ref,"\t",$ndp_var,"\t",$tdp_ref,"\t",$tdp_var,"\n";
 			#<STDIN>;
 	        print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$ndp_ref,"\t",$ndp_ref/($ndp_ref+$ndp_var),"\t",$ndp_var,"\t",$ndp_var/($ndp_var+$ndp_ref),"\t",$tdp_ref,"\t",$tdp_ref/($tdp_ref+$tdp_var),"\t",$tdp_var,"\t",$tdp_var/($tdp_var+$tdp_ref),"\n";  
-		if($tdp_var/($tdp_var+$tdp_ref) >=0.05) 	
-		{
-		print OUT1 $ltr,"\n"; 
-		}
+		if($tdp_var/($tdp_var+$tdp_ref) >=$min_vaf_somatic && $ndp_var/($ndp_var+$ndp_ref)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 	
+			{
+			print OUT1 $ltr,"\n"; 
+			}
 		}
 
 		elsif($info=~/pindel/)
@@ -120,6 +126,9 @@ foreach my $l (`cat $f_m`)
 
 			$vaf_t=$temp[9];
             $vaf_n=$temp[10];
+			if(!($vaf_t=~/\:/)) { next; } 
+			if(!($vaf_n=~/\:/)) { next; } 
+
 			@temp2=split(":",$vaf_n);	
 			my @ndp2=split(",",$temp2[1]);
             $ndp_ref=$ndp2[0];
@@ -133,10 +142,10 @@ foreach my $l (`cat $f_m`)
 
 			print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$ndp_ref,"\t",$ndp_ref/($ndp_ref+$ndp_var),"\t",$ndp_var,"\t",$ndp_var/($ndp_var+$ndp_ref),"\t",$tdp_ref,"\t",$tdp_ref/($tdp_ref+$tdp_var),"\t",$tdp_var,"\t",$tdp_var/($tdp_var+$tdp_ref),"\n";
 
-		if($tdp_var/($tdp_var+$tdp_ref)>=0.05) 
+		if($tdp_var/($tdp_var+$tdp_ref)>=$min_vaf_somatic && $ndp_ref/($ndp_ref+$ndp_var)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 
 		{
-		            print OUT1 $ltr,"\n";	
-	}
+		       print OUT1 $ltr,"\n";	
+		}
 		
 	}
 
