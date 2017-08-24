@@ -39,8 +39,9 @@ $purple 	 [4]  Parse VarScan result
 $cyan 		 [5]  Run Pindel
 $gray 		 [6]  Run VEP annotation
 $gray 		 [7]  Parse Pindel
-$gray 		 [8]  Merge vcf files  
-$gray 		 [9] generate maf file 
+$gray 		 [8]  Run mutect 
+$gray 		 [9]  Merge vcf files  
+$gray 		 [10] generate maf file 
 $normal
 OUT
 
@@ -116,6 +117,7 @@ if ($step_number < 10) {
 				   &bsub_pindel();
 				   &bsub_vep();
 				   &bsub_parse_pindel();
+				   &bsub_mutect();
 				   &bsub_merge_vcf();
 				   &bsub_vcf_2_maf();
 				  # &bsub_pindel();	
@@ -140,8 +142,10 @@ if ($step_number < 10) {
                 }elsif ($step_number == 7) {
                     &bsub_parse_pindel(1);
                 }elsif ($step_number == 8) {
-                    &bsub_merge_vcf(1);
+                    &bsub_mutect(1);
                 }elsif ($step_number == 9) {
+                    &bsub_merge_vcf(1);
+                }elsif ($step_number == 10) {
                     &bsub_vcf_2_maf(1);
                 }
 
@@ -157,7 +161,7 @@ if ($step_number < 10) {
 
 #######################################################################
 # send email to notify the finish of the analysis
-if (($step_number == 0) || ($step_number == 10)) {
+if (($step_number == 0) || ($step_number == 11)) {
     print $yellow, "Submitting the job for sending an email when the run finishes ",$sample_name, "...",$normal, "\n";
     $hold_job_file = $current_job_file;
     $current_job_file = "Email_run_".$$.".sh";
@@ -209,6 +213,10 @@ sub bsub_strelka{
         print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
     }
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
     open(STREKA, ">$job_files_dir/$current_job_file") or die $!;
     print STREKA "#!/bin/bash\n";
     print STREKA "#BSUB -n 1\n";
@@ -228,7 +236,7 @@ sub bsub_strelka{
 	print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
    	print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
  	print STREKA "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-	print STREKA "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
+	print STREKA "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
 	print STREKA "export JAVA_OPTS=\"-Xmx2g\"\n";
 	print STREKA "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print STREKA "if [ ! -d \${myRUNDIR} ]\n";
@@ -250,7 +258,7 @@ sub bsub_strelka{
 	print STREKA "statfile=incomplete.strelka\n";
 	print STREKA "localstatus=".$sample_full_path."/status/\$statfile\n";
 	print STREKA "touch \$localstatus\n";
-	print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config \$CONFDIR/strelka.ini --output-dir \$STRELKA_OUT\n";
+	print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config $run_script_path/strelka.ini --output-dir \$STRELKA_OUT\n";
 	print STREKA "cd \$STRELKA_OUT\n";
 	print STREKA "make -j 16\n";
     close STREKA;
@@ -270,6 +278,11 @@ sub bsub_varscan{
     $current_job_file = "j2_varscan_".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+
     if (! -e $IN_bam_T) {#make sure there is a input fasta file 
         print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         print "Warning: Died because there is no input bam file for bwa:\n";
@@ -316,7 +329,7 @@ sub bsub_varscan{
    	print VARSCAN "GENOMEVIP_SCRIPTS=/gscmnt/gc2525/dinglab/rmashl/Software/bin/genomevip\n";
 	print VARSCAN "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
 	print VARSCAN "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print VARSCAN "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
+    print VARSCAN "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
     print VARSCAN "export JAVA_OPTS=\"-Xmx2g\"\n";
     print VARSCAN "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print VARSCAN "if [ ! -d \${myRUNDIR} ]\n";
@@ -351,7 +364,7 @@ sub bsub_varscan{
 	print VARSCAN "echo \"$IN_bam_N\" > \${BAMLIST}\n"; 
 	print VARSCAN "echo \"$IN_bam_T\" >> \${BAMLIST}\n";  
 	print VARSCAN "ncols=\$(echo \"3*( \$(wc -l < \$BAMLIST) +1)\"|bc)\n";
-	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 30 --min-coverage-tumor 22 --min-var-freq 0.08 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
+	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
   	close VARSCAN;	
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com );
@@ -369,6 +382,11 @@ sub bsub_parse_strelka{
 
 
     $current_job_file = "j3_parse_strelka".$sample_name.".sh";
+
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
 
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
@@ -395,7 +413,7 @@ sub bsub_parse_strelka{
     print STREKAP "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
 	print STREKAP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print STREKAP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-    print STREKAP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
+    print STREKAP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
     print STREKAP "export JAVA_OPTS=\"-Xmx2g\"\n";
     print STREKAP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print STREKAP "cat > \${myRUNDIR}/strelka_out/results/strelka_dbsnp_filter.snv.input <<EOF\n";
@@ -491,6 +509,11 @@ sub bsub_parse_varscan{
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+
     open(VARSCANP, ">$job_files_dir/$current_job_file") or die $!;
 
     print VARSCANP "#!/bin/bash\n";
@@ -510,7 +533,7 @@ sub bsub_parse_varscan{
     print VARSCANP "RUNDIR=".$sample_full_path."\n";
     print VARSCANP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print VARSCANP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print VARSCANP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
+    print VARSCANP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
 #    print VARSCANP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
 	print VARSCANP "export JAVA_OPTS=\"-Xmx2g\"\n";
     print VARSCANP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
@@ -608,7 +631,7 @@ sub bsub_parse_varscan{
 	print VARSCANP "     ".$run_script_path."genomevip_label.pl VarScan \${indeloutbase}.vcf \${indeloutbase}.gvip.vcf\n";
 	print VARSCANP "echo \'APPLYING PROCESS FILTER TO SOMATIC SNVS:\' &>> \${LOG}\n";
 	print VARSCANP "mysnvorig=./\${snvoutbase}.gvip.vcf\n";
-	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${mysnvorig} --min-tumor-freq 0.10 --max-normal-freq 0.05 --p-value 0.07  &>> \${LOG}\n";
+	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${mysnvorig} --min-tumor-freq 0.05 --max-normal-freq 0.01 --p-value 0.05  &>> \${LOG}\n";
 	print VARSCANP "     ".$run_script_path."extract_somatic_other.pl <  \${mysnvorig}  > \${mysnvorig/%vcf/other.vcf}\n";
     print VARSCANP "for kk in Somatic Germline LOH ; do\n";
    	print VARSCANP "thisorig=\${mysnvorig/%vcf/\$kk.vcf}\n";
@@ -619,7 +642,7 @@ sub bsub_parse_varscan{
 	print VARSCANP "done\n";
 	print VARSCANP "echo \'APPLYING PROCESS FILTER TO SOMATIC INDELS:\' &>> \$LOG\n";
 	print VARSCANP "myindelorig=./\$indeloutbase.gvip.vcf\n";
-	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${myindelorig}   --min-tumor-freq  0.10   --max-normal-freq  0.05   --p-value  0.07  &>> \${LOG}\n";
+	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${myindelorig}   --min-tumor-freq  0.05   --max-normal-freq  0.01   --p-value  0.05  &>> \${LOG}\n";
 	print VARSCANP "     ".$run_script_path."extract_somatic_other.pl <  \${myindelorig}  >  \${myindelorig/%vcf/other.vcf}\n";
 	print VARSCANP "for kk in Somatic Germline LOH ; do\n";
     print VARSCANP "thisorig=\${myindelorig/%vcf/\$kk.vcf}\n";
@@ -637,7 +660,7 @@ sub bsub_parse_varscan{
 	print VARSCANP "myindelorig=\${indeloutbase}.gvip.vcf\n";
 	print VARSCANP "thissnvpass=\${snvoutbase}.gvip.Somatic.hc.somfilter_pass.vcf\n";
 	print VARSCANP "thissnvfail=\${snvoutbase}.gvip.Somatic.hc.somfilter_fail.vcf\n";
-	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somaticFilter  ./\${thissnvorig} --min-coverage  30   --min-reads2  4   --min-strands2  1   --min-avg-qual  20   --min-var-freq  0.10   --p-value  0.05   --indel-file  ./\${myindelorig} --output-file  ./\${thissnvpass}  &>> \${LOG}\n";
+	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somaticFilter  ./\${thissnvorig} --min-coverage  20   --min-reads2  4   --min-strands2  1   --min-avg-qual  20   --min-var-freq  0.05   --p-value  0.05   --indel-file  ./\${myindelorig} --output-file  ./\${thissnvpass}  &>> \${LOG}\n";
 	print VARSCANP "     ".$script_dir."/extract_fail.sh ./\${thissnvorig}  ./\${thissnvpass}   ./\${thissnvfail}\n";
 	print VARSCANP "     ".$script_dir."/set_vcf_filter_label.sh  ./\${thissnvfail}   somfilter_fail\n";
 # $del_local  ./$thissnvorig
@@ -671,6 +694,10 @@ sub bsub_pindel{
 	$current_job_file = "j5_pindel".$sample_name.".sh";  
 	my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
     open(PINDEL, ">$job_files_dir/$current_job_file") or die $!;
     print PINDEL "#!/bin/bash\n";
     print PINDEL "#BSUB -n 4\n";
@@ -705,9 +732,16 @@ sub bsub_vep{
         $hold_job_file = $current_job_file;
     }
 
+
     $current_job_file = "j6_vep".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+
     open(VEP, ">$job_files_dir/$current_job_file") or die $!; 
 	print VEP "#!/bin/bash\n";
     print VEP "#BSUB -n 1\n";
@@ -726,7 +760,7 @@ sub bsub_vep{
     print VEP "RUNDIR=".$sample_full_path."\n";
     print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print VEP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print VEP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
+    print VEP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
     print VEP "export JAVA_OPTS=\"-Xmx2g\"\n";
     print VEP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print VEP "cat > \${RUNDIR}/varscan/vs_vep.snv.input <<EOF\n";
@@ -822,6 +856,11 @@ sub bsub_parse_pindel {
 
     $current_job_file = "j7_parse_pindel".$sample_name.".sh";
 
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+
     open(PP, ">$job_files_dir/$current_job_file") or die $!;
     print PP "#!/bin/bash\n";
     print PP "#BSUB -n 1\n";
@@ -834,10 +873,6 @@ sub bsub_parse_pindel {
     print PP "#BSUB -w \"$hold_job_file\"","\n";
     print PP "RUNDIR=".$sample_full_path."\n";
 	print PP "cat > \${RUNDIR}/pindel/pindel_filter.input <<EOF\n";
-    print PP "lsf_out=".$lsf_file_dir."/".$current_job_file.".out\n";
-    print PP "lsf_err=".$lsf_file_dir."/".$current_job_file.".err\n";
-    print PP "rm \${lsf_out}\n";
-    print PP "rm \${lsf_err}\n";
 	print PP "pindel.filter.pindel2vcf = $PINDEL_DIR/pindel2vcf\n";
 	print PP "pindel.filter.variants_file = \${RUNDIR}/pindel/pindel.out.raw\n";
 	print PP "pindel.filter.REF = $h37_REF\n";
@@ -877,7 +912,7 @@ sub bsub_parse_pindel {
 	print PP 'current_final=${pin_var_file/%raw/current_final.gvip.Somatic.vcf}'."\n";
 	print PP 'cat ./${pre_current_final/%vcf/gvip.vcf} > ./$current_final'."\n";
 	print PP "fi\n";
-    print PP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
+    print PP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
     #print PP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
 	print PP "export JAVA_OPTS=\"-Xmx2g\"\n";
     print PP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
@@ -915,6 +950,80 @@ sub bsub_parse_pindel {
     system ($bsub_com);
 	}
 
+sub bsub_mutect{
+    #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
+    $current_job_file = "j8_mutect_".$sample_name.".sh";
+    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
+    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+    if (! -e $IN_bam_T) {#make sure there is a input fasta file 
+        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
+        print "Warning: Died because there is no input bam file for bwa:\n";
+        print "File $IN_bam_T does not exist!\n";
+        die "Please check command line argument!", $normal, "\n\n";
+
+    }
+    if (! -s $IN_bam_T) {#make sure input fasta file is not empty
+        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
+        die "Warning: Died because $IN_bam_T is empty!", $normal, "\n\n";
+    }
+    if (! -e $IN_bam_N) {#make sure there is a input fasta file 
+        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
+        print "Warning: Died because there is no input bam file for bwa:\n";
+        print "File $IN_bam_N does not exist!\n";
+        die "Please check command line argument!", $normal, "\n\n";
+
+    }
+
+    if (! -s $IN_bam_N) {#make sure input fasta file is not empty
+        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
+        die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
+    }
+
+	my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+	`rm $lsf_err`; 
+
+    open(MUTECT, ">$job_files_dir/$current_job_file") or die $!;
+    print MUTECT "#!/bin/bash\n";
+    print MUTECT "#BSUB -n 1\n";
+    print MUTECT "#BSUB -R \"rusage[mem=30000]\"","\n";
+    print MUTECT "#BSUB -M 30000000\n";
+    print MUTECT "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
+    print MUTECT "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
+    print MUTECT "#BSUB -J $current_job_file\n";
+    print MUTECT "scr_t0=\`date \+\%s\`\n";
+    print MUTECT "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
+    print MUTECT "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
+    print MUTECT "myRUNDIR=".$sample_full_path."/mutect\n";
+    print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
+    print MUTECT "rawvcfgvip=".$sample_full_path."/mutect/mutect.raw.gvip.vcf\n";
+    print MUTECT "rawvcfsnv=".$sample_full_path."/mutect/mutect.raw.gvip.snv.vcf\n";
+    print MUTECT "rawvcfindel=".$sample_full_path."/mutect/mutect.raw.gvip.indel.vcf\n";
+    print MUTECT "RUNDIR=".$sample_full_path."\n";
+    print MUTECT "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
+    print MUTECT "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+    print MUTECT "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
+    print MUTECT "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
+    print MUTECT "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
+    print MUTECT "if [ ! -d \${myRUNDIR} ]\n";
+    print MUTECT "then\n";
+    print MUTECT "mkdir \${myRUNDIR}\n";
+    print MUTECT "fi\n";
+    print MUTECT "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+    print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
+    print MUTECT "else\n";
+    print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
+    print MUTECT "fi\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor $IN_bam_N -I:normal $IN_bam_T  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${raw.vcf}\n";
+    print MUTECT "     ".$run_script_path."genomevip_label.pl mutect \${rawvcf} \${rawvcfgvip}\n";
+    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip}  -o  \${rawvcfsnv}   -selectType SNP -selectType MNP\n";
+    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip} -o \${rawvcfindel}  -selectType INDEL\n";
+    close MUTECT;
+    $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
+    system ( $bsub_com );
+}
+
 sub bsub_merge_vcf{
   
     my ($step_by_step) = @_;
@@ -924,10 +1033,14 @@ sub bsub_merge_vcf{
         $hold_job_file = $current_job_file;
     }
 
-    $current_job_file = "j8_merge_vcf.".$sample_name.".sh";
+    $current_job_file = "j9_merge_vcf.".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`; 
     open(MERGE, ">$job_files_dir/$current_job_file") or die $!;
     print MERGE "#!/bin/bash\n";
     print MERGE "#BSUB -n 1\n";
@@ -945,12 +1058,8 @@ sub bsub_merge_vcf{
     print MERGE "STATUSDIR=".$sample_full_path."/status\n";
     print MERGE "RUNDIR=".$sample_full_path."\n";
     #print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-    print MERGE "lsf_out=".$lsf_file_dir."/".$current_job_file.".out\n";
-	print MERGE "lsf_err=".$lsf_file_dir."/".$current_job_file.".err\n";
-	print MERGE "rm \${lsf_out}\n";
-	print MERGE "rm \${lsf_err}\n";
 	print MERGE "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print MERGE "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
+    print MERGE "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
     print MERGE "export JAVA_OPTS=\"-Xmx2g\"\n";
     print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print MERGE "STRELKA_VCF="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
@@ -986,7 +1095,13 @@ sub bsub_vcf_2_maf{
         $hold_job_file = $current_job_file;
     }
 
-    $current_job_file = "j9_vcf_2_maf.".$sample_name.".sh";
+
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+
+    $current_job_file = "j10_vcf_2_maf.".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
@@ -1000,10 +1115,6 @@ sub bsub_vcf_2_maf{
     print MAF "#BSUB -J $current_job_file\n";
     print MAF "#BSUB -q long\n";
     print MAF "#BSUB -w \"$hold_job_file\"","\n";
-    print MAF "lsf_out=".$lsf_file_dir."/".$current_job_file.".out\n";
-    print MAF "lsf_err=".$lsf_file_dir."/".$current_job_file.".err\n";
-    print MAF "rm \${lsf_out}\n";
-    print MAF "rm \${lsf_err}\n";
     print MAF "F_VCF_1=".$sample_full_path."/merged.filtered.vcf\n";
 	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".vcf\n";
     print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.vcf\n";
