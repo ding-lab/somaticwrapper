@@ -5,6 +5,8 @@
 ### updated date: 04/18/2017 ###
 ### add vcf2maf.pl ###
 ### 07/14/2017 ##
+##3 vaf_filter.pl ###
+### 08/25/2017 ####
 
 #!/usr/bin/perl
 use strict;
@@ -832,6 +834,10 @@ sub bsub_parse_pindel {
     print PP "#BSUB -w \"$hold_job_file\"","\n";
     print PP "RUNDIR=".$sample_full_path."\n";
 	print PP "cat > \${RUNDIR}/pindel/pindel_filter.input <<EOF\n";
+    print PP "lsf_out=".$lsf_file_dir."/".$current_job_file.".out\n";
+    print PP "lsf_err=".$lsf_file_dir."/".$current_job_file.".err\n";
+    print PP "rm \${lsf_out}\n";
+    print PP "rm \${lsf_err}\n";
 	print PP "pindel.filter.pindel2vcf = $PINDEL_DIR/pindel2vcf\n";
 	print PP "pindel.filter.variants_file = \${RUNDIR}/pindel/pindel.out.raw\n";
 	print PP "pindel.filter.REF = $h37_REF\n";
@@ -939,7 +945,11 @@ sub bsub_merge_vcf{
     print MERGE "STATUSDIR=".$sample_full_path."/status\n";
     print MERGE "RUNDIR=".$sample_full_path."\n";
     #print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-    print MERGE "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+    print MERGE "lsf_out=".$lsf_file_dir."/".$current_job_file.".out\n";
+	print MERGE "lsf_err=".$lsf_file_dir."/".$current_job_file.".err\n";
+	print MERGE "rm \${lsf_out}\n";
+	print MERGE "rm \${lsf_err}\n";
+	print MERGE "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print MERGE "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
     print MERGE "export JAVA_OPTS=\"-Xmx2g\"\n";
     print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
@@ -990,6 +1000,10 @@ sub bsub_vcf_2_maf{
     print MAF "#BSUB -J $current_job_file\n";
     print MAF "#BSUB -q long\n";
     print MAF "#BSUB -w \"$hold_job_file\"","\n";
+    print MAF "lsf_out=".$lsf_file_dir."/".$current_job_file.".out\n";
+    print MAF "lsf_err=".$lsf_file_dir."/".$current_job_file.".err\n";
+    print MAF "rm \${lsf_out}\n";
+    print MAF "rm \${lsf_err}\n";
     print MAF "F_VCF_1=".$sample_full_path."/merged.filtered.vcf\n";
 	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".vcf\n";
     print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.vcf\n";
