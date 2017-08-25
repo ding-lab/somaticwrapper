@@ -24,29 +24,29 @@ my $normal = "\e[0m";
 #usage information
 
 (my $usage = <<OUT) =~ s/\t+//g;
-This script will process rna-seq data for TCGA samples. 
+Somatic variant calling pipeline 
 Pipeline version: $version
-$yellow     Usage: perl $0 <run_folder> <step_number> $normal
+$yellow     Usage: perl $0 <run_folder> <status_rg> <step_number> $normal
 
 <run_folder> = full path of the folder holding files for this sequence run
-
+<statas_rg> = bam having read group or not: 1, yes and 0, no. 
 <step_number> run this pipeline step by step. (running the whole pipeline if step number is 0)
 
 $green       [1]  Run streka
-$red 		 [2]  Run Varscan
-$yellow 	 [3]  Parse streka result
-$purple 	 [4]  Parse VarScan result
-$cyan 		 [5]  Run Pindel
-$gray 		 [6]  Run VEP annotation
-$gray 		 [7]  Parse Pindel
-$gray 		 [8]  Run mutect 
-$gray 		 [9]  Merge vcf files  
-$gray 		 [10] generate maf file 
+$green 		 [2]  Run Varscan
+$green 		 [3]  Parse streka result
+$green 	 	 [4]  Parse VarScan result
+$green 		 [5]  Run Pindel
+$green 		 [6]  Run VEP annotation
+$green 		 [7]  Parse Pindel
+$green		 [8]  Run mutect 
+$green 		 [9]  Merge vcf files  
+$green 		 [10] generate maf file 
 $normal
 OUT
 
-die $usage unless @ARGV == 2;
-my ( $run_dir, $step_number ) = @ARGV;
+die $usage unless @ARGV == 3;
+my ($run_dir, $status_rg, $step_number) = @ARGV;
 if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
@@ -87,6 +87,7 @@ my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.si
 my $h37_REF_bai="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite-chr_with_chrM.fa.fai";
 my $pindel="/gscuser/qgao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
+my $picardexe="/gscuser/scao/tools/picard.jar";
 my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
 my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 
@@ -111,7 +112,6 @@ if ($step_number < 10) {
                 {  
 				   &bsub_strelka();
 				   &bsub_varscan();
-				   #&bsub_mutect();
 				   &bsub_parse_strelka();
 				   &bsub_parse_varscan();
 				   &bsub_pindel();
@@ -120,16 +120,12 @@ if ($step_number < 10) {
 				   &bsub_mutect();
 				   &bsub_merge_vcf();
 				   &bsub_vcf_2_maf();
-				  # &bsub_pindel();	
 				}
                  elsif ($step_number == 1) {
                     &bsub_strelka();
                 } elsif ($step_number == 2) {
                     &bsub_varscan(1);
                 } 
-#elsif ($step_number == 3) {
- #                   &bsub_mutect(1);
- #               }
 				elsif ($step_number == 3) {
                     &bsub_parse_strelka(1);
                 } 
@@ -237,7 +233,7 @@ sub bsub_strelka{
    	print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
  	print STREKA "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
 	print STREKA "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-	print STREKA "export JAVA_OPTS=\"-Xmx2g\"\n";
+	print STREKA "export JAVA_OPTS=\"-Xmx5g\"\n";
 	print STREKA "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print STREKA "if [ ! -d \${myRUNDIR} ]\n";
 	print STREKA "then\n";
@@ -330,7 +326,7 @@ sub bsub_varscan{
 	print VARSCAN "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
 	print VARSCAN "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print VARSCAN "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-    print VARSCAN "export JAVA_OPTS=\"-Xmx2g\"\n";
+    print VARSCAN "export JAVA_OPTS=\"-Xmx5g\"\n";
     print VARSCAN "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print VARSCAN "if [ ! -d \${myRUNDIR} ]\n";
     print VARSCAN "then\n";
@@ -414,7 +410,7 @@ sub bsub_parse_strelka{
 	print STREKAP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print STREKAP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print STREKAP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-    print STREKAP "export JAVA_OPTS=\"-Xmx2g\"\n";
+    print STREKAP "export JAVA_OPTS=\"-Xmx5g\"\n";
     print STREKAP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print STREKAP "cat > \${myRUNDIR}/strelka_out/results/strelka_dbsnp_filter.snv.input <<EOF\n";
     print STREKAP "streka.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
@@ -424,22 +420,6 @@ sub bsub_parse_strelka{
     print STREKAP "streka.dbsnp.snv.passfile  = ./strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
     print STREKAP "streka.dbsnp.snv.dbsnpfile = ./strelka.somatic.snv.all.gvip.dbsnp_present.vcf\n";
     print STREKAP "EOF\n";
-  #	print STREKAP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.snv.input <<EOF\n";
-  #  print STREKAP "strelka.vep.vcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-  #  print STREKAP "strelka.vep.output = ./varscan.out.som_snv.current_final.gvip.Somatic.VEP.vcf\n";
-  #  print STREKAP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-  #  print STREKAP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-  #  print STREKAP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
- #   print STREKAP "strelka.vep.assembly = GRCh37\n";
- #   print STREKAP "EOF\n";
- #   print STREKAP "cat > \${RUNDIR}/varscan/vs_vep.indel.input <<EOF\n";
- #   print STREKAP "varscan.vep.vcf = ./varscan.out.som_indel.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
- #   print STREKAP "varscan.vep.output = ./varscan.out.som_indel.current_final.gvip.Somatic.VEP.vcf\n";
- #   print STREKAP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
- #   print STREKAP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
- #   print STREKAP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-  #  print STREKAP "varscan.vep.assembly = GRCh37\n";
-  #  print STREKAP "EOF\n";  
 	print STREKAP "cat > \${myRUNDIR}/strelka_out/results/strelka_dbsnp_filter.indel.input <<EOF\n";
    	print STREKAP "streka.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
     print STREKAP "streka.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
@@ -481,17 +461,12 @@ sub bsub_parse_strelka{
     print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.indels.vcf ./strelka.somatic.indel.all.gvip.vcf\n";
 	print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.snvs.vcf ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
     print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.indels.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n"; 
-   	#print STREKAP " 	"."cp ./strelka.somatic.snv.all.gvip.vcf ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
-   	#print STREKAP "     "."cp ./strelka.somatic.indel.all.gvip.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";
 	print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.snv.input\n";
     print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.indel.input\n";
     print STREKAP "     ".$run_script_path."snv_filter.pl ./strelka_fpfilter.snv.input\n";  
-    #print STREKAP "     ".$run_script_path."vep_annotator.pl ./vs_vep.snv.input >& ./vs_vep.snv.log\n";
-    #print STREKAP "     ".$run_script_path."vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";	
 	close STREKAP;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com ); 
-# print STREKAP "EOF\n";
 
 }
 sub bsub_parse_varscan{
@@ -535,7 +510,7 @@ sub bsub_parse_varscan{
     print VARSCANP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print VARSCANP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
 #    print VARSCANP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
-	print VARSCANP "export JAVA_OPTS=\"-Xmx2g\"\n";
+	print VARSCANP "export JAVA_OPTS=\"-Xmx5g\"\n";
     print VARSCANP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input <<EOF\n";
 	print VARSCANP "varscan.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
@@ -761,7 +736,7 @@ sub bsub_vep{
     print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print VEP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print VEP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-    print VEP "export JAVA_OPTS=\"-Xmx2g\"\n";
+    print VEP "export JAVA_OPTS=\"-Xmx5g\"\n";
     print VEP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print VEP "cat > \${RUNDIR}/varscan/vs_vep.snv.input <<EOF\n";
     print VEP "varscan.vep.vcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
@@ -914,7 +889,7 @@ sub bsub_parse_pindel {
 	print PP "fi\n";
     print PP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
     #print PP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
-	print PP "export JAVA_OPTS=\"-Xmx2g\"\n";
+	print PP "export JAVA_OPTS=\"-Xmx5g\"\n";
     print PP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     #print PP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
     #print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
@@ -995,6 +970,10 @@ sub bsub_mutect{
     print MUTECT "scr_t0=\`date \+\%s\`\n";
     print MUTECT "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print MUTECT "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
+	print MUTECT "TBAM_rg=".$sample_full_path."/".$sample_name.".T.rg.bam\n";
+    print MUTECT "NBAM_rg=".$sample_full_path."/".$sample_name.".N.rg.bam\n";
+    print MUTECT "TBAM_rg_bai=".$sample_full_path."/".$sample_name.".T.rg.bam.bai\n";
+    print MUTECT "NBAM_rg_bai=".$sample_full_path."/".$sample_name.".N.rg.bam.bai\n";
     print MUTECT "myRUNDIR=".$sample_full_path."/mutect\n";
     print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
     print MUTECT "rawvcfgvip=".$sample_full_path."/mutect/mutect.raw.gvip.vcf\n";
@@ -1004,19 +983,32 @@ sub bsub_mutect{
     print MUTECT "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
     print MUTECT "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print MUTECT "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-    print MUTECT "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
+    print MUTECT "export JAVA_OPTS=\"-Xmx5g\"\n";
     print MUTECT "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print MUTECT "if [ ! -d \${myRUNDIR} ]\n";
     print MUTECT "then\n";
     print MUTECT "mkdir \${myRUNDIR}\n";
     print MUTECT "fi\n";
-    print MUTECT "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-    print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-    print MUTECT "else\n";
+   # print MUTECT "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+   # print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
+   # print MUTECT "else\n";
     print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
+    #print MUTECT "fi\n";
+    print MUTECT "if [ $status_rg -eq 0 ]\n";
+    print MUTECT "then\n";
+	print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${NBAM} O=\${NBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
+    print MUTECT "samtools index \${NBAM_rg}\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${TBAM} O=\${TBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
+    print MUTECT "samtools index \${TBAM_rg}\n";	
+  	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor \${TBAM_rg} -I:normal \${NBAM_rg}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";
+	print MUTECT "rm \${NBAM_rg}\n";
+    print MUTECT "rm \${NBAM_rg_bai}\n";
+	print MUTECT "rm \${TBAM_rg}\n";
+    print MUTECT "rm \${TBAM_rg_bai}\n";
+    print MUTECT "  else\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor \${TBAM} -I:normal \${NBAM}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";			
     print MUTECT "fi\n";
-    print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor $IN_bam_N -I:normal $IN_bam_T  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${raw.vcf}\n";
-    print MUTECT "     ".$run_script_path."genomevip_label.pl mutect \${rawvcf} \${rawvcfgvip}\n";
+	print MUTECT "     ".$run_script_path."genomevip_label.pl mutect \${rawvcf} \${rawvcfgvip}\n";
     print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip}  -o  \${rawvcfsnv}   -selectType SNP -selectType MNP\n";
     print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip} -o \${rawvcfindel}  -selectType INDEL\n";
     close MUTECT;
@@ -1060,7 +1052,7 @@ sub bsub_merge_vcf{
     #print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
 	print MERGE "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print MERGE "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-    print MERGE "export JAVA_OPTS=\"-Xmx2g\"\n";
+    print MERGE "export JAVA_OPTS=\"-Xmx5g\"\n";
     print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print MERGE "STRELKA_VCF="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
 	print MERGE "VARSCAN_VCF="."\${RUNDIR}/varscan/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
