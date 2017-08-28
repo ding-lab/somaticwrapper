@@ -12,6 +12,8 @@
 use strict;
 use warnings;
 #use POSIX;
+use Getopt::Long;
+
 my $version = 1.0;
 #color code
 my $red = "\e[31m";
@@ -26,30 +28,65 @@ my $normal = "\e[0m";
 (my $usage = <<OUT) =~ s/\t+//g;
 Somatic variant calling pipeline 
 Pipeline version: $version
-$yellow     Usage: perl $0 <run_folder> <status_rg> <step_number> $normal
+$yellow     Usage: perl $0  --srg --stepn --sre --rdir $normal
 
-<run_folder> = full path of the folder holding files for this sequence run
-<statas_rg> = bam having read group or not: 1, yes and 0, no. 
-<step_number> run this pipeline step by step. (running the whole pipeline if step number is 0)
+<rdir> = full path of the folder holding files for this sequence run (user must provide)
+<srg> = bam having read group or not: 1, yes and 0, no (default 1)
+<sre> = re-run: 1, yes and 0, no  (default 0)
+<stepn> run this pipeline step by step. (running the whole pipeline if stepn=0 (default))
 
 $green       [1]  Run streka
 $green 		 [2]  Run Varscan
-$green 		 [3]  Parse streka result
-$green 	 	 [4]  Parse VarScan result
+$yellow 	 [3]  Parse streka result
+$yellow 	 [4]  Parse VarScan result
 $green 		 [5]  Run Pindel
-$green 		 [6]  Run VEP annotation
-$green 		 [7]  Parse Pindel
+$purple 	 [6]  Run VEP annotation
+$yellow 	 [7]  Parse Pindel
 $green		 [8]  Run mutect 
-$green 		 [9]  Merge vcf files  
-$green 		 [10] generate maf file 
+$gray 	     [9]  Merge vcf files  
+$cyan		 [10] generate maf file 
 $normal
 OUT
 
-die $usage unless @ARGV == 3;
-my ($run_dir, $status_rg, $step_number) = @ARGV;
+#__DEFAULT NUMBER OF BINS IE (MUST BE INTEGER)
+my $step_number = 0;
+my $status_rg = 1;
+my $status_rerun=0; 
+
+#__HELP (BOOLEAN, DEFAULTS TO NO-HELP)
+my $help = 0;
+
+#__FILE NAME (STRING, NO DEFAULT)
+my $run_dir="";
+
+#__PARSE COMMAND LINE
+my $status = &GetOptions (
+      "stepn=i" => \$step_number,
+      "srg=i" => \$status_rg,
+      "sre=i" => \$status_rerun,	
+      "rdir=s" => \$run_dir,
+   	  "help" => \$help, 
+	);
+ 
+#print $status,"\n";
+
+if ($help || $run_dir eq "") {
+	  print $usage;
+      exit;
+   }
+
+print "run dir=",$run_dir,"\n";
+print "step num=",$step_number,"\n";
+print "status rerun=",$status_rerun,"\n";
+print "status readgroup=",$status_rg,"\n";
+
+#<STDIN>;
+#die $usage unless @ARGV == 3;
+#my ($run_dir, $status_rg, $step_number) = @ARGV;
 if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
+
 die $usage unless ($step_number >=0)&&(($step_number <= 10));
 my $email = "scao\@wustl\.edu";
 # everything else below should be automated
@@ -80,7 +117,8 @@ my $hold_job_file = "";
 my $bsub_com = "";
 my $sample_full_path = "";
 my $sample_name = "";
-my $mutect="/gscuser/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
+#my $mutect="/gscuser/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
+my $mutect="/gscuser/scao/tools/mutect-1.1.7.jar";
 my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
 my $h37_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
@@ -213,6 +251,8 @@ sub bsub_strelka{
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
     `rm $lsf_err`;
+	`rm $current_job_file`;
+
     open(STREKA, ">$job_files_dir/$current_job_file") or die $!;
     print STREKA "#!/bin/bash\n";
     print STREKA "#BSUB -n 1\n";
@@ -233,7 +273,7 @@ sub bsub_strelka{
    	print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
  	print STREKA "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
 	print STREKA "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-	print STREKA "export JAVA_OPTS=\"-Xmx5g\"\n";
+	print STREKA "export JAVA_OPTS=\"-Xmx10g\"\n";
 	print STREKA "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print STREKA "if [ ! -d \${myRUNDIR} ]\n";
 	print STREKA "then\n";
@@ -326,17 +366,17 @@ sub bsub_varscan{
 	print VARSCAN "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
 	print VARSCAN "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print VARSCAN "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-    print VARSCAN "export JAVA_OPTS=\"-Xmx5g\"\n";
+    print VARSCAN "export JAVA_OPTS=\"-Xmx10g\"\n";
     print VARSCAN "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print VARSCAN "if [ ! -d \${myRUNDIR} ]\n";
     print VARSCAN "then\n";
     print VARSCAN "mkdir \${myRUNDIR}\n";
     print VARSCAN "fi\n";
-   # print VARSCAN "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-   # print VARSCAN "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-    #print VARSCAN "else\n";
+    print VARSCAN "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+    print VARSCAN "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
+    print VARSCAN "else\n";
     print VARSCAN "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-    #print VARSCAN "fi\n";
+    print VARSCAN "fi\n";
     print VARSCAN "put_cmd=\"ln -s\"\n";
     print VARSCAN "del_cmd=\"rm -f\"\n";
     print VARSCAN "del_local=\"rm -f\"\n";
@@ -360,8 +400,25 @@ sub bsub_varscan{
 	print VARSCAN "echo \"$IN_bam_N\" > \${BAMLIST}\n"; 
 	print VARSCAN "echo \"$IN_bam_T\" >> \${BAMLIST}\n";  
 	print VARSCAN "ncols=\$(echo \"3*( \$(wc -l < \$BAMLIST) +1)\"|bc)\n";
+    print VARSCAN "if [ $status_rerun -eq 1 ]\n";
+	print VARSCAN "then\n";
+    print VARSCAN "rm \${LOG}\n";
+    print VARSCAN "fi\n";
+    print VARSCAN '  if [ ! -s $LOG ]',"\n";
+    print VARSCAN "  then\n";	
 	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
-  	close VARSCAN;	
+   	print VARSCAN "  else\n";
+    print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";# one possible blast error (see the end of this script). 
+    print VARSCAN '      CHECK=$?',"\n";
+    print VARSCAN '      while [ ${CHECK} -eq 0 ]',"\n";
+    print VARSCAN "      do\n";
+    print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
+    print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";
+    print VARSCAN '          CHECK=$?',"\n";
+    print VARSCAN "      done\n";
+    print VARSCAN "  fi\n";
+ # 	print VARSCAN "
+	close VARSCAN;	
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com );
 }
@@ -410,7 +467,7 @@ sub bsub_parse_strelka{
 	print STREKAP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print STREKAP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print STREKAP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-    print STREKAP "export JAVA_OPTS=\"-Xmx5g\"\n";
+    print STREKAP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print STREKAP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print STREKAP "cat > \${myRUNDIR}/strelka_out/results/strelka_dbsnp_filter.snv.input <<EOF\n";
     print STREKAP "streka.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
@@ -461,9 +518,29 @@ sub bsub_parse_strelka{
     print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.indels.vcf ./strelka.somatic.indel.all.gvip.vcf\n";
 	print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.snvs.vcf ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
     print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.indels.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n"; 
+    print STREKAP "strekasnvout=\${STRELKA_OUT}/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
+	print STREKAP "strekaindelout=\${STRELKA_OUT}/results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
+    print STREKAP "if [ $status_rerun -eq 1 ]\n";	
+    print STREKAP "  then\n";
+	print STREKAP "rm \${strekasnvout}\n"; 
+    print STREKAP "fi\n";	
+    print STREKAP '  if [ ! -s $strekasnvout ]',"\n";
+    print STREKAP "  then\n";
+    print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.snv.input\n";
+    print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.indel.input\n";
+    print STREKAP "     ".$run_script_path."snv_filter.pl ./strelka_fpfilter.snv.input\n";
+    print STREKAP " else\n";
+    print STREKAP '      grep "Error occurred during initialization of VM" ${strekasnvout}',"\n";
+    print STREKAP '      CHECK=$?',"\n";
+    print STREKAP '      while [ ${CHECK} -eq 0 ]',"\n";
+    print STREKAP "      do\n";
 	print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.snv.input\n";
     print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.indel.input\n";
     print STREKAP "     ".$run_script_path."snv_filter.pl ./strelka_fpfilter.snv.input\n";  
+    print STREKAP '      grep "Error occurred during initialization of VM" ${strekasnvout}',"\n";
+    print STREKAP '          CHECK=$?',"\n";
+    print STREKAP "      done\n";
+    print STREKAP "  fi\n";
 	close STREKAP;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com ); 
@@ -510,7 +587,7 @@ sub bsub_parse_varscan{
     print VARSCANP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print VARSCANP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
 #    print VARSCANP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
-	print VARSCANP "export JAVA_OPTS=\"-Xmx5g\"\n";
+	print VARSCANP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print VARSCANP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input <<EOF\n";
 	print VARSCANP "varscan.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
@@ -520,14 +597,6 @@ sub bsub_parse_varscan{
 	print VARSCANP "varscan.dbsnp.snv.passfile  = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
 	print VARSCANP "varscan.dbsnp.snv.dbsnpfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf\n";
 	print VARSCANP "EOF\n";
- # 	print VARSCANP "cat > \${RUNDIR}/varscan/vs_cosmic_check.snv.input <<EOF\n";
- #  print VARSCANP "varscan.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
- #  print VARSCANP "varscan.dbsnp.snv.db = /gscmnt/gc2525/dinglab/rmashl/Software/bin/dbSNP/NCBI/snp142/GRCh37/00-All.brief.vcf\n";
- #  print VARSCANP "varscan.dbsnp.snv.rawvcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf\n";
- #  print VARSCANP "varscan.dbsnp.snv.mode = filter\n";
- #  print VARSCANP "varscan.dbsnp.snv.passfile  = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
- #  print VARSCANP "varscan.dbsnp.snv.dbsnpfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf\n";
- #  print VARSCANP "EOF\n";
 	print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.indel.input <<EOF\n";
 	print VARSCANP "varscan.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
 	print VARSCANP "varscan.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
@@ -581,11 +650,11 @@ sub bsub_parse_varscan{
     print VARSCANP "then\n";
     print VARSCANP "mkdir \${myRUNDIR}\n";
     print VARSCANP "fi\n";
-   # print VARSCANP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-  #  print VARSCANP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-    #print VARSCANP "else\n";
+    print VARSCANP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+    print VARSCANP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
+    print VARSCANP "else\n";
     print VARSCANP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-   # print VARSCANP "fi\n";
+    print VARSCANP "fi\n";
     print VARSCANP "put_cmd=\"ln -s\"\n";
     print VARSCANP "del_cmd=\"rm -f\"\n";
     print VARSCANP "del_local=\"rm -f\"\n";
@@ -606,14 +675,13 @@ sub bsub_parse_varscan{
 	print VARSCANP "     ".$run_script_path."genomevip_label.pl VarScan \${indeloutbase}.vcf \${indeloutbase}.gvip.vcf\n";
 	print VARSCANP "echo \'APPLYING PROCESS FILTER TO SOMATIC SNVS:\' &>> \${LOG}\n";
 	print VARSCANP "mysnvorig=./\${snvoutbase}.gvip.vcf\n";
+
 	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${mysnvorig} --min-tumor-freq 0.05 --max-normal-freq 0.01 --p-value 0.05  &>> \${LOG}\n";
 	print VARSCANP "     ".$run_script_path."extract_somatic_other.pl <  \${mysnvorig}  > \${mysnvorig/%vcf/other.vcf}\n";
     print VARSCANP "for kk in Somatic Germline LOH ; do\n";
    	print VARSCANP "thisorig=\${mysnvorig/%vcf/\$kk.vcf}\n";
     print VARSCANP "thispass=\${mysnvorig/%vcf/\$kk.hc.vcf}\n";
    	print VARSCANP "thisfail=\${mysnvorig/%vcf/\$kk.lc.vcf}\n";
-    print VARSCANP "     ".$script_dir."/extract_fail.sh  ./\${thisorig}  ./\${thispass}  ./\${thisfail}\n";
-   	print VARSCANP "     ".$script_dir."/set_vcf_filter_label.sh  ./\${thisfail}  hc_fail\n";
 	print VARSCANP "done\n";
 	print VARSCANP "echo \'APPLYING PROCESS FILTER TO SOMATIC INDELS:\' &>> \$LOG\n";
 	print VARSCANP "myindelorig=./\$indeloutbase.gvip.vcf\n";
@@ -623,35 +691,18 @@ sub bsub_parse_varscan{
     print VARSCANP "thisorig=\${myindelorig/%vcf/\$kk.vcf}\n";
    	print VARSCANP "thispass=\${myindelorig/%vcf/\$kk.hc.vcf}\n";
    	print VARSCANP "thisfail=\${myindelorig/%vcf/\$kk.lc.vcf}\n";
-   	print VARSCANP "     ".$script_dir."/extract_fail.sh  ./\${thisorig}  ./\${thispass}  ./\${thisfail}\n";
-   	print VARSCANP "     ".$script_dir."/set_vcf_filter_label.sh  ./\${thisfail}  hc_fail\n";
 	print VARSCANP "done\n";
-	print VARSCANP "scr_tf=\`date +%s\`\n";
-	print VARSCANP "scr_dt=\$((scr_tf - scr_t0))\n";
-	print VARSCANP "echo GVIP_TIMING_VARSCAN_DISCOVERY=\${scr_t0},\${scr_dt}\n";
-	print VARSCANP "scr_t0=\${scr_tf}\n";
 	print VARSCANP "echo \'APPLYING SOMATIC FILTER:\' &>> \${LOG}\n";
 	print VARSCANP "thissnvorig=\${snvoutbase}.gvip.Somatic.hc.vcf\n";
 	print VARSCANP "myindelorig=\${indeloutbase}.gvip.vcf\n";
 	print VARSCANP "thissnvpass=\${snvoutbase}.gvip.Somatic.hc.somfilter_pass.vcf\n";
 	print VARSCANP "thissnvfail=\${snvoutbase}.gvip.Somatic.hc.somfilter_fail.vcf\n";
-	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somaticFilter  ./\${thissnvorig} --min-coverage  20   --min-reads2  4   --min-strands2  1   --min-avg-qual  20   --min-var-freq  0.05   --p-value  0.05   --indel-file  ./\${myindelorig} --output-file  ./\${thissnvpass}  &>> \${LOG}\n";
-	print VARSCANP "     ".$script_dir."/extract_fail.sh ./\${thissnvorig}  ./\${thissnvpass}   ./\${thissnvfail}\n";
-	print VARSCANP "     ".$script_dir."/set_vcf_filter_label.sh  ./\${thissnvfail}   somfilter_fail\n";
-# $del_local  ./$thissnvorig
-# $del_local  ./$myindelorig
+	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somaticFilter  ./\${thissnvorig} --min-coverage  20   --min-reads2  4   --min-strands2  1   --min-avg-qual  20   --min-var-freq  0.05 --p-value  0.05   --indel-file  ./\${myindelorig} --output-file  ./\${thissnvpass}  &>> \${LOG}\n";
 	print VARSCANP "     ".$run_script_path."dbsnp_filter.pl  \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input\n";
-# $del_local ./varscan.out.som_snv.group0.chr1.gvip.Somatic.hc.somfilter_pass.vcf
 	print VARSCANP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/varscan/vs_dbsnp_filter.indel.input\n";
-# $del_local ./varscan.out.som_indel.group0.chr1.gvip.Somatic.hc.vcf
 	print VARSCANP "     ".$run_script_path."snv_filter.pl  \${RUNDIR}/varscan/vs_fpfilter.somatic.snv.input\n";
 	print VARSCANP "     ".$run_script_path."vep_annotator.pl ./vs_vep.snv.input >& ./vs_vep.snv.log\n";
 	print VARSCANP "     ".$run_script_path."vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";
-# $del_local  ./varscan.out.som_snv.group0.chr1.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf
-#mkdir -p $myRESULTSDIR
-	print VARSCANP "scr_tf=\`date +%s\`\n";
-	print VARSCANP "scr_dt=\$((scr_tf - scr_t0))\n";
-	print VARSCANP "echo GVIP_TIMING_VARSCAN_FILTERING=\${scr_t0},\${scr_dt}\n";
 	close VARSCANP; 
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com );
@@ -736,7 +787,7 @@ sub bsub_vep{
     print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print VEP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print VEP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-    print VEP "export JAVA_OPTS=\"-Xmx5g\"\n";
+    print VEP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print VEP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print VEP "cat > \${RUNDIR}/varscan/vs_vep.snv.input <<EOF\n";
     print VEP "varscan.vep.vcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
@@ -889,13 +940,13 @@ sub bsub_parse_pindel {
 	print PP "fi\n";
     print PP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
     #print PP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
-	print PP "export JAVA_OPTS=\"-Xmx5g\"\n";
+	print PP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print PP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    #print PP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-    #print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-    #print PP "else\n";
+    print PP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+    print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
+    print PP "else\n";
     print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-    #print PP "fi\n";
+    print PP "fi\n";
 	#print RefG '	if [ ! -f $ ]',"\n";
     print PP '  if [ ! -f $pindelout ]',"\n";
 	print PP "  then\n"; 	
@@ -974,6 +1025,8 @@ sub bsub_mutect{
     print MUTECT "NBAM_rg=".$sample_full_path."/".$sample_name.".N.rg.bam\n";
     print MUTECT "TBAM_rg_bai=".$sample_full_path."/".$sample_name.".T.rg.bam.bai\n";
     print MUTECT "NBAM_rg_bai=".$sample_full_path."/".$sample_name.".N.rg.bam.bai\n";
+	print MUTECT "fcov=".$sample_full_path."/mutect/mutect.coverage\n";
+    print MUTECT "fstat=".$sample_full_path."/mutect/mutect.status\n";
     print MUTECT "myRUNDIR=".$sample_full_path."/mutect\n";
     print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
     print MUTECT "rawvcfgvip=".$sample_full_path."/mutect/mutect.raw.gvip.vcf\n";
@@ -982,8 +1035,8 @@ sub bsub_mutect{
     print MUTECT "RUNDIR=".$sample_full_path."\n";
     print MUTECT "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
     print MUTECT "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print MUTECT "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-    print MUTECT "export JAVA_OPTS=\"-Xmx5g\"\n";
+    print MUTECT "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.7.0_67-x64\n";
+    print MUTECT "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MUTECT "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print MUTECT "if [ ! -d \${myRUNDIR} ]\n";
     print MUTECT "then\n";
@@ -995,22 +1048,23 @@ sub bsub_mutect{
     print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
     #print MUTECT "fi\n";
     print MUTECT "if [ $status_rg -eq 0 ]\n";
-    print MUTECT "then\n";
+    print MUTECT "then\n";	
 	print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${NBAM} O=\${NBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
     print MUTECT "samtools index \${NBAM_rg}\n";
     print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${TBAM} O=\${TBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
-    print MUTECT "samtools index \${TBAM_rg}\n";	
-  	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor \${TBAM_rg} -I:normal \${NBAM_rg}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";
+    print MUTECT "samtools index \${TBAM_rg}\n";
+	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";
+#  	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor \${TBAM_rg} -I:normal \${NBAM_rg}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";
 	print MUTECT "rm \${NBAM_rg}\n";
     print MUTECT "rm \${NBAM_rg_bai}\n";
 	print MUTECT "rm \${TBAM_rg}\n";
     print MUTECT "rm \${TBAM_rg_bai}\n";
-    print MUTECT "  else\n";
-    print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor \${TBAM} -I:normal \${NBAM}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";			
+	print MUTECT "else\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
     print MUTECT "fi\n";
 	print MUTECT "     ".$run_script_path."genomevip_label.pl mutect \${rawvcf} \${rawvcfgvip}\n";
-    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip}  -o  \${rawvcfsnv}   -selectType SNP -selectType MNP\n";
-    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip} -o \${rawvcfindel}  -selectType INDEL\n";
+#    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip}  -o  \${rawvcfsnv}   -selectType SNP -selectType MNP\n";
+#    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip} -o \${rawvcfindel}  -selectType INDEL\n";
     close MUTECT;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com );
@@ -1052,7 +1106,7 @@ sub bsub_merge_vcf{
     #print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
 	print MERGE "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print MERGE "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-    print MERGE "export JAVA_OPTS=\"-Xmx5g\"\n";
+    print MERGE "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print MERGE "STRELKA_VCF="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
 	print MERGE "VARSCAN_VCF="."\${RUNDIR}/varscan/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";

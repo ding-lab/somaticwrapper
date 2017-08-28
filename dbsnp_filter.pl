@@ -39,7 +39,7 @@ if ($paras{'rawvcf'} =~ /\.vcf$/) {
 }
 
 
-my $cmd = "/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64/bin/java $ENV{'JAVA_OPTS'} -jar $paras{'annotator'} annotate -id $paras{'db'} $paras{'rawvcf'} > $anno";
+my $cmd = "java $ENV{'JAVA_OPTS'} -jar $paras{'annotator'} annotate -id $paras{'db'} $paras{'rawvcf'} > $anno";
 print "$cmd\n";
 system($cmd);
 checksize($anno, $paras{'rawvcf'});
