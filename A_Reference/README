@@ -1,0 +1,4 @@
+Scripts here run from inside docker container
+
+This is not necessary for Strelka, where test reference is copied to A_Reference
+

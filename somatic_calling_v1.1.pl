@@ -79,7 +79,8 @@ my $sample_name = "";
 #my $STRELKA_DIR="/usr/local/strelka-2.7.1.centos5_x86_64/bin";
 # using older version of strelka
 my $STRELKA_DIR="/usr/local/strelka";
-my $h37_REF="/data/A_Reference/GRCh37-lite.fa";  # This does not work with strelka demo data because wrong reference
+#my $h37_REF="/data/A_Reference/GRCh37-lite.fa";  # This does not work with strelka demo data because wrong reference
+my $h37_REF="/data/A_Reference/demo20.fa";  # Default strelka reference
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $pindel="/gscuser/qgao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
@@ -233,7 +234,7 @@ sub bsub_strelka{
     print STREKA "cd \$STRELKA_OUT\n";
     print STREKA "make -j 16\n";
     close STREKA;
-    $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
+    $bsub_com = "bash < $job_files_dir/$current_job_file\n";
     system ( $bsub_com );
 }
 
