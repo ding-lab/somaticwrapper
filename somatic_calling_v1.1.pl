@@ -7,7 +7,7 @@
 ### 07/14/2017 ##
 ##3 vaf_filter.pl ###
 ### 08/25/2017 ####
-
+### add docker env for mgi ##
 #!/usr/bin/perl
 use strict;
 use warnings;
@@ -261,7 +261,11 @@ sub bsub_strelka{
     print STREKA "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print STREKA "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print STREKA "#BSUB -J $current_job_file\n";
-	print STREKA "scr_t0=\`date \+\%s\`\n";
+    print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print VARSCANP "#BSUB -q long\n";
+    print STREKA "#BSUB -q research-hpc\n";
+	#print STREKA "#BSUB -q long\n";
+	#print STREKA "scr_t0=\`date \+\%s\`\n";
     print STREKA "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print STREKA "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
     print STREKA "myRUNDIR=".$sample_full_path."/strelka\n";
@@ -350,7 +354,10 @@ sub bsub_varscan{
     print VARSCAN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print VARSCAN "#BSUB -J $current_job_file\n";
 	print VARSCAN "#BSUB -w \"$hold_job_file\"","\n";
-  	print VARSCAN "scr_t0=\`date \+\%s\`\n";
+    print VARSCAN "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print VARSCANP "#BSUB -q long\n";
+    print VARSCAN "#BSUB -q research-hpc\n";
+  	#print VARSCAN "scr_t0=\`date \+\%s\`\n";
     #print VARSCAN "chralt=\${chr\/:\/_}\n";
 	#print VARSCAN "dir=\$chralt\n";
 	print VARSCAN "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
@@ -454,8 +461,11 @@ sub bsub_parse_strelka{
     print STREKAP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print STREKAP "#BSUB -J $current_job_file\n";
 	print STREKAP "#BSUB -w \"$hold_job_file\"","\n";
-    print STREKAP "#BSUB -q long\n";
-    print STREKAP "scr_t0=\`date \+\%s\`\n";
+    #print STREKAP "#BSUB -q long\n";
+    print STREKAP "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print VARSCANP "#BSUB -q long\n";
+    print STREKAP "#BSUB -q research-hpc\n";
+    #print STREKAP "scr_t0=\`date \+\%s\`\n";
     print STREKAP "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print STREKAP "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
     print STREKAP "myRUNDIR=".$sample_full_path."/strelka\n";
@@ -575,7 +585,10 @@ sub bsub_parse_varscan{
     print VARSCANP "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print VARSCANP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print VARSCANP "#BSUB -J $current_job_file\n"; 
-    print VARSCANP "#BSUB -q long\n";
+### add dokcer env ###
+    print VARSCANP "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+	#print VARSCANP "#BSUB -q long\n";
+	print VARSCANP "#BSUB -q research-hpc\n";
 	print VARSCANP "#BSUB -w \"$hold_job_file\"","\n";
     print VARSCANP "scr_t0=\`date \+\%s\`\n";
 	print VARSCANP "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
@@ -675,8 +688,7 @@ sub bsub_parse_varscan{
 	print VARSCANP "     ".$run_script_path."genomevip_label.pl VarScan \${indeloutbase}.vcf \${indeloutbase}.gvip.vcf\n";
 	print VARSCANP "echo \'APPLYING PROCESS FILTER TO SOMATIC SNVS:\' &>> \${LOG}\n";
 	print VARSCANP "mysnvorig=./\${snvoutbase}.gvip.vcf\n";
-
-	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${mysnvorig} --min-tumor-freq 0.05 --max-normal-freq 0.01 --p-value 0.05  &>> \${LOG}\n";
+	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${mysnvorig} --min-tumor-freq 0.05 --max-normal-freq 0.05 --p-value 0.05  &>> \${LOG}\n";
 	print VARSCANP "     ".$run_script_path."extract_somatic_other.pl <  \${mysnvorig}  > \${mysnvorig/%vcf/other.vcf}\n";
     print VARSCANP "for kk in Somatic Germline LOH ; do\n";
    	print VARSCANP "thisorig=\${mysnvorig/%vcf/\$kk.vcf}\n";
@@ -685,7 +697,7 @@ sub bsub_parse_varscan{
 	print VARSCANP "done\n";
 	print VARSCANP "echo \'APPLYING PROCESS FILTER TO SOMATIC INDELS:\' &>> \$LOG\n";
 	print VARSCANP "myindelorig=./\$indeloutbase.gvip.vcf\n";
-	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${myindelorig}   --min-tumor-freq  0.05   --max-normal-freq  0.01   --p-value  0.05  &>> \${LOG}\n";
+	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${myindelorig}   --min-tumor-freq  0.05   --max-normal-freq  0.05   --p-value  0.05  &>> \${LOG}\n";
 	print VARSCANP "     ".$run_script_path."extract_somatic_other.pl <  \${myindelorig}  >  \${myindelorig/%vcf/other.vcf}\n";
 	print VARSCANP "for kk in Somatic Germline LOH ; do\n";
     print VARSCANP "thisorig=\${myindelorig/%vcf/\$kk.vcf}\n";
@@ -895,7 +907,10 @@ sub bsub_parse_pindel {
     print PP "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print PP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print PP "#BSUB -J $current_job_file\n";
-    print PP "#BSUB -q long\n";
+    #print PP "#BSUB -q long\n";
+    print PP "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print VARSCANP "#BSUB -q long\n";
+    print PP "#BSUB -q research-hpc\n";
     print PP "#BSUB -w \"$hold_job_file\"","\n";
     print PP "RUNDIR=".$sample_full_path."\n";
 	print PP "cat > \${RUNDIR}/pindel/pindel_filter.input <<EOF\n";
@@ -947,8 +962,11 @@ sub bsub_parse_pindel {
     print PP "else\n";
     print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
     print PP "fi\n";
-	#print RefG '	if [ ! -f $ ]',"\n";
-    print PP '  if [ ! -f $pindelout ]',"\n";
+    print PP "if [ $status_rerun -eq 1 ]\n";
+    print PP "  then\n";
+    print PP "rm \${pindelout}\n";
+    print PP "fi\n";
+    print PP '  if [ ! -s $pindelout ]',"\n";
 	print PP "  then\n"; 	
 	print PP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";	
 	print PP "	else\n";
@@ -1018,7 +1036,10 @@ sub bsub_mutect{
     print MUTECT "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print MUTECT "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print MUTECT "#BSUB -J $current_job_file\n";
-    print MUTECT "scr_t0=\`date \+\%s\`\n";
+    print MUTECT "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print VARSCANP "#BSUB -q long\n";
+    print MUTECT "#BSUB -q research-hpc\n";
+    #print MUTECT "scr_t0=\`date \+\%s\`\n";
     print MUTECT "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print MUTECT "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
 	print MUTECT "TBAM_rg=".$sample_full_path."/".$sample_name.".T.rg.bam\n";
@@ -1053,14 +1074,16 @@ sub bsub_mutect{
     print MUTECT "samtools index \${NBAM_rg}\n";
     print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${TBAM} O=\${TBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
     print MUTECT "samtools index \${TBAM_rg}\n";
-	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";
+	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";
+print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --vcf \${rawvcf}\n";
 #  	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor \${TBAM_rg} -I:normal \${NBAM_rg}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";
 	print MUTECT "rm \${NBAM_rg}\n";
     print MUTECT "rm \${NBAM_rg_bai}\n";
 	print MUTECT "rm \${TBAM_rg}\n";
     print MUTECT "rm \${TBAM_rg_bai}\n";
 	print MUTECT "else\n";
-    print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
+	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
+    print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
     print MUTECT "fi\n";
 	print MUTECT "     ".$run_script_path."genomevip_label.pl mutect \${rawvcf} \${rawvcfgvip}\n";
 #    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip}  -o  \${rawvcfsnv}   -selectType SNP -selectType MNP\n";
@@ -1095,9 +1118,12 @@ sub bsub_merge_vcf{
     print MERGE "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print MERGE "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print MERGE "#BSUB -J $current_job_file\n";
-    print MERGE "#BSUB -q long\n";
+    #print MERGE "#BSUB -q long\n";
+    print MERGE "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print VARSCANP "#BSUB -q long\n";
+    print MERGE "#BSUB -q research-hpc\n";
     print MERGE "#BSUB -w \"$hold_job_file\"","\n";
-    print MERGE "scr_t0=\`date \+\%s\`\n";
+    #print MERGE "scr_t0=\`date \+\%s\`\n";
     print MERGE "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print MERGE "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
     print MERGE "myRUNDIR=".$sample_full_path."/varscan\n";
