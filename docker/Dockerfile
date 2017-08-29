@@ -4,12 +4,14 @@ FROM mwyczalkowski/breakpoint_surveyor:latest
 
 LABEL author="Matt Wyczalkowski" \
       maintainer="m.wyczalkowski@wustl.edu"
+
 # Strelka v 2.7.1
-RUN cd /usr/local \
-    && wget https://github.com/Illumina/strelka/releases/download/v2.7.1/strelka-2.7.1.centos5_x86_64.tar.bz2 \
-    && bzip2 -d strelka-2.7.1.centos5_x86_64.tar.bz2 \
-    && tar -xf strelka-2.7.1.centos5_x86_64.tar \
-    && rm strelka-2.7.1.centos5_x86_64.tar
+#  -> incorporate the newest Strelka at some point 
+#RUN cd /usr/local \
+#    && wget https://github.com/Illumina/strelka/releases/download/v2.7.1/strelka-2.7.1.centos5_x86_64.tar.bz2 \
+#    && bzip2 -d strelka-2.7.1.centos5_x86_64.tar.bz2 \
+#    && tar -xf strelka-2.7.1.centos5_x86_64.tar \
+#    && rm strelka-2.7.1.centos5_x86_64.tar
 
 # Note that SomaticWrapper v1.1 uses strelka 1.0.14.  We download that too
 RUN cd /usr/local \
