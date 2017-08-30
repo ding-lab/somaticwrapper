@@ -1,0 +1,7 @@
+Workflow in this directory is created for testing the docker image outside of the MGI environment
+Testing is done with the Strelka test dataset
+
+Note that 0_ is run within the docker environment
+
+Also note that the Dockerfile has passwords associated with it, so it is not for distribution until 
+somatic_wrapper is public
