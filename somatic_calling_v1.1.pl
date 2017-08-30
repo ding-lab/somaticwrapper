@@ -28,28 +28,33 @@ my $normal = "\e[0m";
 (my $usage = <<OUT) =~ s/\t+//g;
 Somatic variant calling pipeline 
 Pipeline version: $version
-$yellow     Usage: perl $0  --srg --stepn --sre --rdir $normal
+$yellow     Usage: perl $0  --srg --stepn --sre --rdir --ref $normal
 
 <rdir> = full path of the folder holding files for this sequence run (user must provide)
 <srg> = bam having read group or not: 1, yes and 0, no (default 1)
 <sre> = re-run: 1, yes and 0, no  (default 0)
-<stepn> run this pipeline step by step. (running the whole pipeline if stepn=0 (default))
+<stepn> run this pipeline step by step. (user must provide)
+<ref> the human reference: 
+with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
+mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
 
+$red 	     [0]  Run all steps
 $green       [1]  Run streka
 $green 		 [2]  Run Varscan
 $yellow 	 [3]  Parse streka result
 $yellow 	 [4]  Parse VarScan result
 $green 		 [5]  Run Pindel
-$purple 	 [6]  Run VEP annotation
-$yellow 	 [7]  Parse Pindel
+$purple 	 [6]  Parse Pindel
+$yellow 	 [7]  Run VEP annotation
 $green		 [8]  Run mutect 
 $gray 	     [9]  Merge vcf files  
 $cyan		 [10] generate maf file 
 $normal
+
 OUT
 
 #__DEFAULT NUMBER OF BINS IE (MUST BE INTEGER)
-my $step_number = 0;
+my $step_number = -1;
 my $status_rg = 1;
 my $status_rerun=0; 
 
@@ -59,18 +64,21 @@ my $help = 0;
 #__FILE NAME (STRING, NO DEFAULT)
 my $run_dir="";
 
+my $h37_REF="";
+
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
       "stepn=i" => \$step_number,
       "srg=i" => \$status_rg,
       "sre=i" => \$status_rerun,	
       "rdir=s" => \$run_dir,
+	  "ref=s"  => \$h37_REF,
    	  "help" => \$help, 
 	);
  
 #print $status,"\n";
 
-if ($help || $run_dir eq "") {
+if ($help || $run_dir eq "" || $step_number<0) {
 	  print $usage;
       exit;
    }
@@ -120,9 +128,9 @@ my $sample_name = "";
 #my $mutect="/gscuser/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
 my $mutect="/gscuser/scao/tools/mutect-1.1.7.jar";
 my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
-my $h37_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
+#my $h37_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
-my $h37_REF_bai="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite-chr_with_chrM.fa.fai";
+my $h37_REF_bai=$h37_REF.".fai";
 my $pindel="/gscuser/qgao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
 my $picardexe="/gscuser/scao/tools/picard.jar";
@@ -137,7 +145,7 @@ close DH;
 #&check_input_dir($run_dir);
 # start data processsing
 
-if ($step_number < 10) {
+if ($step_number < 11) {
     #begin to process each sample
     for (my $i=0;$i<@sample_dir_list;$i++) {#use the for loop instead. the foreach loop has some problem to pass the global variable $sample_name to the sub functions
         $sample_name = $sample_dir_list[$i];
@@ -153,8 +161,8 @@ if ($step_number < 10) {
 				   &bsub_parse_strelka();
 				   &bsub_parse_varscan();
 				   &bsub_pindel();
-				   &bsub_vep();
 				   &bsub_parse_pindel();
+				   &bsub_vep();
 				   &bsub_mutect();
 				   &bsub_merge_vcf();
 				   &bsub_vcf_2_maf();
@@ -172,9 +180,9 @@ if ($step_number < 10) {
                 }elsif ($step_number == 5) {
                     &bsub_pindel(1);
                 }elsif ($step_number == 6) {
-                    &bsub_vep(1);
-                }elsif ($step_number == 7) {
                     &bsub_parse_pindel(1);
+                }elsif ($step_number == 7) {
+                    &bsub_vep(1);
                 }elsif ($step_number == 8) {
                     &bsub_mutect(1);
                 }elsif ($step_number == 9) {
@@ -261,9 +269,9 @@ sub bsub_strelka{
     print STREKA "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print STREKA "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print STREKA "#BSUB -J $current_job_file\n";
-    print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print VARSCANP "#BSUB -q long\n";
-    print STREKA "#BSUB -q research-hpc\n";
+    #print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    print STREKA "#BSUB -q long\n";
+    #print STREKA "#BSUB -q research-hpc\n";
 	#print STREKA "#BSUB -q long\n";
 	#print STREKA "scr_t0=\`date \+\%s\`\n";
     print STREKA "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
@@ -298,7 +306,8 @@ sub bsub_strelka{
 	print STREKA "statfile=incomplete.strelka\n";
 	print STREKA "localstatus=".$sample_full_path."/status/\$statfile\n";
 	print STREKA "touch \$localstatus\n";
-	print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config $run_script_path/strelka.ini --output-dir \$STRELKA_OUT\n";
+   # print STREKA ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
+	print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config $script_dir/strelka.ini --output-dir \$STRELKA_OUT\n";
 	print STREKA "cd \$STRELKA_OUT\n";
 	print STREKA "make -j 16\n";
     close STREKA;
@@ -771,7 +780,7 @@ sub bsub_vep{
     }
 
 
-    $current_job_file = "j6_vep".$sample_name.".sh";
+    $current_job_file = "j7_vep".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
@@ -877,6 +886,18 @@ sub bsub_vep{
     print VEP "     ".$run_script_path."vep_annotator.pl ./strelka_vep.indel.input >& ./strelka_vep.indel.log\n";
     print VEP "     ".$run_script_path."vep_annotator.pl ./strelka_vep.snv.initial.input >& ./strelka_vep.snv.initial.log\n";
     print VEP "     ".$run_script_path."vep_annotator.pl ./strelka_vep.indel.initial.input >& ./strelka_vep.indel.initial.log\n";
+    print VEP "cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF\n";
+    print VEP "pindel.vep.vcf = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
+    print VEP "pindel.vep.output = ./pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf\n";
+    print VEP "pindel.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
+    print VEP "pindel.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
+    print VEP "pindel.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
+    print VEP "pindel.vep.assembly = GRCh37\n";
+    print VEP "EOF\n";
+    #print PP ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
+    #print PP "     ".$run_script_path."vep_annotator.pl ./pindel_vep.input >& ./pindel_vep.log\n";  
+    print VEP "cd \${RUNDIR}/pindel\n";
+    print VEP "     ".$run_script_path."vep_annotator.pl ./pindel_vep.input >& ./pindel_vep.log\n";  
 	close VEP;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com );
@@ -892,7 +913,7 @@ sub bsub_parse_pindel {
         $hold_job_file = $current_job_file;
     }
 
-    $current_job_file = "j7_parse_pindel".$sample_name.".sh";
+    $current_job_file = "j6_parse_pindel".$sample_name.".sh";
 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
@@ -987,8 +1008,8 @@ sub bsub_parse_pindel {
 	print PP "pindel.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
 	print PP "pindel.vep.assembly = GRCh37\n";
 	print PP "EOF\n";
-    print PP ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
-	print PP "     ".$run_script_path."vep_annotator.pl ./pindel_vep.input >& ./pindel_vep.log\n";  
+    #print PP ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
+	#print PP "     ".$run_script_path."vep_annotator.pl ./pindel_vep.input >& ./pindel_vep.log\n";  
 	close PP;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);
@@ -1118,10 +1139,10 @@ sub bsub_merge_vcf{
     print MERGE "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print MERGE "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print MERGE "#BSUB -J $current_job_file\n";
-    #print MERGE "#BSUB -q long\n";
-    print MERGE "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    print MERGE "#BSUB -q long\n";
+   # print MERGE "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
     #print VARSCANP "#BSUB -q long\n";
-    print MERGE "#BSUB -q research-hpc\n";
+    #print MERGE "#BSUB -q research-hpc\n";
     print MERGE "#BSUB -w \"$hold_job_file\"","\n";
     #print MERGE "scr_t0=\`date \+\%s\`\n";
     print MERGE "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
