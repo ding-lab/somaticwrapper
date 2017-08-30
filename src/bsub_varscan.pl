@@ -47,30 +47,29 @@ sub bsub_varscan{
     print("Writing to $outfn\n");
     open(OUT, ">$outfn") or die $!;
 
-# RUNDIR=".$sample_full_path.";
-my $jar="/usr/local/VarScan.v2.3.8.jar";
-my $samtools="/usr/local/bin/samtools";
+    my $jar="/usr/local/VarScan.v2.3.8.jar";
+    my $samtools="/usr/local/bin/samtools";
 
-my $run_name="varscan.out.som";
-my $log=$run_name.".log";
-my $snvout=$run_name."_snv";
-my $indelout=$run_name."_indel";
+    my $run_name="varscan.out.som";
+    my $log=$run_name.".log";
+    my $snvout=$run_name."_snv";
+    my $indelout=$run_name."_indel";
 
-my $varscan_args=" \
-    --mpileup 1 \
-    --p-value 0.99 \
-    --somatic-p-value 0.05 \
-    --min-coverage-normal 30 \
-    --min-coverage-tumor 22 \
-    --min-var-freq 0.08 \
-    --min-freq-for-hom 0.75 \
-    --normal-purity 1.00 \
-    --tumor-purity 1.00 \
-    --strand-filter 1 \
-    --min-avg-qual 15 \
-    --output-vcf 1 \
-    --output-snp  \
-";
+    my $varscan_args=" \
+        --mpileup 1 \
+        --p-value 0.99 \
+        --somatic-p-value 0.05 \
+        --min-coverage-normal 30 \
+        --min-coverage-tumor 22 \
+        --min-var-freq 0.08 \
+        --min-freq-for-hom 0.75 \
+        --normal-purity 1.00 \
+        --tumor-purity 1.00 \
+        --strand-filter 1 \
+        --min-avg-qual 15 \
+        --output-vcf 1 \
+        --output-snp  \
+    ";
 
     print OUT <<"EOF";
 #!/bin/bash

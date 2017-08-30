@@ -5,7 +5,7 @@ sub bsub_strelka {
     my $job_files_dir = shift;
     my $bsub = shift;
     my $STRELKA_DIR = shift;
-    my $h37_REF = shift;
+    my $REF = shift;
 
     $current_job_file = "j1_streka_".$sample_name.".sh"; 
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
@@ -49,7 +49,7 @@ if [ -d $strelka_out ] ; then
     rm -rf $strelka_out
 fi
 
-$strelka_bin --normal $IN_bam_N --tumor $IN_bam_T --ref $h37_REF --config $strelka_config --output-dir $strelka_out
+$strelka_bin --normal $IN_bam_N --tumor $IN_bam_T --ref $REF --config $strelka_config --output-dir $strelka_out
 cd $strelka_out
 make -j 16
 EOF
