@@ -1,11 +1,11 @@
 
 sub bsub_strelka {
-	my $sample_name = shift;
+    my $sample_name = shift;
     my $sample_full_path = shift;
-	my $job_files_dir = shift;
-	my $bsub = shift;
+    my $job_files_dir = shift;
+    my $bsub = shift;
     my $STRELKA_DIR = shift;
-	my $h37_REF = shift;
+    my $h37_REF = shift;
 
     $current_job_file = "j1_streka_".$sample_name.".sh"; 
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
@@ -32,52 +32,32 @@ sub bsub_strelka {
         print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
     }
-	my $outfn = "$job_files_dir/$current_job_file";
-	print("Writing to $outfn\n");
+
+    my $strelka_config = "/usr/local/somaticwrapper/config/strelka.ini";
+    my $strelka_out=$sample_full_path."/strelka/strelka_out";
+    my $strelka_bin="$STRELKA_DIR/bin/configureStrelkaWorkflow.pl";
+
+
+    my $outfn = "$job_files_dir/$current_job_file";
+    print("Writing to $outfn\n");
     open(OUT, ">$outfn") or die $!;
 
-    print OUT "#!/bin/bash\n";
-    print OUT "scr_t0=\`date \+\%s\`\n";
-    print OUT "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print OUT "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print OUT "myRUNDIR=".$sample_full_path."/strelka\n";
-    print OUT "STATUSDIR=".$sample_full_path."/status\n";
-    print OUT "mkdir -p \$STATUSDIR\n";
-    print OUT "RESULTSDIR=".$sample_full_path."/results\n";
-    print OUT "SG_DIR=".$sample_full_path."/strelka\n"; 
-    print OUT "RUNDIR=".$sample_full_path."\n";
-    print OUT "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
-    print OUT "CONFDIR=/usr/local/somaticwrapper/config\n";
-    print OUT "export SAMTOOLS_DIR=/usr/local/bin\n";
-    print OUT "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre\n";
-    print OUT "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
-    print OUT "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    print OUT "if [ ! -d \${myRUNDIR} ]\n";
-    print OUT "then\n";
-    print OUT "mkdir \${myRUNDIR}\n";
-    print OUT "fi\n";
-    print OUT "if [ -d \${STRELKA_OUT} ]\n";
-    print OUT "then\n";
-    print OUT "rm -rf \${STRELKA_OUT}\n";
-    print OUT "fi\n";
-    print OUT "if \[ -z \"\$LD_LIBRARY_PATH\" \] \; then\n"; 
-    print OUT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-    print OUT "else\n";
-    print OUT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-    print OUT "fi\n";
-    print OUT "put_cmd=\"ln -s\"\n";
-    print OUT "del_cmd=\"rm -f\"\n";
-    print OUT "del_local=\"rm -f\"\n";
-    print OUT "statfile=incomplete.strelka\n";
-    print OUT "localstatus=".$sample_full_path."/status/\$statfile\n";
-    print OUT "touch \$localstatus\n";
-    print OUT "   ".$STRELKA_DIR."/bin/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config \$CONFDIR/strelka.ini --output-dir \$STRELKA_OUT\n";
-    print OUT "cd \$STRELKA_OUT\n";
-    print OUT "make -j 16\n";
+    print OUT <<"EOF";
+#!/bin/bash
+
+if [ -d $strelka_out ] ; then
+    rm -rf $strelka_out
+fi
+
+$strelka_bin --normal $IN_bam_N --tumor $IN_bam_T --ref $h37_REF --config $strelka_config --output-dir $strelka_out
+cd $strelka_out
+make -j 16
+EOF
+
     close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
 
-	print($bsub_com."\n");
+    print($bsub_com."\n");
     system ( $bsub_com );
 }
 

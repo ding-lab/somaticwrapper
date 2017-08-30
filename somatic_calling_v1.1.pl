@@ -1,7 +1,7 @@
 ######### Song Cao###########
 ## pipeline for somatic variant callings ##
-#	somatic_variant_callings.pl #
-###	updated date: 04/05/2017 ###
+#   somatic_variant_callings.pl #
+### updated date: 04/05/2017 ###
 ### updated date: 04/18/2017 ###
 ### add vcf2maf.pl ###
 ### 07/14/2017 ##
@@ -36,14 +36,14 @@ $yellow     Usage: perl $0 <run_folder> <step_number> $normal
 <step_number> run this pipeline step by step. (running the whole pipeline if step number is 0)
 
 $green       [1]  Run streka
-$red 		 [2]  Run Varscan
-$yellow 	 [3]  Parse streka result
-$purple 	 [4]  Parse VarScan result
-$cyan 		 [5]  Run Pindel
-$gray 		 [6]  Run VEP annotation
-$gray 		 [7]  Parse Pindel
-$gray 		 [8]  Merge vcf files  
-$gray 		 [9] generate maf file 
+$red         [2]  Run Varscan
+$yellow      [3]  Parse streka result
+$purple      [4]  Parse VarScan result
+$cyan        [5]  Run Pindel
+$gray        [6]  Run VEP annotation
+$gray        [7]  Parse Pindel
+$gray        [8]  Merge vcf files  
+$gray        [9] generate maf file 
 $normal
 OUT
 
@@ -121,7 +121,7 @@ if ($step_number < 10) {
 #                   &bsub_parse_pindel();
 #                   &bsub_merge_vcf();
 #                   &bsub_vcf_2_maf();
-# &bsub_pindel();	
+# &bsub_pindel();   
                 }
                 elsif ($step_number == 1) {
                     bsub_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $STRELKA_DIR, $h37_REF);
@@ -150,7 +150,7 @@ if ($step_number < 10) {
 
 # how to run pindel #
 # /gscmnt/gc8001/info/model_data/8ad63791a648435b95a4be23ac3a18a5/buildb8e7ade8c3244bd483c274edeceeb8b7/alignments/cfa9c81317e346f5aa458e5e9220f41e.bam 500 TCGA-EX-A1H5-01A-31D-A34H-09 #
-#/gscmnt/gc8001/info/model_data/c777ae8a6fdb49b7bf400056d15a6788/build8057e74cc9f64a50a13c33763af10116/alignments/b127fcaaecc54abb833316fa3153e492.bam 500 TCGA-EX-A1H5-10A-01D-A200-09#	
+#/gscmnt/gc8001/info/model_data/c777ae8a6fdb49b7bf400056d15a6788/build8057e74cc9f64a50a13c33763af10116/alignments/b127fcaaecc54abb833316fa3153e492.bam 500 TCGA-EX-A1H5-10A-01D-A200-09#    
 # bsub -q long -M 16000000 -n 4 -R 'span[hosts=1] rusage[mem=16000]' -oo /gscmnt/gc2532/dinglab/scao/pindel/CESC/pindel-logs/TCGA-C5-A0TN.chr9.log /gscuser/kye/gc2532/projects/PCGP_rerun/pindel -T 4 -f /gscmnt/gc2532/dinglab/projects/PCGP_rerun/GRCh37-lite.fa -i /gscmnt/gc2532/dinglab/scao/pindel/CESC/pindel-configs/TCGA-C5-A0TN.config -o /gscmnt/gc2532/dinglab/scao/pindel/CESC/pindel-outputs/TCGA-C5-A0TN/TCGA-C5-A0TN.chr9 -c 9 -m 6 -w 1 -J /gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed #
 
             }
@@ -217,7 +217,7 @@ sub bsub_parse_strelka{
     print STREKAP "streka.dbsnp.snv.passfile  = ./strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
     print STREKAP "streka.dbsnp.snv.dbsnpfile = ./strelka.somatic.snv.all.gvip.dbsnp_present.vcf\n";
     print STREKAP "EOF\n";
-#	print STREKAP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.snv.input <<EOF\n";
+#   print STREKAP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.snv.input <<EOF\n";
 #  print STREKAP "strelka.vep.vcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
 #  print STREKAP "strelka.vep.output = ./varscan.out.som_snv.current_final.gvip.Somatic.VEP.vcf\n";
 #  print STREKAP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
@@ -274,13 +274,13 @@ sub bsub_parse_strelka{
     print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.indels.vcf ./strelka.somatic.indel.all.gvip.vcf\n";
     print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.snvs.vcf ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
     print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.indels.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n"; 
-#print STREKAP " 	"."cp ./strelka.somatic.snv.all.gvip.vcf ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
+#print STREKAP "    "."cp ./strelka.somatic.snv.all.gvip.vcf ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
 #print STREKAP "     "."cp ./strelka.somatic.indel.all.gvip.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";
     print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.snv.input\n";
     print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.indel.input\n";
     print STREKAP "     ".$run_script_path."snv_filter.pl ./strelka_fpfilter.snv.input\n";  
 #print STREKAP "     ".$run_script_path."vep_annotator.pl ./vs_vep.snv.input >& ./vs_vep.snv.log\n";
-#print STREKAP "     ".$run_script_path."vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";	
+#print STREKAP "     ".$run_script_path."vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";    
     close STREKAP;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com ); 
@@ -332,7 +332,7 @@ sub bsub_parse_varscan{
     print VARSCANP "varscan.dbsnp.snv.passfile  = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
     print VARSCANP "varscan.dbsnp.snv.dbsnpfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf\n";
     print VARSCANP "EOF\n";
-# 	print VARSCANP "cat > \${RUNDIR}/varscan/vs_cosmic_check.snv.input <<EOF\n";
+#   print VARSCANP "cat > \${RUNDIR}/varscan/vs_cosmic_check.snv.input <<EOF\n";
 #  print VARSCANP "varscan.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
 #  print VARSCANP "varscan.dbsnp.snv.db = /gscmnt/gc2525/dinglab/rmashl/Software/bin/dbSNP/NCBI/snp142/GRCh37/00-All.brief.vcf\n";
 #  print VARSCANP "varscan.dbsnp.snv.rawvcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf\n";
@@ -348,7 +348,7 @@ sub bsub_parse_varscan{
     print VARSCANP "varscan.dbsnp.indel.passfile  = ./varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
     print VARSCANP "varscan.dbsnp.indel.dbsnpfile = ./varscan.out.som_indel.gvip.Somatic.hc.dbsnp_present.vcf\n";
     print VARSCANP "EOF\n";
-    print VARSCANP "FP_BAM=\`awk \'{if(NR==2){print \$1}}\' \${RUNDIR}/varscan/bamfilelist.inp\`\n";	
+    print VARSCANP "FP_BAM=\`awk \'{if(NR==2){print \$1}}\' \${RUNDIR}/varscan/bamfilelist.inp\`\n";    
     print VARSCANP "cat > \${RUNDIR}/varscan/vs_fpfilter.somatic.snv.input <<EOF\n";
     print VARSCANP "varscan.fpfilter.snv.bam_readcount = /gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount\n";
     print VARSCANP "varscan.fpfilter.snv.bam_file = \${FP_BAM}\n";
@@ -503,7 +503,7 @@ sub bsub_pindel{
     print PINDEL "$pindel -T 4 -f $h37_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere\n";
     close PINDEL;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    system ( $bsub_com );	
+    system ( $bsub_com );   
 }
 
 sub bsub_vep{
@@ -686,7 +686,7 @@ sub bsub_parse_pindel {
     print PP "else\n";
     print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
     print PP "fi\n";
-    print PP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";	
+    print PP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";    
     print PP "cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF\n";
     print PP "pindel.vep.vcf = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
     print PP "pindel.vep.output = ./pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf\n";
@@ -750,7 +750,7 @@ sub bsub_merge_vcf{
     print MERGE "EOF\n";
     print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
     print MERGE "cd \${RUNDIR}\n";
-    print MERGE "     ".$run_script_path."vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";	
+    print MERGE "     ".$run_script_path."vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";    
     close MERGE;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);
@@ -786,7 +786,7 @@ sub bsub_vcf_2_maf{
     print MAF "F_maf=".$sample_full_path."/".$sample_name.".maf\n";
     print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
     print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
-    print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $h37_REF --filter-vcf $f_exac\n";
+    print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $h37_REF --filter-vcf $f_exac\n";
     close MAF;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);

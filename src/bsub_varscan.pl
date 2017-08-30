@@ -1,10 +1,10 @@
 
 sub bsub_varscan{
-	my $sample_name = shift;
+    my $sample_name = shift;
     my $sample_full_path = shift;
-	my $job_files_dir = shift;
-	my $bsub = shift;
-	my $REF = shift;
+    my $job_files_dir = shift;
+    my $bsub = shift;
+    my $REF = shift;
 
     $current_job_file = "j2_varscan_".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
@@ -32,16 +32,16 @@ sub bsub_varscan{
         die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
     }
 
-	# Create a list of BAM files for varscan to use
-	my $bam_list="$sample_full_path/varscan/bamfilelist.inp";
+    # Create a list of BAM files for varscan to use
+    my $bam_list="$sample_full_path/varscan/bamfilelist.inp";
     open(OUT, ">$bam_list") or die $!;
-	print OUT "$IN_bam_N\n";
-	print OUT "$IN_bam_T\n"; 
-	close OUT;
+    print OUT "$IN_bam_N\n";
+    print OUT "$IN_bam_T\n"; 
+    close OUT;
 
 
-	# Create the run script
-	# Using HERE docs: https://stackoverflow.com/questions/17479354/how-to-use-here-doc-to-print-lines-to-file
+    # Create the run script
+    # Using HERE docs: https://stackoverflow.com/questions/17479354/how-to-use-here-doc-to-print-lines-to-file
 
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");
@@ -56,6 +56,22 @@ my $log=$run_name.".log";
 my $snvout=$run_name."_snv";
 my $indelout=$run_name."_indel";
 
+my $varscan_args=" \
+    --mpileup 1 \
+    --p-value 0.99 \
+    --somatic-p-value 0.05 \
+    --min-coverage-normal 30 \
+    --min-coverage-tumor 22 \
+    --min-var-freq 0.08 \
+    --min-freq-for-hom 0.75 \
+    --normal-purity 1.00 \
+    --tumor-purity 1.00 \
+    --strand-filter 1 \
+    --min-avg-qual 15 \
+    --output-vcf 1 \
+    --output-snp  \
+";
+
     print OUT <<"EOF";
 #!/bin/bash
 JAVA_OPTS="-Xms256m -Xmx512m"
@@ -66,13 +82,12 @@ cd $sample_full_path/varscan
 
 SAMTOOLS_CMD="$samtools mpileup -q 1 -Q 13 -B -f $REF -b $bam_list "
 
-ARGS=" --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 30 --min-coverage-tumor 22 --min-var-freq 0.08 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp  "
-
-JAVA_CMD="java \$JAVA_OPTS -jar $jar somatic - $run_name \$ARGS --output-snp $snvout --output-indel $indelout"
+JAVA_CMD="java \$JAVA_OPTS -jar $jar somatic - $run_name $varscan_args --output-snp $snvout --output-indel $indelout"
 
 \$SAMTOOLS_CMD | \$JAVA_CMD &> $log
 
 EOF
+    close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
 
     print("Executing:\n $bsub_com \n");
