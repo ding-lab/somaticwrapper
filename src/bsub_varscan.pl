@@ -84,8 +84,13 @@ sub bsub_varscan{
     print OUT "ncols=\$(echo \"3*( \$(wc -l < \$BAMLIST) +1)\"|bc)\n";
     print OUT "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 30 --min-coverage-tumor 22 --min-var-freq 0.08 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
     close OUT;	
-    $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
+    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
+	print($bsub_com."\n");
+
+	print("Aborting.\n");
+	die();
     system ( $bsub_com );
+
 }
 
 1;
