@@ -24,7 +24,7 @@ my $normal = "\e[0m";
 # submodule information
 # https://stackoverflow.com/questions/1712016/how-do-i-include-functions-from-another-file-in-my-perl-script
 require('src/bsub_strelka.pl');
-#require("bsub_varscan.pl");
+require("src/bsub_varscan.pl");
 
 (my $usage = <<OUT) =~ s/\t+//g;
 This script will process rna-seq data for TCGA samples. 
@@ -126,7 +126,7 @@ if ($step_number < 10) {
                 elsif ($step_number == 1) {
                     bsub_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $STRELKA_DIR, $h37_REF);
                 } elsif ($step_number == 2) {
-                    bsub_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $STRELKA_DIR, $h37_REF);
+                    bsub_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $h37_REF);
                 } 
 #elsif ($step_number == 3) {
 #                   &bsub_mutect(1);

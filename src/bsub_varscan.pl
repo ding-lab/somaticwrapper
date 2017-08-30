@@ -4,6 +4,7 @@ sub bsub_varscan{
     my $sample_full_path = shift;
 	my $job_files_dir = shift;
 	my $bsub = shift;
+	my $h37_REF = shift;
 
     $current_job_file = "j2_varscan_".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";

@@ -33,6 +33,16 @@ RUN apt-get update && apt-get install -y \
 RUN cd /usr/local \
     && git clone -b docker https://mwyczalkowski:Elohim,598@github.com/ding-lab/somaticwrapper 
 
+# required for running bsub_varscan script - apparently not
+#RUN apt-get update && apt-get install -y \
+#    bc \
+#    && apt-get clean
+
+# Install varscan 2.3.8 to match SomaticWrapper
+# Note that newer versions available here: https://github.com/dkoboldt/varscan
+RUN cd /usr/local \
+    && wget https://sourceforge.net/projects/varscan/files/VarScan.v2.3.8.jar
+
 
 WORKDIR /usr/local/somaticwrapper
 
