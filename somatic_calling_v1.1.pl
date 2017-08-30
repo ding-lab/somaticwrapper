@@ -23,7 +23,7 @@ my $normal = "\e[0m";
 
 # submodule information
 # https://stackoverflow.com/questions/1712016/how-do-i-include-functions-from-another-file-in-my-perl-script
-require('bsub_strelka.pl');
+require('src/bsub_strelka.pl');
 #require("bsub_varscan.pl");
 
 (my $usage = <<OUT) =~ s/\t+//g;
@@ -112,21 +112,21 @@ if ($step_number < 10) {
                 if($step_number==0)
                 {  
 #  UNUSED           bsub_strelka();
-                    &bsub_varscan();
+#                    &bsub_varscan();
 #&bsub_mutect();
-                    &bsub_parse_strelka();
-                    &bsub_parse_varscan();
-                    &bsub_pindel();
-                    &bsub_vep();
-                    &bsub_parse_pindel();
-                    &bsub_merge_vcf();
-                    &bsub_vcf_2_maf();
+#                   &bsub_parse_strelka();
+#                   &bsub_parse_varscan();
+#                   &bsub_pindel();
+#                   &bsub_vep();
+#                   &bsub_parse_pindel();
+#                   &bsub_merge_vcf();
+#                   &bsub_vcf_2_maf();
 # &bsub_pindel();	
                 }
                 elsif ($step_number == 1) {
                     bsub_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $STRELKA_DIR, $h37_REF);
                 } elsif ($step_number == 2) {
-                    &bsub_varscan(1);
+                    bsub_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $STRELKA_DIR, $h37_REF);
                 } 
 #elsif ($step_number == 3) {
 #                   &bsub_mutect(1);
