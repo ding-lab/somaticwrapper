@@ -1,0 +1,12 @@
+syntax enable
+set tabstop=4
+set shiftwidth=4
+set expandtab
+set autowrite
+set ruler
+set nohlsearch
+
+set textwidth=0
+set nocindent
+
+" colorscheme apprentice

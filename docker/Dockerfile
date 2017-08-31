@@ -25,14 +25,16 @@ RUN cd /usr/local \
 #    && rm strelka_workflow-1.0.15.tar.gz
 
 RUN apt-get update && apt-get install -y \
-    libncurses-dev \
-    vim \
     default-jre \
+    libncurses-dev \
+    sshpass \
+    vim \
     && apt-get clean
 
 RUN cd /usr/local \
     && git clone -b docker https://mwyczalkowski:Elohim,598@github.com/ding-lab/somaticwrapper 
 
+COPY vimrc /root/.vimrc
 
 WORKDIR /usr/local/somaticwrapper
 
