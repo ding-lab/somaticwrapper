@@ -8,6 +8,7 @@
 ##3 vaf_filter.pl ###
 ### 08/25/2017 ####
 ### add docker env for mgi ##
+
 #!/usr/bin/perl
 use strict;
 use warnings;
@@ -28,7 +29,7 @@ my $normal = "\e[0m";
 (my $usage = <<OUT) =~ s/\t+//g;
 Somatic variant calling pipeline 
 Pipeline version: $version
-$yellow     Usage: perl $0  --srg --stepn --sre --rdir --ref $normal
+$yellow     Usage: perl $0  --srg --step --sre --rdir --ref $normal
 
 <rdir> = full path of the folder holding files for this sequence run (user must provide)
 <srg> = bam having read group or not: 1, yes and 0, no (default 1)
@@ -68,7 +69,7 @@ my $h37_REF="";
 
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
-      "stepn=i" => \$step_number,
+      "step=i" => \$step_number,
       "srg=i" => \$status_rg,
       "sre=i" => \$status_rerun,	
       "rdir=s" => \$run_dir,
@@ -269,9 +270,9 @@ sub bsub_strelka{
     print STREKA "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print STREKA "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print STREKA "#BSUB -J $current_job_file\n";
-    #print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    print STREKA "#BSUB -q long\n";
-    #print STREKA "#BSUB -q research-hpc\n";
+    print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print STREKA "#BSUB -q long\n";
+    print STREKA "#BSUB -q research-hpc\n";
 	#print STREKA "#BSUB -q long\n";
 	#print STREKA "scr_t0=\`date \+\%s\`\n";
     print STREKA "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
@@ -306,7 +307,7 @@ sub bsub_strelka{
 	print STREKA "statfile=incomplete.strelka\n";
 	print STREKA "localstatus=".$sample_full_path."/status/\$statfile\n";
 	print STREKA "touch \$localstatus\n";
-   # print STREKA ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
+   	#print STREKA ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
 	print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config $script_dir/strelka.ini --output-dir \$STRELKA_OUT\n";
 	print STREKA "cd \$STRELKA_OUT\n";
 	print STREKA "make -j 16\n";
@@ -752,6 +753,7 @@ sub bsub_pindel{
     print PINDEL "#BSUB -M 30000000\n";
     print PINDEL "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print PINDEL "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
+	print PINDEL "#BSUB -q long\n";
     print PINDEL "#BSUB -J $current_job_file\n";
     print PINDEL "#BSUB -w \"$hold_job_file\"","\n";
     print PINDEL "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
