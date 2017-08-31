@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Download data from COSMIC
 # You need to be registered to access the data: http://cancer.sanger.ac.uk/cosmic
 # Username and password are stored in COSMIC_credentials.dat
@@ -38,8 +40,11 @@ VER="v82"
 #   cd /cosmic/$REF/cosmic/$VER/VCF
 #   get CosmicCodingMuts.vcf.gz
 
-VCF="/cosmic/$REF/cosmic/$VER/VCF/CosmicCodingMuts.vcf.gz"
-echo Downloading $VCF to $DAT
+COSD="/cosmic/$REF/cosmic/$VER/VCF"
+VCFGZ="CosmicCodingMuts.vcf.gz"
+VCF="$COSD/$VCFGZ"
+
+echo Downloading $VCF to $OUTD
 
 export SSHPASS="SauCer+7067"
 sshpass -e sftp -oBatchMode=no -b - "$COSMIC_USERNAME"@sftp-cancer.sanger.ac.uk << EOF
@@ -49,4 +54,11 @@ get $VCF
 
 bye
 EOF
+
+# Now convert to bgz format and index
+VCFBGZ="CosmicCodingMuts.vcf.bgz"
+gunzip -c $OUTD/$VCFGZ | bgzip > $OUTD/$VCFBGZ
+tabix -p vcf $OUTD/$VCFBGZ
+
+rm $OUTD/$VCFGZ
 
