@@ -21,8 +21,8 @@ RUN cd /usr/local \
     && ./configure --prefix=/usr/local/strelka \
     && make \
     && make install \
-    && ln -s /usr/local/samtools /usr/local/strelka_workflow-1.0.15/src/perl/opt
-#    && rm strelka_workflow-1.0.15.tar.gz
+    && ln -s /usr/local/samtools /usr/local/strelka_workflow-1.0.15/src/perl/opt \
+    && rm /usr/local/strelka_workflow-1.0.15.tar.gz
 
 RUN apt-get update && apt-get install -y \
     default-jre \
@@ -34,9 +34,36 @@ RUN apt-get update && apt-get install -y \
 RUN cd /usr/local \
     && git clone -b docker https://mwyczalkowski:Elohim,598@github.com/ding-lab/somaticwrapper 
 
-COPY vimrc /root/.vimrc
+
+RUN apt-get update && apt-get install -y \
+    cmake \
+    && apt-get clean
+
+# Install varscan 2.3.8 to match SomaticWrapper
+# Note that newer versions available here: https://github.com/dkoboldt/varscan
+RUN cd /usr/local \
+    && wget https://sourceforge.net/projects/varscan/files/VarScan.v2.3.8.jar
+
+# install bam-readcount, as per https://gist.github.com/ckandoth/87ba44948cb747916f8d
+RUN cd /usr/local \
+    wget https://github.com/genome/bam-readcount/archive/master.tar.gz \
+    tar -zxf master.tar.gz \
+    rm master.tar.gz \
+    mkdir bam-readcount-master/build \
+    cd bam-readcount-master/build \
+    cmake ../ \
+    make \
+    cp bin/bam-readcount /usr/local/bin
+
+# install SnpEff, per http://snpeff.sourceforge.net/download.html
+RUN cd /usr/local \
+    wget http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip \
+    unzip snpEff_latest_core.zip \
+    rm snpEff_latest_core.zip
 
 WORKDIR /usr/local/somaticwrapper
+
+COPY vimrc /root/.vimrc
 
 # following invocation will create common data dir in ./
 # docker run -v $PWD/data:/data -it breakpoint_surveyor
