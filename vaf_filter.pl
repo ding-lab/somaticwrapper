@@ -38,7 +38,6 @@ foreach my $l (`cat $f_m`)
 		 my $ndp_var;
 		 my $tdp_ref;
 		 my $tdp_var; 
-#		 print $ltr,"\n"; 
  
 		 if($info=~/strelka/) 
 		 {
@@ -53,6 +52,7 @@ foreach my $l (`cat $f_m`)
 			%rc=();			
 			#my @temp3=split(",",$temp2[0]);
 			#$rc{'A'}=$temp3[0];
+
 	 	 	$rc{'A'}=(split(",",$temp2[0]))[0]; 
 		 	$rc{'C'}=(split(",",$temp2[1]))[0];
 		 	$rc{'G'}=(split(",",$temp2[4]))[0];
@@ -105,15 +105,19 @@ foreach my $l (`cat $f_m`)
 		   	$vaf_n=$temp[11];
         	$vaf_t=$temp[12];
 			@temp2=split(":",$vaf_n); 
-			my @ndp4=split(",",$temp2[3]); 
+			#print $vaf_n,"\n";
+			my @ndp4=split(",",$temp2[3]);
+
+			if(scalar @ndp4<4) { @ndp4=split(",",$temp2[2]);  }  
 			$ndp_ref=$ndp4[0]+$ndp4[1];
 			$ndp_var=$ndp4[2]+$ndp4[3];
+			#print $vaf_t,"\n";
             @temp2=split(":",$vaf_t);
             my @tdp4=split(",",$temp2[3]);
+            if(scalar @tdp4<4) { @tdp4=split(",",$temp2[2]);  }	
+
             $tdp_ref=$tdp4[0]+$tdp4[1];
             $tdp_var=$tdp4[2]+$tdp4[3];
-			#print $ndp_ref,"\t",$ndp_var,"\t",$tdp_ref,"\t",$tdp_var,"\n";
-			#<STDIN>;
 	        print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$ndp_ref,"\t",$ndp_ref/($ndp_ref+$ndp_var),"\t",$ndp_var,"\t",$ndp_var/($ndp_var+$ndp_ref),"\t",$tdp_ref,"\t",$tdp_ref/($tdp_ref+$tdp_var),"\t",$tdp_var,"\t",$tdp_var/($tdp_var+$tdp_ref),"\n";  
 		if($tdp_var/($tdp_var+$tdp_ref) >=$min_vaf_somatic && $ndp_var/($ndp_var+$ndp_ref)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 	
 			{
