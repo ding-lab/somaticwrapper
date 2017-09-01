@@ -17,15 +17,25 @@ Usage: perl somatic_calling_v1.1.pl  --srg --step --sre --rdir --ref
 with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
 mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
 
-      [0]  Run all steps
-       [1]  Run streka
+  [0]  Run all steps
+ 
+  [1]  Run streka
+ 
   [2]  Run Varscan
+
   [3]  Parse streka result
+
   [4]  Parse VarScan result
+
   [5]  Run Pindel
+
   [6]  Parse Pindel
+
   [7]  Run VEP annotation
- [8]  Run mutect 
-      [9]  Merge vcf files  
- [10] generate maf file 
+
+  [8]  Run mutect 
+  
+  [9]  Merge vcf files  
+
+  [10] generate maf file 
  
