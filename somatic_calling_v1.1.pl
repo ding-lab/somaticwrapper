@@ -34,7 +34,7 @@ $yellow     Usage: perl $0  --srg --step --sre --rdir --ref $normal
 <rdir> = full path of the folder holding files for this sequence run (user must provide)
 <srg> = bam having read group or not: 1, yes and 0, no (default 1)
 <sre> = re-run: 1, yes and 0, no  (default 0)
-<stepn> run this pipeline step by step. (user must provide)
+<step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
 with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
 mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
@@ -49,7 +49,8 @@ $purple 	 [6]  Parse Pindel
 $yellow 	 [7]  Run VEP annotation
 $green		 [8]  Run mutect 
 $gray 	     [9]  Merge vcf files  
-$cyan		 [10] generate maf file 
+$cyan		 [10] Generate maf file 
+$cyan 		 [11] Generate merged maf file
 $normal
 
 OUT
@@ -58,7 +59,6 @@ OUT
 my $step_number = -1;
 my $status_rg = 1;
 my $status_rerun=0; 
-
 #__HELP (BOOLEAN, DEFAULTS TO NO-HELP)
 my $help = 0;
 
@@ -96,11 +96,11 @@ if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
 
-die $usage unless ($step_number >=0)&&(($step_number <= 10));
+die $usage unless ($step_number >=0)&&(($step_number <= 12));
 my $email = "scao\@wustl\.edu";
 # everything else below should be automated
 my $HOME = $ENV{HOME};
-my $working_name= (split(/\//,$run_dir))[-2];
+my $working_name= (split(/\//,$run_dir))[-1];
 my $HOME1="/gscmnt/gc2524/dinglab";
 #store job files here
 if (! -d $HOME1."/tmpsomatic2") {
@@ -202,9 +202,40 @@ if ($step_number < 11) {
     }
 }
 
+if($step_number==11 || $step_number==0)
+    {
+
+	print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
+	$hold_job_file=$current_job_file; 
+	$current_job_file = "Run_report_".$working_name.".sh"; 
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+    `rm $current_job_file`;
+	open(REPRUN, ">$job_files_dir/$current_job_file") or die $!;
+	print REPRUN "#!/bin/bash\n";
+    print REPRUN "#BSUB -n 1\n";
+    print REPRUN "#BSUB -R \"rusage[mem=40000]\"","\n";
+    print REPRUN "#BSUB -M 40000000\n";
+    print REPRUN "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print STREKA "#BSUB -q long\n";
+    print REPRUN "#BSUB -q research-hpc\n";
+    #print REPRUN "#BSUB -q ding-lab\n";
+	print REPRUN "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
+    print REPRUN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
+    print REPRUN "#BSUB -J $current_job_file\n";
+	print REPRUN "#BSUB -w \"$hold_job_file\"","\n";
+	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir."\n";
+	close REPRUN;
+    $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
+	system ($bsub_com);
+
+}
+
 #######################################################################
 # send email to notify the finish of the analysis
-if (($step_number == 0) || ($step_number == 11)) {
+if (($step_number == 0) || ($step_number == 12)) {
     print $yellow, "Submitting the job for sending an email when the run finishes ",$sample_name, "...",$normal, "\n";
     $hold_job_file = $current_job_file;
     $current_job_file = "Email_run_".$$.".sh";
@@ -364,9 +395,9 @@ sub bsub_varscan{
     print VARSCAN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print VARSCAN "#BSUB -J $current_job_file\n";
 	print VARSCAN "#BSUB -w \"$hold_job_file\"","\n";
-    print VARSCAN "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print VARSCANP "#BSUB -q long\n";
-    print VARSCAN "#BSUB -q research-hpc\n";
+    #print VARSCAN "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    print VARSCAN "#BSUB -q long\n";
+    #print VARSCAN "#BSUB -q research-hpc\n";
   	#print VARSCAN "scr_t0=\`date \+\%s\`\n";
     #print VARSCAN "chralt=\${chr\/:\/_}\n";
 	#print VARSCAN "dir=\$chralt\n";
@@ -421,6 +452,7 @@ sub bsub_varscan{
 	print VARSCAN "then\n";
     print VARSCAN "rm \${LOG}\n";
     print VARSCAN "fi\n";
+    print VARSCAN ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
     print VARSCAN '  if [ ! -s $LOG ]',"\n";
     print VARSCAN "  then\n";	
 	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
@@ -1022,6 +1054,7 @@ sub bsub_mutect{
     $current_job_file = "j8_mutect_".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+
     if (! -e $IN_bam_T) {#make sure there is a input fasta file 
         print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         print "Warning: Died because there is no input bam file for bwa:\n";
@@ -1029,10 +1062,12 @@ sub bsub_mutect{
         die "Please check command line argument!", $normal, "\n\n";
 
     }
+
     if (! -s $IN_bam_T) {#make sure input fasta file is not empty
         print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         die "Warning: Died because $IN_bam_T is empty!", $normal, "\n\n";
     }
+
     if (! -e $IN_bam_N) {#make sure there is a input fasta file 
         print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         print "Warning: Died because there is no input bam file for bwa:\n";
@@ -1048,6 +1083,7 @@ sub bsub_mutect{
 
 	my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+
     `rm $lsf_out`;
 	`rm $lsf_err`; 
 
@@ -1132,7 +1168,8 @@ sub bsub_merge_vcf{
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
-    `rm $lsf_err`; 
+    `rm $lsf_err`;
+ 
     open(MERGE, ">$job_files_dir/$current_job_file") or die $!;
     print MERGE "#!/bin/bash\n";
     print MERGE "#BSUB -n 1\n";
@@ -1225,4 +1262,5 @@ sub bsub_vcf_2_maf{
     system ($bsub_com);
 
 	}
+
  
