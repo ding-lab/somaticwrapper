@@ -55,10 +55,13 @@ get $VCF
 bye
 EOF
 
-# Now convert to bgz format and index
-VCFBGZ="CosmicCodingMuts.vcf.bgz"
+# Now convert to bgz format and index.  Note that extension needs to be .gz for downstream
+# java snpsift code to work
+VCFBGZ="CosmicCodingMuts.$REF.$VER.vcf.gz"
 gunzip -c $OUTD/$VCFGZ | bgzip > $OUTD/$VCFBGZ
 tabix -p vcf $OUTD/$VCFBGZ
+
+echo Written to $OUTD/$VCFBGZ
 
 rm $OUTD/$VCFGZ
 
