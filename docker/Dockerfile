@@ -42,7 +42,8 @@ RUN apt-get update && apt-get install -y \
 # Install varscan 2.3.8 to match SomaticWrapper
 # Note that newer versions available here: https://github.com/dkoboldt/varscan
 RUN cd /usr/local \
-    && wget https://sourceforge.net/projects/varscan/files/VarScan.v2.3.8.jar
+    && wget https://sourceforge.net/projects/varscan/files/VarScan.v2.3.8.jar \
+    && ln -s VarScan.v2.3.8.jar VarScan.jar
 
 # install bam-readcount, as per https://gist.github.com/ckandoth/87ba44948cb747916f8d
 RUN cd /usr/local \

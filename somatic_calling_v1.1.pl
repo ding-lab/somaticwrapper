@@ -68,7 +68,8 @@ if (! -d $HOME1."/LSF_DIR_SOMATIC2") {
 }
 my $lsf_file_dir = $HOME1."/LSF_DIR_SOMATIC2";
 
-my $script_dir="/usr/local/somaticwrapper/src";
+# Distinguising between location of modules of somatic wrapper and GenomeVIP
+my $script_dir="/usr/local/somaticwrapper/GenomeVIP";
 my $perl = "/usr/bin/perl";
 my $hold_RM_job = "norm";
 my $current_job_file = "";#cannot be empty
