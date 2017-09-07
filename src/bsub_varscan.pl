@@ -32,8 +32,11 @@ sub bsub_varscan{
         die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
     }
 
+    my $workdir="$sample_full_path/varscan/varscan_out";
+    system("mkdir -p $workdir");
+
     # Create a list of BAM files for varscan to use
-    my $bam_list="$sample_full_path/varscan/bamfilelist.inp";
+    my $bam_list="$workdir/bamfilelist.inp";
     open(OUT, ">$bam_list") or die $!;
     print OUT "$IN_bam_N\n";
     print OUT "$IN_bam_T\n"; 
@@ -50,10 +53,11 @@ sub bsub_varscan{
     my $jar="/usr/local/VarScan.v2.3.8.jar";
     my $samtools="/usr/local/bin/samtools";
 
+
     my $run_name="varscan.out.som";
-    my $log=$run_name.".log";
-    my $snvout=$run_name."_snv";
-    my $indelout=$run_name."_indel";
+    my $log=$workdir."/".$run_name.".log";
+    my $snvout=$workdir."/".$run_name."_snv";
+    my $indelout=$workdir."/".$run_name."_indel";
 
     my $varscan_args=" \
         --mpileup 1 \
@@ -75,9 +79,7 @@ sub bsub_varscan{
 #!/bin/bash
 JAVA_OPTS="-Xms256m -Xmx512m"
 
-echo Running in $sample_full_path/varscan
 echo Log to $log
-cd $sample_full_path/varscan
 
 SAMTOOLS_CMD="$samtools mpileup -q 1 -Q 13 -B -f $REF -b $bam_list "
 
