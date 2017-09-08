@@ -70,39 +70,6 @@ varscan.dbsnp.indel.passfile  = $indeloutbase.gvip.Somatic.hc.dbsnp_pass.vcf
 varscan.dbsnp.indel.dbsnpfile = $indeloutbase.gvip.Somatic.hc.dbsnp_present.vcf
 EOF
 
-# what does this do?
-my $FP_BAM=`awk '{if(NR==2){print \$1}}' $varscan_results/bamfilelist.inp`;
-
-# cat > $sample_full_path/varscan/vs_fpfilter.somatic.snv.input <<EOF
-    my $out = "$filter_results/vs_fpfilter.somatic.snv.input";
-    print("Writing to $out\n");
-    open(OUT, ">$out") or die $!;
-    print OUT <<"EOF";
-varscan.fpfilter.snv.bam_readcount = /usr/local/bin/bam-readcount
-varscan.fpfilter.snv.bam_file = $FP_BAM
-varscan.fpfilter.snv.REF = $REF
-varscan.fpfilter.snv.variants_file = $snvoutbase.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf
-varscan.fpfilter.snv.passfile = $snvoutbase.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.fp_pass.vcf
-varscan.fpfilter.snv.failfile = $snvoutbase.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.fp_fail.vcf
-varscan.fpfilter.snv.min_mapping_qual = 0
-varscan.fpfilter.snv.min_base_qual = 15
-varscan.fpfilter.snv.min_num_var_supporting_reads = 4
-varscan.fpfilter.snv.min_var_allele_freq = 0.05
-varscan.fpfilter.snv.min_avg_rel_read_position = 0.10
-varscan.fpfilter.snv.min_avg_rel_dist_to_3prime_end = 0.10
-varscan.fpfilter.snv.min_var_strandedness = 0.01
-varscan.fpfilter.snv.min_allele_depth_for_testing_strandedness = 5
-varscan.fpfilter.snv.min_ref_allele_avg_base_qual = 30
-varscan.fpfilter.snv.min_var_allele_avg_base_qual = 30
-varscan.fpfilter.snv.max_rel_read_length_difference = 0.25
-varscan.fpfilter.snv.max_mismatch_qual_sum_for_var_reads = 150
-varscan.fpfilter.snv.max_avg_mismatch_qual_sum_difference = 100
-varscan.fpfilter.snv.min_ref_allele_avg_mapping_qual = 30
-varscan.fpfilter.snv.min_var_allele_avg_mapping_qual = 30
-varscan.fpfilter.snv.max_avg_mapping_qual_difference = 50
-EOF
-
-
     my $somatic_snv_params="--min-tumor-freq 0.10 --max-normal-freq 0.05 --p-value 0.07";
     my $somatic_indel_params="--min-tumor-freq 0.10 --max-normal-freq 0.05 --p-value 0.07";
     my $somatic_filter_params="--min-coverage 30 --min-reads2 4 --min-strands2 1 --min-avg-qual 20 --min-var-freq 0.10 --p-value 0.05";
@@ -132,7 +99,6 @@ java \${JAVA_OPTS} -jar $varscan_jar somaticFilter  $thissnvorig $somatic_filter
 
 $perl $gvip_dir/dbsnp_filter.pl  $filter_results/vs_dbsnp_filter.snv.input
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/vs_dbsnp_filter.indel.input
-$perl $gvip_dir/snv_filter.pl  $filter_results/vs_fpfilter.somatic.snv.input
 
 EOF
 
