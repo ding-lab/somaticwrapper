@@ -62,6 +62,23 @@ RUN cd /usr/local \
     unzip snpEff_latest_core.zip \
     rm snpEff_latest_core.zip
 
+# install VEP - this downloads a cache, which should probably be installed as a runtime step (like reference)
+# Rather than installed in docker imate.  See here for discussion of caches: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
+# So the plan is to 1) install VEP in docker, with no cache, and 2) when starting first container, download cache then
+# TODO: (I did CTRL-C to move on)  This will take an hour or so prob
+#  - use CTRL-C to cancel if you do not wish to convert this cache now (you may run convert_cache.pl later)
+
+#cd /usr/local
+#cpanm DBI
+#git clone https://github.com/Ensembl/ensembl-vep.git
+#cd ensembl-vep
+#perl INSTALL.pl
+#  - y, y
+#  - homo_sapiens_vep_90_GRCh37.tar.gz homo_sapiens_vep_90_GRCh37.tar.gzhomo_sapiens_vep_90_GRCh37.tar.gz
+#  - this is typically 59 60
+# cache files stored in /root/.vep  -> this should probably be set to /data/D_Ensembl
+# See also here for how to install cache separately in a docker environment: https://www.ensembl.org/info/docs/tools/vep/script/vep_download.html#docker
+
 WORKDIR /usr/local/somaticwrapper
 
 COPY vimrc /root/.vimrc

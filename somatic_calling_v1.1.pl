@@ -28,6 +28,7 @@ require("src/bsub_varscan.pl");
 require("src/bsub_parse_strelka.pl");
 require("src/bsub_parse_varscan.pl");
 require("src/bsub_pindel.pl");
+require("src/bsub_vep.pl");
 
 (my $usage = <<OUT) =~ s/\t+//g;
 This script will process rna-seq data for TCGA samples. 
