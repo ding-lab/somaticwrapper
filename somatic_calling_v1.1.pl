@@ -27,6 +27,7 @@ require('src/bsub_strelka.pl');
 require("src/bsub_varscan.pl");
 require("src/bsub_parse_strelka.pl");
 require("src/bsub_parse_varscan.pl");
+require("src/bsub_pindel.pl");
 
 (my $usage = <<OUT) =~ s/\t+//g;
 This script will process rna-seq data for TCGA samples. 
@@ -55,22 +56,24 @@ if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
 die $usage unless ($step_number >=0)&&(($step_number <= 10));
-# everything else below should be automated
+
 my $working_name= (split(/\//,$run_dir))[-2];
-my $HOME1="/usr/local/somaticwrapper/runtime";
-#store job files here
-if (! -d $HOME1."/tmpsomatic2") {
-    `mkdir -p $HOME1"/tmpsomatic2"`;
-}
-my $job_files_dir = $HOME1."/tmpsomatic2";
-#store SGE output and error files here
-if (! -d $HOME1."/LSF_DIR_SOMATIC2") {
-    `mkdir -p $HOME1"/LSF_DIR_SOMATIC2"`;
-}
-my $lsf_file_dir = $HOME1."/LSF_DIR_SOMATIC2";
+
+my $sw_dir="/usr/local/somaticwrapper";
 
 # Distinguising between location of modules of somatic wrapper and GenomeVIP
-my $script_dir="/usr/local/somaticwrapper/GenomeVIP";
+my $gvip_dir="$sw_dir/GenomeVIP";
+
+# automatically generated scripts below
+my $job_files_dir="$sw_dir/runtime";
+system("mkdir -p $job_files_dir");
+
+# Define where centromere definion file is.  See C_Centromeres for discussion
+my $f_centromere="$sw_dir/C_Centromeres/pindel-centromere-exclude.bed";
+
+
+
+
 my $perl = "/usr/bin/perl";
 my $hold_RM_job = "norm";
 my $current_job_file = "";#cannot be empty
@@ -85,10 +88,9 @@ my $STRELKA_DIR="/usr/local/strelka";
 #my $REF="/data/A_Reference/GRCh37-lite.fa";  # This does not work with strelka demo data because wrong reference
 my $REF="/data/A_Reference/demo20.fa";  # Default strelka reference
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
-my $pindel="/gscuser/qgao/tools/pindel/pindel";
+my $pindel="/usr/local/pindel/pindel";
 my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
 my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
-my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 
 opendir(DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
 my @sample_dir_list = readdir DH;
@@ -130,12 +132,12 @@ if ($step_number < 10) {
 #                   &bsub_mutect(1);
 #               }
                 elsif ($step_number == 3) {
-                    bsub_parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $script_dir);
+                    bsub_parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
                 } 
                 elsif ($step_number == 4) {
-                    bsub_parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $script_dir);
+                    bsub_parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
                 } elsif ($step_number == 5) {
-                    &bsub_pindel(1);
+                    bsub_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $pindel, $sw_dir, $f_centromere);
                 }elsif ($step_number == 6) {
                     &bsub_vep(1);
                 }elsif ($step_number == 7) {
@@ -170,41 +172,6 @@ exit;
 
 
 
-sub bsub_pindel{
-    my ($step_by_step) = @_;
-    if ($step_by_step) {
-        $hold_job_file = "";
-    }else{
-        $hold_job_file = $current_job_file;
-    }
-
-    $current_job_file = "j5_pindel".$sample_name.".sh";  
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-    open(PINDEL, ">$job_files_dir/$current_job_file") or die $!;
-    print PINDEL "#!/bin/bash\n";
-    print PINDEL "#BSUB -n 4\n";
-    print PINDEL "#BSUB -R \"span[hosts=1] rusage[mem=30000]\"","\n";
-    print PINDEL "#BSUB -M 30000000\n";
-    print PINDEL "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print PINDEL "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print PINDEL "#BSUB -J $current_job_file\n";
-    print PINDEL "#BSUB -w \"$hold_job_file\"","\n";
-    print PINDEL "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print PINDEL "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print PINDEL "myRUNDIR=".$sample_full_path."/pindel\n";
-    print PINDEL "CONFIG=\${myRUNDIR}"."/".$sample_name.".config\n";
-    print PINDEL "if [ ! -d \${myRUNDIR} ]\n";
-    print PINDEL "then\n";
-    print PINDEL "mkdir \${myRUNDIR}\n";
-    print PINDEL "fi\n";
-    print PINDEL "echo \"$IN_bam_T\t500\t$sample_name.T\" > \${CONFIG}\n";
-    print PINDEL "echo \"$IN_bam_N\t500\t$sample_name.N\" >> \${CONFIG}\n";
-    print PINDEL "$pindel -T 4 -f $REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere\n";
-    close PINDEL;
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    system ( $bsub_com );   
-}
 
 sub bsub_vep{
 
@@ -220,14 +187,6 @@ sub bsub_vep{
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
     open(VEP, ">$job_files_dir/$current_job_file") or die $!; 
     print VEP "#!/bin/bash\n";
-    print VEP "#BSUB -n 1\n";
-    print VEP "#BSUB -R \"rusage[mem=30000]\"","\n";
-    print VEP "#BSUB -M 30000000\n";
-    print VEP "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print VEP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print VEP "#BSUB -J $current_job_file\n";
-    print VEP "#BSUB -q long\n";
-    print VEP "#BSUB -w \"$hold_job_file\"","\n";
     print VEP "scr_t0=\`date \+\%s\`\n";
     print VEP "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print VEP "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
@@ -305,15 +264,15 @@ sub bsub_vep{
     print VEP "strelka.vep.assembly = GRCh37\n";
     print VEP "EOF\n";
     print VEP "cd \${RUNDIR}/varscan\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./vs_vep.snv.input >& ./vs_vep.snv.log\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./vs_vep.snv.initial.input >& ./vs_vep.snv.initial.log\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./vs_vep.indel.initial.input >& ./vs_vep.indel.initial.log\n";
+    print VEP "$perl $gvip_dir/vep_annotator.pl ./vs_vep.snv.input >& ./vs_vep.snv.log\n";
+    print VEP "$perl $gvip_dir/vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";
+    print VEP "$perl $gvip_dir/vep_annotator.pl ./vs_vep.snv.initial.input >& ./vs_vep.snv.initial.log\n";
+    print VEP "$perl $gvip_dir/vep_annotator.pl ./vs_vep.indel.initial.input >& ./vs_vep.indel.initial.log\n";
     print VEP "cd \${RUNDIR}/strelka/strelka_out/results\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./strelka_vep.snv.input >& ./strelka_vep.snv.log\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./strelka_vep.indel.input >& ./strelka_vep.indel.log\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./strelka_vep.snv.initial.input >& ./strelka_vep.snv.initial.log\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./strelka_vep.indel.initial.input >& ./strelka_vep.indel.initial.log\n";
+    print VEP "$perl $gvip_dir/vep_annotator.pl ./strelka_vep.snv.input >& ./strelka_vep.snv.log\n";
+    print VEP "$perl $gvip_dir/vep_annotator.pl ./strelka_vep.indel.input >& ./strelka_vep.indel.log\n";
+    print VEP "$perl $gvip_dir/vep_annotator.pl ./strelka_vep.snv.initial.input >& ./strelka_vep.snv.initial.log\n";
+    print VEP "$perl $gvip_dir/vep_annotator.pl ./strelka_vep.indel.initial.input >& ./strelka_vep.indel.initial.log\n";
     close VEP;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com );
@@ -333,14 +292,6 @@ sub bsub_parse_pindel {
 
     open(PP, ">$job_files_dir/$current_job_file") or die $!;
     print PP "#!/bin/bash\n";
-    print PP "#BSUB -n 1\n";
-    print PP "#BSUB -R \"rusage[mem=30000]\"","\n";
-    print PP "#BSUB -M 30000000\n";
-    print PP "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print PP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print PP "#BSUB -J $current_job_file\n";
-    print PP "#BSUB -q long\n";
-    print PP "#BSUB -w \"$hold_job_file\"","\n";
     print PP "RUNDIR=".$sample_full_path."\n";
     print PP "cat > \${RUNDIR}/pindel/pindel_filter.input <<EOF\n";
     print PP "pindel.filter.pindel2vcf = $PINDEL_DIR/pindel2vcf\n";
@@ -371,10 +322,10 @@ sub bsub_parse_pindel {
     print PP 'list=$(xargs -a  ./$outlist)'."\n";
     print PP "pin_var_file=pindel.out.raw\n";
     print PP 'cat $list | grep ChrID > ./$pin_var_file'."\n";
-    print PP "$perl $script_dir/pindel_filter.v0.5.pl ./pindel_filter.input\n"; 
+    print PP "$perl $gvip_dir/pindel_filter.v0.5.pl ./pindel_filter.input\n"; 
     print PP 'pre_current_final=$pin_var_file.CvgVafStrand_pass.Homopolymer_pass.vcf'."\n";
     print PP 'for mytmp in $pin_var_file.CvgVafStrand_pass.vcf  $pre_current_final  ${pre_current_final/%pass.vcf/fail.vcf} ; do'."\n";
-    print PP '$perl $script_dir/genomevip_label.pl Pindel ./$mytmp ./${mytmp/%vcf/gvip.vcf}'."\n";
+    print PP '$perl $gvip_dir/genomevip_label.pl Pindel ./$mytmp ./${mytmp/%vcf/gvip.vcf}'."\n";
     print PP "done\n";
     print PP 'current_final=${pin_var_file/%raw/current_final.gvip.Somatic.vcf}'."\n";
     print PP 'cat ./${pre_current_final/%vcf/gvip.vcf} > ./$current_final'."\n";
@@ -386,7 +337,7 @@ sub bsub_parse_pindel {
     print PP "else\n";
     print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
     print PP "fi\n";
-    print PP "$perl $script_dir/dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";    
+    print PP "$perl $gvip_dir/dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";    
     print PP "cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF\n";
     print PP "pindel.vep.vcf = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
     print PP "pindel.vep.output = ./pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf\n";
@@ -395,7 +346,7 @@ sub bsub_parse_pindel {
     print PP "pindel.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
     print PP "pindel.vep.assembly = GRCh37\n";
     print PP "EOF\n";
-    print PP "$perl $script_dir/vep_annotator.pl ./pindel_vep.input >& ./pindel_vep.log\n";  
+    print PP "$perl $gvip_dir/vep_annotator.pl ./pindel_vep.input >& ./pindel_vep.log\n";  
     close PP;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);
@@ -416,14 +367,6 @@ sub bsub_merge_vcf{
 
     open(MERGE, ">$job_files_dir/$current_job_file") or die $!;
     print MERGE "#!/bin/bash\n";
-    print MERGE "#BSUB -n 1\n";
-    print MERGE "#BSUB -R \"rusage[mem=30000]\"","\n";
-    print MERGE "#BSUB -M 30000000\n";
-    print MERGE "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print MERGE "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print MERGE "#BSUB -J $current_job_file\n";
-    print MERGE "#BSUB -q long\n";
-    print MERGE "#BSUB -w \"$hold_job_file\"","\n";
     print MERGE "scr_t0=\`date \+\%s\`\n";
     print MERGE "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print MERGE "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
@@ -450,7 +393,7 @@ sub bsub_merge_vcf{
     print MERGE "EOF\n";
     print MERGE "java \${JAVA_OPTS} -jar $gatk -R $REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
     print MERGE "cd \${RUNDIR}\n";
-    print MERGE "$perl $script_dir/vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";    
+    print MERGE "$perl $gvip_dir/vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";    
     close MERGE;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);
@@ -471,14 +414,6 @@ sub bsub_vcf_2_maf{
 
     open(MAF, ">$job_files_dir/$current_job_file") or die $!;
     print MAF "#!/bin/bash\n";
-    print MAF "#BSUB -n 1\n";
-    print MAF "#BSUB -R \"rusage[mem=30000]\"","\n";
-    print MAF "#BSUB -M 30000000\n";
-    print MAF "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print MAF "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print MAF "#BSUB -J $current_job_file\n";
-    print MAF "#BSUB -q long\n";
-    print MAF "#BSUB -w \"$hold_job_file\"","\n";
     print MAF "F_VCF_1=".$sample_full_path."/merged.vcf\n";
     print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".vcf\n";
     print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.vcf\n";
@@ -486,7 +421,7 @@ sub bsub_vcf_2_maf{
     print MAF "F_maf=".$sample_full_path."/".$sample_name.".maf\n";
     print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
     print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
-    print MAF "$perl $script_dir/vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $REF --filter-vcf $f_exac\n";
+    print MAF "$perl $sw_dir/vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $REF --filter-vcf $f_exac\n";
     close MAF;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);

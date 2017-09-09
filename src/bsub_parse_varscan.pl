@@ -106,9 +106,6 @@ EOF
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     print("Executing:\n $bsub_com \n");
 
-    print("Aborting.\n");
-exit();
-    
     system ( $bsub_com ); 
 }
 
