@@ -140,7 +140,7 @@ if ($step_number < 10) {
                 } elsif ($step_number == 5) {
                     bsub_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $pindel, $sw_dir, $f_centromere);
                 }elsif ($step_number == 6) {
-                    &bsub_vep(1);
+                    bsub_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $gvip_dir);
                 }elsif ($step_number == 7) {
                     &bsub_parse_pindel(1);
                 }elsif ($step_number == 8) {
