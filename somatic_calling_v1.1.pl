@@ -37,6 +37,7 @@ $yellow     Usage: perl $0  --srg --step --sre --rdir --ref $normal
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
 with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
+without chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite.fa
 mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
 
 $red 	     [0]  Run all steps
@@ -755,8 +756,8 @@ sub bsub_parse_varscan{
 	print VARSCANP "     ".$run_script_path."dbsnp_filter.pl  \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input\n";
 	print VARSCANP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/varscan/vs_dbsnp_filter.indel.input\n";
 	#print VARSCANP "     ".$run_script_path."snv_filter.pl  \${RUNDIR}/varscan/vs_fpfilter.somatic.snv.input\n";
-	print VARSCANP "     ".$run_script_path."vep_annotator.pl ./vs_vep.snv.input >& ./vs_vep.snv.log\n";
-	print VARSCANP "     ".$run_script_path."vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";
+	#print VARSCANP "     ".$run_script_path."vep_annotator.pl ./vs_vep.snv.input >& ./vs_vep.snv.log\n";
+	#print VARSCANP "     ".$run_script_path."vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";
 	close VARSCANP; 
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com );
