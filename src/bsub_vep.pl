@@ -51,49 +51,56 @@ sub bsub_vep{
     my $filter_results = "$sample_full_path/vep";
     system("mkdir -p $filter_results");
 
+    # VCF exists, no data
     my $config_fn = "$filter_results/vs_vep.snv.input";
     my $vcf = "$varscan_results/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf";
     my $output = "$filter_results/varscan.out.som_snv.current_final.gvip.Somatic.VEP.vcf";
     my $module = "varscan.vep";
     write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
 
-
+    # VCF exists, has data
     $config_fn = "$filter_results/vs_vep.indel.input";
     $vcf = "$varscan_results/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf";
     $output = "$filter_results/varscan.out.som_indel.current_final.gvip.Somatic.VEP.vcf";
     $module = "varscan.vep";
     write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
 
-    $config_fn = "$filter_results/strelka_vep.snv.input";
-    $vcf = "$strelka_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf";
-    $output = "$filter_results/strelka.somatic_snv.current_final.gvip.Somatic.VEP.vcf";
-    $module = "strelka.vep";
-    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
-
-    $config_fn = "$filter_results/strelka_vep.indel.input";
-    $vcf = "$strelka_results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf";
-    $output = "$filter_results/strelka.somatic_indel.current_final.gvip.Somatic.VEP.vcf";
-    $module = "strelka.vep";
-    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
-
-    $config_fn = "$filter_results/vs_vep.snv.inital.input";
+    # VCF exists, has data
+    $config_fn = "$filter_results/vs_vep.snv.initial.input";   # formerly vs_vep.snv.inital.input, never ran
     $vcf = "$varscan_results/varscan.out.som_snv.gvip.vcf";
     $output = "$filter_results/varscan.out.som_snv.gvip.VEP.vcf";
     $module = "varscan.vep";
     write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
 
+    # VCF exists, has data
     $config_fn = "$filter_results/vs_vep.indel.initial.input";
     $vcf = "$varscan_results/varscan.out.som_indel.gvip.vcf";
     $output = "$filter_results/varscan.out.som_indel.gvip.VEP.vcf";
     $module = "varscan.vep";
     write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
 
+    # VCF exists, has data
+    $config_fn = "$filter_results/strelka_vep.snv.input";
+    $vcf = "$strelka_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf";
+    $output = "$filter_results/strelka.somatic_snv.current_final.gvip.Somatic.VEP.vcf";
+    $module = "strelka.vep";
+    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
+
+    # VCF exists, has data
+    $config_fn = "$filter_results/strelka_vep.indel.input";
+    $vcf = "$strelka_results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf";
+    $output = "$filter_results/strelka.somatic_indel.current_final.gvip.Somatic.VEP.vcf";
+    $module = "strelka.vep";
+    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
+
+    # VCF does not exist
     $config_fn = "$filter_results/strelka_vep.snv.initial.input";
     $vcf = "$strelka_results/strelka.somatic.snv.strlk_pass.gvip.vcf";
     $output = "$filter_results/strelka.somatic.snv.strlk_pass.gvip.VEP.vcf";
     $module = "strelka.vep";
     write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
 
+    # VCF does not exist 
     $config_fn = "$filter_results/strelka_vep.indel.initial.input";
     $vcf = "$strelka_results/strelka.somatic.indel.strlk_pass.gvip.vcf";
     $output = "$filter_results/strelka.somatic.indel.strlk_pass.gvip.VEP.vcf";
@@ -113,28 +120,25 @@ sub bsub_vep{
 export JAVA_OPTS=\"-Xms256m -Xmx512m\"
 #export PATH=\${JAVA_HOME}/bin:\${PATH}
 
-$perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.snv.input >& $filter_results/vs_vep.snv.log
-$perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.indel.input >& $filter_results/vs_vep.indel.log
-$perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.snv.initial.input >& $filter_results/vs_vep.snv.initial.log
-$perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.indel.initial.input >& $filter_results/vs_vep.indel.initial.log
+$perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.snv.input &> $filter_results/vep.log
+$perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.indel.input &>> $filter_results/vep.log
+$perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.snv.initial.input &>> $filter_results/vep.log
+$perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.indel.initial.input &>> $filter_results/vep.log
 
 
-$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.snv.input >& $filter_results/strelka_vep.snv.log
-$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.indel.input >& $filter_results/strelka_vep.indel.log
-$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.snv.initial.input >& $filter_results/strelka_vep.snv.initial.log
-$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.indel.initial.input >& $filter_results/strelka_vep.indel.initial.log
+$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.snv.input &>> $filter_results/vep.log
+$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.indel.input &>> $filter_results/vep.log
+$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.snv.initial.input &>> $filter_results/vep.log
+$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.indel.initial.input &>> $filter_results/vep.log
+
+echo Logs written to $filter_results/vep.log
 EOF
 
     close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     print("Executing:\n $bsub_com \n");
 
-    print("Aborting\n");
-    die();
-
     system ( $bsub_com ); 
-
-
 }
 
 1;

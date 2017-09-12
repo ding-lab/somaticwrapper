@@ -50,6 +50,7 @@ if [ -d $strelka_out ] ; then
 fi
 
 $strelka_bin --normal $IN_bam_N --tumor $IN_bam_T --ref $REF --config $strelka_config --output-dir $strelka_out
+
 cd $strelka_out
 make -j 16
 EOF

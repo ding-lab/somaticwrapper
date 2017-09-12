@@ -100,6 +100,17 @@ EOF
     print("Writing to $outfn\n");
     open(OUT, ">$outfn") or die $!;
 
+
+# Note that dbsnp_filter.pl automatically adds dbsnp_anno.vcf suffix to rawvcf when creating output
+# Step 5 creates these two files:
+#   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf  - not empty
+#   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_present.vcf - empty (header only)
+# Step 6 creates these two files:
+#   strelka/filter_out/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf  - not empty
+#   strelka/filter_out/strelka.somatic.indel.all.gvip.dbsnp_present.vcf - empty (header only)
+# Step 7 creates this file:
+#   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.fp.out.vcf - not empty
+
     print OUT <<"EOF";
 #!/bin/bash
 
