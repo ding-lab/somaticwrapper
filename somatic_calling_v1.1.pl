@@ -26,6 +26,9 @@ my $normal = "\e[0m";
 require('src/bsub_strelka.pl');
 require("src/bsub_varscan.pl");
 require("src/bsub_parse_strelka.pl");
+require("src/bsub_parse_varscan.pl");
+require("src/bsub_pindel.pl");
+require("src/bsub_vep.pl");
 
 (my $usage = <<OUT) =~ s/\t+//g;
 This script will process rna-seq data for TCGA samples. 
@@ -54,22 +57,24 @@ if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
 die $usage unless ($step_number >=0)&&(($step_number <= 10));
-# everything else below should be automated
+
 my $working_name= (split(/\//,$run_dir))[-2];
-my $HOME1="/usr/local/somaticwrapper/runtime";
-#store job files here
-if (! -d $HOME1."/tmpsomatic2") {
-    `mkdir -p $HOME1"/tmpsomatic2"`;
-}
-my $job_files_dir = $HOME1."/tmpsomatic2";
-#store SGE output and error files here
-if (! -d $HOME1."/LSF_DIR_SOMATIC2") {
-    `mkdir -p $HOME1"/LSF_DIR_SOMATIC2"`;
-}
-my $lsf_file_dir = $HOME1."/LSF_DIR_SOMATIC2";
+
+my $sw_dir="/usr/local/somaticwrapper";
 
 # Distinguising between location of modules of somatic wrapper and GenomeVIP
-my $script_dir="/usr/local/somaticwrapper/GenomeVIP";
+my $gvip_dir="$sw_dir/GenomeVIP";
+
+# automatically generated scripts below
+my $job_files_dir="$sw_dir/runtime";
+system("mkdir -p $job_files_dir");
+
+# Define where centromere definion file is.  See C_Centromeres for discussion
+my $f_centromere="$sw_dir/C_Centromeres/pindel-centromere-exclude.bed";
+
+
+
+
 my $perl = "/usr/bin/perl";
 my $hold_RM_job = "norm";
 my $current_job_file = "";#cannot be empty
@@ -84,10 +89,9 @@ my $STRELKA_DIR="/usr/local/strelka";
 #my $REF="/data/A_Reference/GRCh37-lite.fa";  # This does not work with strelka demo data because wrong reference
 my $REF="/data/A_Reference/demo20.fa";  # Default strelka reference
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
-my $pindel="/gscuser/qgao/tools/pindel/pindel";
+my $pindel="/usr/local/pindel/pindel";
 my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
 my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
-my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 
 opendir(DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
 my @sample_dir_list = readdir DH;
@@ -129,14 +133,14 @@ if ($step_number < 10) {
 #                   &bsub_mutect(1);
 #               }
                 elsif ($step_number == 3) {
-                    bsub_parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $script_dir);
+                    bsub_parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
                 } 
                 elsif ($step_number == 4) {
-                    &bsub_parse_varscan(1);
-                }elsif ($step_number == 5) {
-                    &bsub_pindel(1);
+                    bsub_parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
+                } elsif ($step_number == 5) {
+                    bsub_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $pindel, $sw_dir, $f_centromere);
                 }elsif ($step_number == 6) {
-                    &bsub_vep(1);
+                    bsub_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $gvip_dir);
                 }elsif ($step_number == 7) {
                     &bsub_parse_pindel(1);
                 }elsif ($step_number == 8) {
@@ -168,338 +172,8 @@ exit;
 
 
 
-sub bsub_parse_varscan{
-
-    my ($step_by_step) = @_;
-    if ($step_by_step) {
-        $hold_job_file = "";
-    }else{
-        $hold_job_file = $current_job_file;
-    }
 
 
-    $current_job_file = "j4_parse_varscan".$sample_name.".sh";
-
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-
-    open(VARSCANP, ">$job_files_dir/$current_job_file") or die $!;
-
-    print VARSCANP "#!/bin/bash\n";
-    print VARSCANP "#BSUB -n 1\n";
-    print VARSCANP "#BSUB -R \"rusage[mem=30000]\"","\n";
-    print VARSCANP "#BSUB -M 30000000\n";
-    print VARSCANP "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print VARSCANP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print VARSCANP "#BSUB -J $current_job_file\n"; 
-    print VARSCANP "#BSUB -q long\n";
-    print VARSCANP "#BSUB -w \"$hold_job_file\"","\n";
-    print VARSCANP "scr_t0=\`date \+\%s\`\n";
-    print VARSCANP "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print VARSCANP "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print VARSCANP "myRUNDIR=".$sample_full_path."/varscan\n";
-    print VARSCANP "STATUSDIR=".$sample_full_path."/status\n";
-    print VARSCANP "RUNDIR=".$sample_full_path."\n";
-    print VARSCANP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-    print VARSCANP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print VARSCANP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
-    print VARSCANP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
-    print VARSCANP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input <<EOF\n";
-    print VARSCANP "varscan.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-    print VARSCANP "varscan.dbsnp.snv.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
-    print VARSCANP "varscan.dbsnp.snv.rawvcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf\n";
-    print VARSCANP "varscan.dbsnp.snv.mode = filter\n";
-    print VARSCANP "varscan.dbsnp.snv.passfile  = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-    print VARSCANP "varscan.dbsnp.snv.dbsnpfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf\n";
-    print VARSCANP "EOF\n";
-#   print VARSCANP "cat > \${RUNDIR}/varscan/vs_cosmic_check.snv.input <<EOF\n";
-#  print VARSCANP "varscan.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-#  print VARSCANP "varscan.dbsnp.snv.db = /gscmnt/gc2525/dinglab/rmashl/Software/bin/dbSNP/NCBI/snp142/GRCh37/00-All.brief.vcf\n";
-#  print VARSCANP "varscan.dbsnp.snv.rawvcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf\n";
-#  print VARSCANP "varscan.dbsnp.snv.mode = filter\n";
-#  print VARSCANP "varscan.dbsnp.snv.passfile  = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-#  print VARSCANP "varscan.dbsnp.snv.dbsnpfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf\n";
-#  print VARSCANP "EOF\n";
-    print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.indel.input <<EOF\n";
-    print VARSCANP "varscan.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-    print VARSCANP "varscan.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
-    print VARSCANP "varscan.dbsnp.indel.rawvcf = ./varscan.out.som_indel.gvip.Somatic.hc.vcf\n";
-    print VARSCANP "varscan.dbsnp.indel.mode = filter\n";
-    print VARSCANP "varscan.dbsnp.indel.passfile  = ./varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
-    print VARSCANP "varscan.dbsnp.indel.dbsnpfile = ./varscan.out.som_indel.gvip.Somatic.hc.dbsnp_present.vcf\n";
-    print VARSCANP "EOF\n";
-    print VARSCANP "FP_BAM=\`awk \'{if(NR==2){print \$1}}\' \${RUNDIR}/varscan/bamfilelist.inp\`\n";    
-    print VARSCANP "cat > \${RUNDIR}/varscan/vs_fpfilter.somatic.snv.input <<EOF\n";
-    print VARSCANP "varscan.fpfilter.snv.bam_readcount = /gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount\n";
-    print VARSCANP "varscan.fpfilter.snv.bam_file = \${FP_BAM}\n";
-    print VARSCANP "varscan.fpfilter.snv.REF = $REF\n";
-    print VARSCANP "varscan.fpfilter.snv.variants_file = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-    print VARSCANP "varscan.fpfilter.snv.passfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.fp_pass.vcf\n";
-    print VARSCANP "varscan.fpfilter.snv.failfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.fp_fail.vcf\n";
-    print VARSCANP "varscan.fpfilter.snv.min_mapping_qual = 0\n";
-    print VARSCANP "varscan.fpfilter.snv.min_base_qual = 15\n";
-    print VARSCANP "varscan.fpfilter.snv.min_num_var_supporting_reads = 4\n";
-    print VARSCANP "varscan.fpfilter.snv.min_var_allele_freq = 0.05\n";
-    print VARSCANP "varscan.fpfilter.snv.min_avg_rel_read_position = 0.10\n";
-    print VARSCANP "varscan.fpfilter.snv.min_avg_rel_dist_to_3prime_end = 0.10\n";
-    print VARSCANP "varscan.fpfilter.snv.min_var_strandedness = 0.01\n";
-    print VARSCANP "varscan.fpfilter.snv.min_allele_depth_for_testing_strandedness = 5\n";
-    print VARSCANP "varscan.fpfilter.snv.min_ref_allele_avg_base_qual = 30\n";
-    print VARSCANP "varscan.fpfilter.snv.min_var_allele_avg_base_qual = 30\n";
-    print VARSCANP "varscan.fpfilter.snv.max_rel_read_length_difference = 0.25\n";
-    print VARSCANP "varscan.fpfilter.snv.max_mismatch_qual_sum_for_var_reads = 150\n";
-    print VARSCANP "varscan.fpfilter.snv.max_avg_mismatch_qual_sum_difference = 100\n";
-    print VARSCANP "varscan.fpfilter.snv.min_ref_allele_avg_mapping_qual = 30\n";
-    print VARSCANP "varscan.fpfilter.snv.min_var_allele_avg_mapping_qual = 30\n";
-    print VARSCANP "varscan.fpfilter.snv.max_avg_mapping_qual_difference = 50\n";
-    print VARSCANP "EOF\n";
-    print VARSCANP "cat > \${RUNDIR}/varscan/vs_vep.snv.input <<EOF\n";
-    print VARSCANP "varscan.vep.vcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-    print VARSCANP "varscan.vep.output = ./varscan.out.som_snv.current_final.gvip.Somatic.VEP.vcf\n";
-    print VARSCANP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print VARSCANP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print VARSCANP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print VARSCANP "varscan.vep.assembly = GRCh37\n";
-    print VARSCANP "EOF\n";
-    print VARSCANP "cat > \${RUNDIR}/varscan/vs_vep.indel.input <<EOF\n";
-    print VARSCANP "varscan.vep.vcf = ./varscan.out.som_indel.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-    print VARSCANP "varscan.vep.output = ./varscan.out.som_indel.current_final.gvip.Somatic.VEP.vcf\n";
-    print VARSCANP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print VARSCANP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print VARSCANP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print VARSCANP "varscan.vep.assembly = GRCh37\n";
-    print VARSCANP "EOF\n";
-    print VARSCANP "if [ ! -d \${myRUNDIR} ]\n";
-    print VARSCANP "then\n";
-    print VARSCANP "mkdir \${myRUNDIR}\n";
-    print VARSCANP "fi\n";
-    print VARSCANP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-    print VARSCANP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-    print VARSCANP "else\n";
-    print VARSCANP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-    print VARSCANP "fi\n";
-    print VARSCANP "put_cmd=\"ln -s\"\n";
-    print VARSCANP "del_cmd=\"rm -f\"\n";
-    print VARSCANP "del_local=\"rm -f\"\n";
-    print VARSCANP "statfile=incomplete.vs_som_snvindels\n";
-    print VARSCANP "localstatus=\${RUNDIR}\/status\/\${statfile}\n";
-    print VARSCANP "if [ ! -d \${myRUNDIR}\/status ]\n";
-    print VARSCANP "then\n";
-    print VARSCANP "mkdir \${myRUNDIR}\/status\n";
-    print VARSCANP "fi\n";
-    print VARSCANP "touch \${localstatus}\n";
-    print VARSCANP "cd \${RUNDIR}/varscan\n";
-    print VARSCANP "TMPBASE=.\/varscan.out.som\n";
-    print VARSCANP "LOG=\${TMPBASE}.log\n";
-    print VARSCANP "snvoutbase=\${TMPBASE}_snv\n";
-    print VARSCANP "indeloutbase=\${TMPBASE}_indel\n";
-    print VARSCANP "cd \${RUNDIR}/varscan\n";
-    print VARSCANP "$perl $script_dir/genomevip_label.pl VarScan \${snvoutbase}.vcf  \${snvoutbase}.gvip.vcf\n";
-    print VARSCANP "$perl $script_dir/genomevip_label.pl VarScan \${indeloutbase}.vcf \${indeloutbase}.gvip.vcf\n";
-    print VARSCANP "echo \'APPLYING PROCESS FILTER TO SOMATIC SNVS:\' &>> \${LOG}\n";
-    print VARSCANP "mysnvorig=./\${snvoutbase}.gvip.vcf\n";
-    print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${mysnvorig} --min-tumor-freq 0.10 --max-normal-freq 0.05 --p-value 0.07  &>> \${LOG}\n";
-    print VARSCANP "$perl $script_dir/extract_somatic_other.pl <  \${mysnvorig}  > \${mysnvorig/%vcf/other.vcf}\n";
-    print VARSCANP "for kk in Somatic Germline LOH ; do\n";
-    print VARSCANP "thisorig=\${mysnvorig/%vcf/\$kk.vcf}\n";
-    print VARSCANP "thispass=\${mysnvorig/%vcf/\$kk.hc.vcf}\n";
-    print VARSCANP "thisfail=\${mysnvorig/%vcf/\$kk.lc.vcf}\n";
-    print VARSCANP "     ".$script_dir."/extract_fail.sh  ./\${thisorig}  ./\${thispass}  ./\${thisfail}\n";
-    print VARSCANP "     ".$script_dir."/set_vcf_filter_label.sh  ./\${thisfail}  hc_fail\n";
-    print VARSCANP "done\n";
-    print VARSCANP "echo \'APPLYING PROCESS FILTER TO SOMATIC INDELS:\' &>> \$LOG\n";
-    print VARSCANP "myindelorig=./\$indeloutbase.gvip.vcf\n";
-    print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${myindelorig}   --min-tumor-freq  0.10   --max-normal-freq  0.05   --p-value  0.07  &>> \${LOG}\n";
-    print VARSCANP "$perl $script_dir/extract_somatic_other.pl <  \${myindelorig}  >  \${myindelorig/%vcf/other.vcf}\n";
-    print VARSCANP "for kk in Somatic Germline LOH ; do\n";
-    print VARSCANP "thisorig=\${myindelorig/%vcf/\$kk.vcf}\n";
-    print VARSCANP "thispass=\${myindelorig/%vcf/\$kk.hc.vcf}\n";
-    print VARSCANP "thisfail=\${myindelorig/%vcf/\$kk.lc.vcf}\n";
-    print VARSCANP "     ".$script_dir."/extract_fail.sh  ./\${thisorig}  ./\${thispass}  ./\${thisfail}\n";
-    print VARSCANP "     ".$script_dir."/set_vcf_filter_label.sh  ./\${thisfail}  hc_fail\n";
-    print VARSCANP "done\n";
-    print VARSCANP "scr_tf=\`date +%s\`\n";
-    print VARSCANP "scr_dt=\$((scr_tf - scr_t0))\n";
-    print VARSCANP "echo GVIP_TIMING_VARSCAN_DISCOVERY=\${scr_t0},\${scr_dt}\n";
-    print VARSCANP "scr_t0=\${scr_tf}\n";
-    print VARSCANP "echo \'APPLYING SOMATIC FILTER:\' &>> \${LOG}\n";
-    print VARSCANP "thissnvorig=\${snvoutbase}.gvip.Somatic.hc.vcf\n";
-    print VARSCANP "myindelorig=\${indeloutbase}.gvip.vcf\n";
-    print VARSCANP "thissnvpass=\${snvoutbase}.gvip.Somatic.hc.somfilter_pass.vcf\n";
-    print VARSCANP "thissnvfail=\${snvoutbase}.gvip.Somatic.hc.somfilter_fail.vcf\n";
-    print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somaticFilter  ./\${thissnvorig} --min-coverage  30   --min-reads2  4   --min-strands2  1   --min-avg-qual  20   --min-var-freq  0.10   --p-value  0.05   --indel-file  ./\${myindelorig} --output-file  ./\${thissnvpass}  &>> \${LOG}\n";
-    print VARSCANP "     ".$script_dir."/extract_fail.sh ./\${thissnvorig}  ./\${thissnvpass}   ./\${thissnvfail}\n";
-    print VARSCANP "     ".$script_dir."/set_vcf_filter_label.sh  ./\${thissnvfail}   somfilter_fail\n";
-# $del_local  ./$thissnvorig
-# $del_local  ./$myindelorig
-    print VARSCANP "$perl $script_dir/dbsnp_filter.pl  \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input\n";
-# $del_local ./varscan.out.som_snv.group0.chr1.gvip.Somatic.hc.somfilter_pass.vcf
-    print VARSCANP "$perl $script_dir/dbsnp_filter.pl \${RUNDIR}/varscan/vs_dbsnp_filter.indel.input\n";
-# $del_local ./varscan.out.som_indel.group0.chr1.gvip.Somatic.hc.vcf
-    print VARSCANP "$perl $script_dir/snv_filter.pl  \${RUNDIR}/varscan/vs_fpfilter.somatic.snv.input\n";
-    print VARSCANP "$perl $script_dir/vep_annotator.pl ./vs_vep.snv.input >& ./vs_vep.snv.log\n";
-    print VARSCANP "$perl $script_dir/vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";
-# $del_local  ./varscan.out.som_snv.group0.chr1.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf
-#mkdir -p $myRESULTSDIR
-    print VARSCANP "scr_tf=\`date +%s\`\n";
-    print VARSCANP "scr_dt=\$((scr_tf - scr_t0))\n";
-    print VARSCANP "echo GVIP_TIMING_VARSCAN_FILTERING=\${scr_t0},\${scr_dt}\n";
-    close VARSCANP; 
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    system ( $bsub_com );
-
-}
-
-sub bsub_pindel{
-    my ($step_by_step) = @_;
-    if ($step_by_step) {
-        $hold_job_file = "";
-    }else{
-        $hold_job_file = $current_job_file;
-    }
-
-    $current_job_file = "j5_pindel".$sample_name.".sh";  
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-    open(PINDEL, ">$job_files_dir/$current_job_file") or die $!;
-    print PINDEL "#!/bin/bash\n";
-    print PINDEL "#BSUB -n 4\n";
-    print PINDEL "#BSUB -R \"span[hosts=1] rusage[mem=30000]\"","\n";
-    print PINDEL "#BSUB -M 30000000\n";
-    print PINDEL "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print PINDEL "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print PINDEL "#BSUB -J $current_job_file\n";
-    print PINDEL "#BSUB -w \"$hold_job_file\"","\n";
-    print PINDEL "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print PINDEL "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print PINDEL "myRUNDIR=".$sample_full_path."/pindel\n";
-    print PINDEL "CONFIG=\${myRUNDIR}"."/".$sample_name.".config\n";
-    print PINDEL "if [ ! -d \${myRUNDIR} ]\n";
-    print PINDEL "then\n";
-    print PINDEL "mkdir \${myRUNDIR}\n";
-    print PINDEL "fi\n";
-    print PINDEL "echo \"$IN_bam_T\t500\t$sample_name.T\" > \${CONFIG}\n";
-    print PINDEL "echo \"$IN_bam_N\t500\t$sample_name.N\" >> \${CONFIG}\n";
-    print PINDEL "$pindel -T 4 -f $REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere\n";
-    close PINDEL;
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    system ( $bsub_com );   
-}
-
-sub bsub_vep{
-
-    my ($step_by_step) = @_;
-    if ($step_by_step) {
-        $hold_job_file = "";
-    }else{
-        $hold_job_file = $current_job_file;
-    }
-
-    $current_job_file = "j6_vep".$sample_name.".sh";
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-    open(VEP, ">$job_files_dir/$current_job_file") or die $!; 
-    print VEP "#!/bin/bash\n";
-    print VEP "#BSUB -n 1\n";
-    print VEP "#BSUB -R \"rusage[mem=30000]\"","\n";
-    print VEP "#BSUB -M 30000000\n";
-    print VEP "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print VEP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print VEP "#BSUB -J $current_job_file\n";
-    print VEP "#BSUB -q long\n";
-    print VEP "#BSUB -w \"$hold_job_file\"","\n";
-    print VEP "scr_t0=\`date \+\%s\`\n";
-    print VEP "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print VEP "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print VEP "myRUNDIR=".$sample_full_path."/varscan\n";
-    print VEP "STATUSDIR=".$sample_full_path."/status\n";
-    print VEP "RUNDIR=".$sample_full_path."\n";
-    print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-    print VEP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print VEP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
-    print VEP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
-    print VEP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    print VEP "cat > \${RUNDIR}/varscan/vs_vep.snv.input <<EOF\n";
-    print VEP "varscan.vep.vcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-    print VEP "varscan.vep.output = ./varscan.out.som_snv.current_final.gvip.Somatic.VEP.vcf\n";
-    print VEP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print VEP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print VEP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print VEP "varscan.vep.assembly = GRCh37\n";
-    print VEP "EOF\n";
-    print VEP "cat > \${RUNDIR}/varscan/vs_vep.indel.input <<EOF\n";
-    print VEP "varscan.vep.vcf = ./varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
-    print VEP "varscan.vep.output = ./varscan.out.som_indel.current_final.gvip.Somatic.VEP.vcf\n";
-    print VEP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print VEP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print VEP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print VEP "varscan.vep.assembly = GRCh37\n";
-    print VEP "EOF\n";
-    print VEP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.snv.input <<EOF\n";
-    print VEP "strelka.vep.vcf = ./strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
-    print VEP "strelka.vep.output = ./strelka.somatic_snv.current_final.gvip.Somatic.VEP.vcf\n";
-    print VEP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print VEP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print VEP "strelka.vep.assembly = GRCh37\n";
-    print VEP "EOF\n";
-    print VEP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.indel.input <<EOF\n";
-    print VEP "strelka.vep.vcf = ./strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
-    print VEP "strelka.vep.output = ./strelka.somatic_indel.current_final.gvip.Somatic.VEP.vcf\n";
-    print VEP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print VEP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print VEP "strelka.vep.assembly = GRCh37\n";
-    print VEP "EOF\n";
-### VEP annotation for the initial vcf files ###
-    print VEP "cat > \${RUNDIR}/varscan/vs_vep.snv.inital.input <<EOF\n";
-    print VEP "varscan.vep.vcf = ./varscan.out.som_snv.gvip.vcf\n";
-    print VEP "varscan.vep.output = ./varscan.out.som_snv.gvip.VEP.vcf\n";
-    print VEP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print VEP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print VEP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print VEP "varscan.vep.assembly = GRCh37\n";
-    print VEP "EOF\n";
-    print VEP "cat > \${RUNDIR}/varscan/vs_vep.indel.initial.input <<EOF\n";
-    print VEP "varscan.vep.vcf = ./varscan.out.som_indel.gvip.vcf\n";
-    print VEP "varscan.vep.output = ./varscan.out.som_indel.gvip.VEP.vcf\n";
-    print VEP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print VEP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print VEP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print VEP "varscan.vep.assembly = GRCh37\n";
-    print VEP "EOF\n";
-    print VEP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.snv.initial.input <<EOF\n";
-    print VEP "strelka.vep.vcf = ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
-    print VEP "strelka.vep.output = ./strelka.somatic.snv.strlk_pass.gvip.VEP.vcf\n";
-    print VEP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print VEP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print VEP "strelka.vep.assembly = GRCh37\n";
-    print VEP "EOF\n";
-    print VEP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.indel.initial.input <<EOF\n";
-    print VEP "strelka.vep.vcf = ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";
-    print VEP "strelka.vep.output = ./strelka.somatic.indel.strlk_pass.gvip.VEP.vcf\n";
-    print VEP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print VEP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print VEP "strelka.vep.assembly = GRCh37\n";
-    print VEP "EOF\n";
-    print VEP "cd \${RUNDIR}/varscan\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./vs_vep.snv.input >& ./vs_vep.snv.log\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./vs_vep.snv.initial.input >& ./vs_vep.snv.initial.log\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./vs_vep.indel.initial.input >& ./vs_vep.indel.initial.log\n";
-    print VEP "cd \${RUNDIR}/strelka/strelka_out/results\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./strelka_vep.snv.input >& ./strelka_vep.snv.log\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./strelka_vep.indel.input >& ./strelka_vep.indel.log\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./strelka_vep.snv.initial.input >& ./strelka_vep.snv.initial.log\n";
-    print VEP "$perl $script_dir/vep_annotator.pl ./strelka_vep.indel.initial.input >& ./strelka_vep.indel.initial.log\n";
-    close VEP;
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    system ( $bsub_com );
-
-}
 
 sub bsub_parse_pindel {
 
@@ -514,14 +188,6 @@ sub bsub_parse_pindel {
 
     open(PP, ">$job_files_dir/$current_job_file") or die $!;
     print PP "#!/bin/bash\n";
-    print PP "#BSUB -n 1\n";
-    print PP "#BSUB -R \"rusage[mem=30000]\"","\n";
-    print PP "#BSUB -M 30000000\n";
-    print PP "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print PP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print PP "#BSUB -J $current_job_file\n";
-    print PP "#BSUB -q long\n";
-    print PP "#BSUB -w \"$hold_job_file\"","\n";
     print PP "RUNDIR=".$sample_full_path."\n";
     print PP "cat > \${RUNDIR}/pindel/pindel_filter.input <<EOF\n";
     print PP "pindel.filter.pindel2vcf = $PINDEL_DIR/pindel2vcf\n";
@@ -552,10 +218,10 @@ sub bsub_parse_pindel {
     print PP 'list=$(xargs -a  ./$outlist)'."\n";
     print PP "pin_var_file=pindel.out.raw\n";
     print PP 'cat $list | grep ChrID > ./$pin_var_file'."\n";
-    print PP "$perl $script_dir/pindel_filter.v0.5.pl ./pindel_filter.input\n"; 
+    print PP "$perl $gvip_dir/pindel_filter.v0.5.pl ./pindel_filter.input\n"; 
     print PP 'pre_current_final=$pin_var_file.CvgVafStrand_pass.Homopolymer_pass.vcf'."\n";
     print PP 'for mytmp in $pin_var_file.CvgVafStrand_pass.vcf  $pre_current_final  ${pre_current_final/%pass.vcf/fail.vcf} ; do'."\n";
-    print PP '$perl $script_dir/genomevip_label.pl Pindel ./$mytmp ./${mytmp/%vcf/gvip.vcf}'."\n";
+    print PP '$perl $gvip_dir/genomevip_label.pl Pindel ./$mytmp ./${mytmp/%vcf/gvip.vcf}'."\n";
     print PP "done\n";
     print PP 'current_final=${pin_var_file/%raw/current_final.gvip.Somatic.vcf}'."\n";
     print PP 'cat ./${pre_current_final/%vcf/gvip.vcf} > ./$current_final'."\n";
@@ -567,7 +233,7 @@ sub bsub_parse_pindel {
     print PP "else\n";
     print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
     print PP "fi\n";
-    print PP "$perl $script_dir/dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";    
+    print PP "$perl $gvip_dir/dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";    
     print PP "cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF\n";
     print PP "pindel.vep.vcf = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
     print PP "pindel.vep.output = ./pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf\n";
@@ -576,7 +242,7 @@ sub bsub_parse_pindel {
     print PP "pindel.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
     print PP "pindel.vep.assembly = GRCh37\n";
     print PP "EOF\n";
-    print PP "$perl $script_dir/vep_annotator.pl ./pindel_vep.input >& ./pindel_vep.log\n";  
+    print PP "$perl $gvip_dir/vep_annotator.pl ./pindel_vep.input >& ./pindel_vep.log\n";  
     close PP;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);
@@ -597,14 +263,6 @@ sub bsub_merge_vcf{
 
     open(MERGE, ">$job_files_dir/$current_job_file") or die $!;
     print MERGE "#!/bin/bash\n";
-    print MERGE "#BSUB -n 1\n";
-    print MERGE "#BSUB -R \"rusage[mem=30000]\"","\n";
-    print MERGE "#BSUB -M 30000000\n";
-    print MERGE "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print MERGE "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print MERGE "#BSUB -J $current_job_file\n";
-    print MERGE "#BSUB -q long\n";
-    print MERGE "#BSUB -w \"$hold_job_file\"","\n";
     print MERGE "scr_t0=\`date \+\%s\`\n";
     print MERGE "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print MERGE "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
@@ -631,7 +289,7 @@ sub bsub_merge_vcf{
     print MERGE "EOF\n";
     print MERGE "java \${JAVA_OPTS} -jar $gatk -R $REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
     print MERGE "cd \${RUNDIR}\n";
-    print MERGE "$perl $script_dir/vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";    
+    print MERGE "$perl $gvip_dir/vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";    
     close MERGE;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);
@@ -652,14 +310,6 @@ sub bsub_vcf_2_maf{
 
     open(MAF, ">$job_files_dir/$current_job_file") or die $!;
     print MAF "#!/bin/bash\n";
-    print MAF "#BSUB -n 1\n";
-    print MAF "#BSUB -R \"rusage[mem=30000]\"","\n";
-    print MAF "#BSUB -M 30000000\n";
-    print MAF "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print MAF "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print MAF "#BSUB -J $current_job_file\n";
-    print MAF "#BSUB -q long\n";
-    print MAF "#BSUB -w \"$hold_job_file\"","\n";
     print MAF "F_VCF_1=".$sample_full_path."/merged.vcf\n";
     print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".vcf\n";
     print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.vcf\n";
@@ -667,7 +317,7 @@ sub bsub_vcf_2_maf{
     print MAF "F_maf=".$sample_full_path."/".$sample_name.".maf\n";
     print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
     print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
-    print MAF "$perl $script_dir/vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $REF --filter-vcf $f_exac\n";
+    print MAF "$perl $sw_dir/vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $REF --filter-vcf $f_exac\n";
     close MAF;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);

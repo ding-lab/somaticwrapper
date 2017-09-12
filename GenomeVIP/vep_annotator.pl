@@ -32,10 +32,16 @@ my (undef, $tmp_orig_calls)  = tempfile();
 $cmd="/bin/grep -v ^# $paras{'vcf'} > $tmp_orig_calls";
    system($cmd);
 
-# run vep
+# run vep if input VCF not empty
 my (undef, $tmp_vep_out) = tempfile();
-$cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --assembly $paras{'assembly'} --fork 4 --format vcf --vcf -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
-   system($cmd);
+if (-s $tmp_orig_calls) {
+    $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --assembly $paras{'assembly'} --fork 4 --format vcf --vcf -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
+    print($cmd . "\n");
+    system($cmd);
+} else {
+    print("VCF is empty\n");
+    system("touch $tmp_vep_out");
+}
 
 # re-merge headers and move
 my (undef, $tmp_merge) = tempfile();

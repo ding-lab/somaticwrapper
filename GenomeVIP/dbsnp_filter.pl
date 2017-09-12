@@ -43,12 +43,15 @@ if ($paras{'rawvcf'} =~ /\.vcf$/) {
 my $cmd = "java $ENV{'JAVA_OPTS'} -jar $paras{'annotator'} annotate -id $paras{'db'} $paras{'rawvcf'} > $anno";
 print "$cmd\n";
 system($cmd);
+
 checksize($anno, $paras{'rawvcf'});
 if( exists $paras{'mode'}  &&  $paras{'mode'} eq "filter" )  {
 $cmd = "java $ENV{'JAVA_OPTS'} -jar $paras{'annotator'} filter -n \" (exists ID) & (ID =~ 'rs' ) \" -f $anno > $paras{'passfile'}";
+print "$cmd\n";
 system($cmd);
 checksize($paras{'passfile'}, $anno);
 $cmd = "java $ENV{'JAVA_OPTS'} -jar $paras{'annotator'} filter    \" (exists ID) & (ID =~ 'rs' ) \" -f $anno > $paras{'dbsnpfile'}";
+print "$cmd\n";
 system($cmd);
 checksize($paras{'dbsnpfile'}, $anno);
 $cmd = "rm -f $anno";

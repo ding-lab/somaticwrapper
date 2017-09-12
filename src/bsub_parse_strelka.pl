@@ -3,7 +3,6 @@ my $jar="/usr/local/snpEff/SnpSift.jar";
 
 # filtered database created in B_Filter
 my $db="$datd/dbsnp.noCOSMIC.vcf.gz";
-
 #my $db="$datd/short.dbsnp.noCOSMIC.vcf.gz";
 
 # The following files are created by prior steps, $sample_full_path/strelka/strelka_out/results
@@ -102,10 +101,20 @@ EOF
     open(OUT, ">$outfn") or die $!;
 
 
+# Note that dbsnp_filter.pl automatically adds dbsnp_anno.vcf suffix to rawvcf when creating output
+# Step 5 creates these two files:
+#   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf  - not empty
+#   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_present.vcf - empty (header only)
+# Step 6 creates these two files:
+#   strelka/filter_out/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf  - not empty
+#   strelka/filter_out/strelka.somatic.indel.all.gvip.dbsnp_present.vcf - empty (header only)
+# Step 7 creates this file:
+#   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.fp.out.vcf - not empty
+
     print OUT <<"EOF";
 #!/bin/bash
 
-export JAVA_OPTS=\"\"
+export JAVA_OPTS=\"-Xms256m -Xmx512m\"
 export VARSCAN_DIR="/usr/local"
 
 $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/all.somatic.snvs.vcf $filter_results/strelka.somatic.snv.all.gvip.vcf
