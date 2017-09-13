@@ -4,7 +4,7 @@ sub bsub_pindel{
     my $job_files_dir = shift;
     my $bsub = shift;
     my $REF = shift;
-    my $pindel = shift;
+    my $pindel_dir = shift;
     my $sw_dir = shift;
     my $f_centromere = shift;
 
@@ -31,7 +31,7 @@ EOF
     print OUT <<"EOF";
 #!/bin/bash
 
-$pindel -f $REF -i $config_fn -o $pindel_out/$sample_name $pindel_args -J $f_centromere
+$pindel_dir/pindel -f $REF -i $config_fn -o $pindel_out/$sample_name $pindel_args -J $f_centromere
 
 EOF
 

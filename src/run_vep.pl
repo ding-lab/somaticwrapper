@@ -5,13 +5,8 @@
 
 my $assembly="GRCh37";
 my $cachedir="/data/D_VEP";
-#my $reffasta="$cachedir/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
 my $reffasta="/data/A_Reference/demo20.fa";
 
-# Note that VEP that had been used was v81, which used the script variant_effect_predictor.pl
-# Newer versions of VEP use vep.pl as the command.  It remains to be seen what differences there are
-# old: VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl
-my $vep_cmd="/usr/local/ensembl-vep/vep";
 
 sub write_vep_input {
     my $config_fn = shift;
@@ -22,6 +17,7 @@ sub write_vep_input {
     my $cache_dir = shift;
     my $reffasta = shift;
     my $assembly = shift;
+    my $vep_cmd = shift;
 
     print("Writing to $config_fn\n");
     open(OUT, ">$config_fn") or die $!;

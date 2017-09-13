@@ -23,12 +23,15 @@ my $normal = "\e[0m";
 
 # submodule information
 # https://stackoverflow.com/questions/1712016/how-do-i-include-functions-from-another-file-in-my-perl-script
-require('src/bsub_strelka.pl');
-require("src/bsub_varscan.pl");
-require("src/bsub_parse_strelka.pl");
-require("src/bsub_parse_varscan.pl");
-require("src/bsub_pindel.pl");
-require("src/bsub_vep.pl");
+require('src/run_strelka.pl');
+require("src/run_varscan.pl");
+require("src/parse_strelka.pl");
+require("src/parse_varscan.pl");
+require("src/run_pindel.pl");
+require("src/parse_pindel.pl");
+require("src/run_vep.pl");
+require("src/merge_vcf.pl");
+require("src/vcf_2_maf.pl");
 
 (my $usage = <<OUT) =~ s/\t+//g;
 This script will process rna-seq data for TCGA samples. 
@@ -72,9 +75,6 @@ system("mkdir -p $job_files_dir");
 # Define where centromere definion file is.  See C_Centromeres for discussion
 my $f_centromere="$sw_dir/C_Centromeres/pindel-centromere-exclude.bed";
 
-
-
-
 my $perl = "/usr/bin/perl";
 my $hold_RM_job = "norm";
 my $current_job_file = "";#cannot be empty
@@ -86,11 +86,19 @@ my $sample_name = "";
 #my $STRELKA_DIR="/usr/local/strelka-2.7.1.centos5_x86_64/bin";
 # using older version of strelka
 my $STRELKA_DIR="/usr/local/strelka";
+
+
+# Note that VEP that had been used was v81, which used the script variant_effect_predictor.pl
+# Newer versions of VEP use vep.pl as the command.  It remains to be seen what differences there are
+# old: VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl
+my $vep_cmd="/usr/local/ensembl-vep/vep";
+
+
 #my $REF="/data/A_Reference/GRCh37-lite.fa";  # This does not work with strelka demo data because wrong reference
-my $REF="/data/A_Reference/demo20.fa";  # Default strelka reference
+my $REF="/data/A_Reference/demo20.fa";  # Strelka reference.  To use with vep, it has to have standard chrom names
+
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
-my $pindel="/usr/local/pindel/pindel";
-my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
+my $pindel_dir="/usr/local/pindel";
 my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
 
 opendir(DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
@@ -125,24 +133,24 @@ if ($step_number < 10) {
 # &bsub_pindel();   
                 }
                 elsif ($step_number == 1) {
-                    bsub_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $STRELKA_DIR, $REF);
+                    run_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $STRELKA_DIR, $REF);
                 } elsif ($step_number == 2) {
-                    bsub_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF);
+                    run_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF);
                 } 
 #elsif ($step_number == 3) {
 #                   &bsub_mutect(1);
 #               }
                 elsif ($step_number == 3) {
-                    bsub_parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
+                    parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
                 } 
                 elsif ($step_number == 4) {
-                    bsub_parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
+                    parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
                 } elsif ($step_number == 5) {
-                    bsub_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $pindel, $sw_dir, $f_centromere);
+                    run_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $pindel_dir, $sw_dir, $f_centromere);
                 }elsif ($step_number == 6) {
-                    bsub_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $gvip_dir);
+                    run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $gvip_dir, $vep_cmd);
                 }elsif ($step_number == 7) {
-                    &bsub_parse_pindel(1);
+                    parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $pindel_dir);
                 }elsif ($step_number == 8) {
                     &bsub_merge_vcf(1);
                 }elsif ($step_number == 9) {
@@ -175,152 +183,4 @@ exit;
 
 
 
-sub bsub_parse_pindel {
-
-    my ($step_by_step) = @_;
-    if ($step_by_step) {
-        $hold_job_file = "";
-    }else{
-        $hold_job_file = $current_job_file;
-    }
-
-    $current_job_file = "j7_parse_pindel".$sample_name.".sh";
-
-    open(PP, ">$job_files_dir/$current_job_file") or die $!;
-    print PP "#!/bin/bash\n";
-    print PP "RUNDIR=".$sample_full_path."\n";
-    print PP "cat > \${RUNDIR}/pindel/pindel_filter.input <<EOF\n";
-    print PP "pindel.filter.pindel2vcf = $PINDEL_DIR/pindel2vcf\n";
-    print PP "pindel.filter.variants_file = \${RUNDIR}/pindel/pindel.out.raw\n";
-    print PP "pindel.filter.REF = $REF\n";
-    print PP "pindel.filter.date = 000000\n";
-    print PP "pindel.filter.heterozyg_min_var_allele_freq = 0.2\n";
-    print PP "pindel.filter.homozyg_min_var_allele_freq = 0.8\n";
-    print PP "pindel.filter.mode = somatic\n";
-    print PP "pindel.filter.apply_filter = true\n";
-    print PP "pindel.filter.somatic.min_coverages = 10\n";
-    print PP "pindel.filter.somatic.min_var_allele_freq = 0.10\n";
-    print PP "pindel.filter.somatic.require_balanced_reads = \"true\"\n";
-    print PP "pindel.filter.somatic.remove_complex_indels = \"true\"\n";
-    print PP "pindel.filter.somatic.max_num_homopolymer_repeat_units = 6\n";
-    print PP "EOF\n";
-    print PP "cat > \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input <<EOF\n";
-    print PP "pindel.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-    print PP "pindel.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
-    print PP "pindel.dbsnp.indel.rawvcf = ./pindel.out.current_final.gvip.Somatic.vcf\n";
-    print PP "pindel.dbsnp.indel.mode = filter\n";
-    print PP "pindel.dbsnp.indel.passfile  = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
-    print PP "pindel.dbsnp.indel.dbsnpfile = ./pindel.out.current_final.gvip.dbsnp_present.vcf\n";
-    print PP "EOF\n";
-    print PP "cd \${RUNDIR}/pindel\n";
-    print PP "outlist=pindel.out.filelist\n";
-    print PP "find \. -name \'*_D\' -o -name \'*_SI\' -o -name \'*_INV\' -o -name \'*_TD\'  > \./\${outlist}\n";
-    print PP 'list=$(xargs -a  ./$outlist)'."\n";
-    print PP "pin_var_file=pindel.out.raw\n";
-    print PP 'cat $list | grep ChrID > ./$pin_var_file'."\n";
-    print PP "$perl $gvip_dir/pindel_filter.v0.5.pl ./pindel_filter.input\n"; 
-    print PP 'pre_current_final=$pin_var_file.CvgVafStrand_pass.Homopolymer_pass.vcf'."\n";
-    print PP 'for mytmp in $pin_var_file.CvgVafStrand_pass.vcf  $pre_current_final  ${pre_current_final/%pass.vcf/fail.vcf} ; do'."\n";
-    print PP '$perl $gvip_dir/genomevip_label.pl Pindel ./$mytmp ./${mytmp/%vcf/gvip.vcf}'."\n";
-    print PP "done\n";
-    print PP 'current_final=${pin_var_file/%raw/current_final.gvip.Somatic.vcf}'."\n";
-    print PP 'cat ./${pre_current_final/%vcf/gvip.vcf} > ./$current_final'."\n";
-    print PP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
-    print PP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
-    print PP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    print PP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-    print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-    print PP "else\n";
-    print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-    print PP "fi\n";
-    print PP "$perl $gvip_dir/dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";    
-    print PP "cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF\n";
-    print PP "pindel.vep.vcf = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
-    print PP "pindel.vep.output = ./pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf\n";
-    print PP "pindel.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print PP "pindel.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print PP "pindel.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print PP "pindel.vep.assembly = GRCh37\n";
-    print PP "EOF\n";
-    print PP "$perl $gvip_dir/vep_annotator.pl ./pindel_vep.input >& ./pindel_vep.log\n";  
-    close PP;
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    system ($bsub_com);
-}
-
-sub bsub_merge_vcf{
-
-    my ($step_by_step) = @_;
-    if ($step_by_step) {
-        $hold_job_file = "";
-    }else{
-        $hold_job_file = $current_job_file;
-    }
-
-    $current_job_file = "j8_merge_vcf.".$sample_name.".sh";
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-
-    open(MERGE, ">$job_files_dir/$current_job_file") or die $!;
-    print MERGE "#!/bin/bash\n";
-    print MERGE "scr_t0=\`date \+\%s\`\n";
-    print MERGE "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print MERGE "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print MERGE "myRUNDIR=".$sample_full_path."/varscan\n";
-    print MERGE "STATUSDIR=".$sample_full_path."/status\n";
-    print MERGE "RUNDIR=".$sample_full_path."\n";
-#print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-    print MERGE "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print MERGE "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
-    print MERGE "export JAVA_OPTS=\"-Xmx2g\"\n";
-    print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    print MERGE "STRELKA_VCF="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
-    print MERGE "VARSCAN_VCF="."\${RUNDIR}/varscan/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-    print MERGE "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
-    print MERGE "VARSCAN_INDEL="."\${RUNDIR}/varscan/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
-    print MERGE "MERGER_OUT="."\${RUNDIR}/merged.vcf\n";
-    print MERGE "cat > \${RUNDIR}/vep.merged.input <<EOF\n";
-    print MERGE "merged.vep.vcf = ./merged.vcf\n"; 
-    print MERGE "merged.vep.output = ./merged.VEP.vcf\n";
-    print MERGE "merged.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print MERGE "merged.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print MERGE "merged.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print MERGE "merged.vep.assembly = GRCh37\n";
-    print MERGE "EOF\n";
-    print MERGE "java \${JAVA_OPTS} -jar $gatk -R $REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
-    print MERGE "cd \${RUNDIR}\n";
-    print MERGE "$perl $gvip_dir/vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";    
-    close MERGE;
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    system ($bsub_com);
-}
-
-sub bsub_vcf_2_maf{
-
-    my ($step_by_step) = @_;
-    if ($step_by_step) {
-        $hold_job_file = "";
-    }else{
-        $hold_job_file = $current_job_file;
-    }
-
-    $current_job_file = "j9_vcf_2_maf.".$sample_name.".sh";
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-
-    open(MAF, ">$job_files_dir/$current_job_file") or die $!;
-    print MAF "#!/bin/bash\n";
-    print MAF "F_VCF_1=".$sample_full_path."/merged.vcf\n";
-    print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".vcf\n";
-    print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.vcf\n";
-    print MAF "F_VEP_2=".$sample_full_path."/".$sample_name.".vep.vcf\n";
-    print MAF "F_maf=".$sample_full_path."/".$sample_name.".maf\n";
-    print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
-    print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
-    print MAF "$perl $sw_dir/vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $REF --filter-vcf $f_exac\n";
-    close MAF;
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    system ($bsub_com);
-
-}
 
