@@ -99,9 +99,10 @@ my $REF="/data/A_Reference/GCA_000001405.14_GRCh37.p13_no_alt_analysis_set.fna";
 #my $REF="/data/A_Reference/demo20.fa";  # Strelka reference.  To use with vep, it has to have standard chrom names
 print("Using reference $REF\n");
 
-my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
+# According to Qingsong don't need ExAC anymore
+#my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $pindel_dir="/usr/local/pindel";
-my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
+my $gatk="/usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar";
 
 opendir(DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
 my @sample_dir_list = readdir DH;
@@ -154,9 +155,9 @@ if ($step_number < 10) {
                 }elsif ($step_number == 7) {
                     parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $pindel_dir);
                 }elsif ($step_number == 8) {
-                    &bsub_merge_vcf(1);
+                    merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk);
                 }elsif ($step_number == 9) {
-                    &bsub_vcf_2_maf(1);
+                    vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
                 }
 
 # how to run pindel #

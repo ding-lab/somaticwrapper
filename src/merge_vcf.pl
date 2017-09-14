@@ -1,49 +1,61 @@
+my $assembly="GRCh37";
+my $cachedir="/data/D_VEP";
 
-sub merge_vcf{
 
-    my ($step_by_step) = @_;
-    if ($step_by_step) {
-        $hold_job_file = "";
-    }else{
-        $hold_job_file = $current_job_file;
-    }
+sub merge_vcf {
+    my $sample_name = shift;
+    my $sample_full_path = shift;
+    my $job_files_dir = shift;
+    my $bsub = shift;
+    my $REF = shift;
+    my $perl = shift;
+    my $gvip_dir = shift;
+    my $vep_cmd = shift;
+    my $gatk = shift;
+
 
     $current_job_file = "j8_merge_vcf.".$sample_name.".sh";
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+    my $filter_results = "$sample_full_path/merged";
+    system("mkdir -p $filter_results");
 
-    open(MERGE, ">$job_files_dir/$current_job_file") or die $!;
-    print MERGE "#!/bin/bash\n";
-    print MERGE "scr_t0=\`date \+\%s\`\n";
-    print MERGE "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print MERGE "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print MERGE "myRUNDIR=".$sample_full_path."/varscan\n";
-    print MERGE "STATUSDIR=".$sample_full_path."/status\n";
-    print MERGE "RUNDIR=".$sample_full_path."\n";
-#print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-    print MERGE "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print MERGE "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64\n";
-    print MERGE "export JAVA_OPTS=\"-Xmx2g\"\n";
-    print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    print MERGE "STRELKA_VCF="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
-    print MERGE "VARSCAN_VCF="."\${RUNDIR}/varscan/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-    print MERGE "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
-    print MERGE "VARSCAN_INDEL="."\${RUNDIR}/varscan/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
-    print MERGE "MERGER_OUT="."\${RUNDIR}/merged.vcf\n";
-    print MERGE "cat > \${RUNDIR}/vep.merged.input <<EOF\n";
-    print MERGE "merged.vep.vcf = ./merged.vcf\n"; 
-    print MERGE "merged.vep.output = ./merged.VEP.vcf\n";
-    print MERGE "merged.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print MERGE "merged.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print MERGE "merged.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print MERGE "merged.vep.assembly = GRCh37\n";
-    print MERGE "EOF\n";
-    print MERGE "java \${JAVA_OPTS} -jar $gatk -R $REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
-    print MERGE "cd \${RUNDIR}\n";
-    print MERGE "$perl $gvip_dir/vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";    
-    close MERGE;
+    my $strelka_vcf = "$sample_full_path/strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf";
+    my $varscan_vcf = "$sample_full_path/varscan/filter_out/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf";
+    my $pindel_vcf = "$sample_full_path/pindel/filter_out/pindel.out.current_final.gvip.dbsnp_pass.vcf";
+    my $varscan_indel = "$sample_full_path/varscan/filter_out/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf";
+    my $merger_out = "$filter_results/merged.vcf";
+
+#cat > \${RUNDIR}/vep.merged.input <<EOF
+    my $out = "$filter_results/vep.merged.input";
+    print("Writing to $out\n");
+    open(OUT, ">$out") or die $!;
+    print OUT <<"EOF";
+merged.vep.vcf = $merger_out
+merged.vep.output = $filter_results/merged.VEP.vcf
+merged.vep.vep_cmd = $vep_cmd
+merged.vep.cachedir = $cachedir
+merged.vep.reffasta = $REF
+merged.vep.assembly = $assembly
+EOF
+
+    my $outfn = "$job_files_dir/$current_job_file";
+    print("Writing to $outfn\n");
+    open(OUT, ">$outfn") or die $!;
+
+    print OUT <<"EOF";
+#!/bin/bash
+export JAVA_OPTS=\"-Xmx2g\"
+java \$JAVA_OPTS -jar $gatk -R $REF -T CombineVariants -o $merger_out --variant:varscan $varscan_vcf --variant:strelka $strelka_vcf --variant:varindel $varscan_indel --variant:pindel $pindel_vcf -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel
+$perl $gvip_dir/vep_annotator.pl $filter_results/vep.merged.input &> $filter_results/vep.merged.log
+EOF
+
+    close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    system ($bsub_com);
+    print("Executing:\n $bsub_com \n");
+
+    print("Aborting\n");
+    die();
+
+    system ( $bsub_com ); 
 }
 
 1;

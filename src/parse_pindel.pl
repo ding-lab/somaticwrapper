@@ -1,6 +1,5 @@
 my $assembly="GRCh37";
 my $cachedir="/data/D_VEP";
-my $reffasta="/data/A_Reference/demo20.fa";
 
 my $snpsift_jar="/usr/local/snpEff/SnpSift.jar";
 
@@ -68,6 +67,9 @@ pindel.dbsnp.indel.passfile  = $filter_results/pindel.out.current_final.gvip.dbs
 pindel.dbsnp.indel.dbsnpfile = $filter_results/pindel.out.current_final.gvip.dbsnp_present.vcf
 EOF
 
+# Note that in subsequent filtering (merge_vcf) only the file
+#   pindel.out.current_final.gvip.dbsnp_pass.vcf
+# is used
 
 
 #cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF
@@ -83,7 +85,7 @@ $module.vcf = $vcf
 $module.output = $output
 $module.vep_cmd = $vep_cmd
 $module.cachedir = $cachedir
-$module.reffasta = $reffasta
+$module.reffasta = $REF
 $module.assembly = $assembly
 EOF
 

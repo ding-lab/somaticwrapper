@@ -79,6 +79,11 @@ RUN cd /usr/local \
 # cache files stored in /root/.vep  -> this should probably be set to /data/D_Ensembl
 # See also here for how to install cache separately in a docker environment: https://www.ensembl.org/info/docs/tools/vep/script/vep_download.html#docker
 
+# Install GATK
+cd /usr/local
+wget https://software.broadinstitute.org/gatk/download/auth?package=GATK -O GATK.tar.bz2
+bunzip2 GATK.tar.bz2
+
 WORKDIR /usr/local/somaticwrapper
 
 COPY vimrc /root/.vimrc

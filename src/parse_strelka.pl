@@ -111,6 +111,9 @@ EOF
 # Step 7 creates this file:
 #   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.fp.out.vcf - not empty
 
+# Note that in subsequent steps (merge_vcf) only the file strelka.somatic.snv.all.gvip.dbsnp_pass.vcf is used.
+# output of steps 6 and 7 is discarded
+
     print OUT <<"EOF";
 #!/bin/bash
 

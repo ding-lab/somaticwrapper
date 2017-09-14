@@ -5,8 +5,6 @@
 
 my $assembly="GRCh37";
 my $cachedir="/data/D_VEP";
-my $reffasta="/data/A_Reference/demo20.fa";
-
 
 sub write_vep_input {
     my $config_fn = shift;
@@ -15,7 +13,7 @@ sub write_vep_input {
     my $output = shift; 
     my $vep_cmd = shift;
     my $cache_dir = shift;
-    my $reffasta = shift;
+    my $REF = shift;
     my $assembly = shift;
     my $vep_cmd = shift;
 
@@ -26,7 +24,7 @@ $module.vcf = $vcf
 $module.output = $output
 $module.vep_cmd = $vep_cmd
 $module.cachedir = $cachedir
-$module.reffasta = $reffasta
+$module.reffasta = $REF
 $module.assembly = $assembly
 EOF
 
@@ -52,56 +50,56 @@ sub run_vep {
     my $vcf = "$varscan_results/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf";
     my $output = "$filter_results/varscan.out.som_snv.current_final.gvip.Somatic.VEP.vcf";
     my $module = "varscan.vep";
-    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
+    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $REF, $assembly);
 
     # VCF exists, has data
     $config_fn = "$filter_results/vs_vep.indel.input";
     $vcf = "$varscan_results/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf";
     $output = "$filter_results/varscan.out.som_indel.current_final.gvip.Somatic.VEP.vcf";
     $module = "varscan.vep";
-    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
+    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $REF, $assembly);
 
     # VCF exists, has data
     $config_fn = "$filter_results/vs_vep.snv.initial.input";   # formerly vs_vep.snv.inital.input, never ran
     $vcf = "$varscan_results/varscan.out.som_snv.gvip.vcf";
     $output = "$filter_results/varscan.out.som_snv.gvip.VEP.vcf";
     $module = "varscan.vep";
-    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
+    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $REF, $assembly);
 
     # VCF exists, has data
     $config_fn = "$filter_results/vs_vep.indel.initial.input";
     $vcf = "$varscan_results/varscan.out.som_indel.gvip.vcf";
     $output = "$filter_results/varscan.out.som_indel.gvip.VEP.vcf";
     $module = "varscan.vep";
-    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
+    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $REF, $assembly);
 
     # VCF exists, has data
     $config_fn = "$filter_results/strelka_vep.snv.input";
     $vcf = "$strelka_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf";
     $output = "$filter_results/strelka.somatic_snv.current_final.gvip.Somatic.VEP.vcf";
     $module = "strelka.vep";
-    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
+    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $REF, $assembly);
 
     # VCF exists, has data
     $config_fn = "$filter_results/strelka_vep.indel.input";
     $vcf = "$strelka_results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf";
     $output = "$filter_results/strelka.somatic_indel.current_final.gvip.Somatic.VEP.vcf";
     $module = "strelka.vep";
-    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
+    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $REF, $assembly);
 
     # VCF does not exist
     $config_fn = "$filter_results/strelka_vep.snv.initial.input";
     $vcf = "$strelka_results/strelka.somatic.snv.strlk_pass.gvip.vcf";
     $output = "$filter_results/strelka.somatic.snv.strlk_pass.gvip.VEP.vcf";
     $module = "strelka.vep";
-    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
+    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $REF, $assembly);
 
     # VCF does not exist 
     $config_fn = "$filter_results/strelka_vep.indel.initial.input";
     $vcf = "$strelka_results/strelka.somatic.indel.strlk_pass.gvip.vcf";
     $output = "$filter_results/strelka.somatic.indel.strlk_pass.gvip.VEP.vcf";
     $module = "strelka.vep";
-    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $reffasta, $assembly);
+    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $REF, $assembly);
 
 
     my $out = "$job_files_dir/$current_job_file";
