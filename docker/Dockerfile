@@ -62,8 +62,13 @@ RUN cd /usr/local \
     unzip snpEff_latest_core.zip \
     rm snpEff_latest_core.zip
 
+# Install GATK
+RUN cd /usr/local \
+    wget https://software.broadinstitute.org/gatk/download/auth?package=GATK -O GATK.tar.bz2 \
+    bunzip2 GATK.tar.bz2 
+
 # install VEP - this downloads a cache, which should probably be installed as a runtime step (like reference)
-# Rather than installed in docker imate.  See here for discussion of caches: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
+# Rather than installed in docker image.  See here for discussion of caches: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
 # So the plan is to 1) install VEP in docker, with no cache, and 2) when starting first container, download cache then
 # TODO: (I did CTRL-C to move on)  This will take an hour or so prob
 #  - use CTRL-C to cancel if you do not wish to convert this cache now (you may run convert_cache.pl later)
@@ -74,15 +79,10 @@ RUN cd /usr/local \
 #cd ensembl-vep
 #perl INSTALL.pl
 #  - y, y
-#  - homo_sapiens_vep_90_GRCh37.tar.gz homo_sapiens_vep_90_GRCh37.tar.gzhomo_sapiens_vep_90_GRCh37.tar.gz
+#  - homo_sapiens_vep_90_GRCh37.tar.gz homo_sapiens_vep_90_GRCh37.tar.gz 
 #  - this is typically 59 60
-# cache files stored in /root/.vep  -> this should probably be set to /data/D_Ensembl
+# cache files stored in /root/.vep  -> this should be set to /data/D_VEP
 # See also here for how to install cache separately in a docker environment: https://www.ensembl.org/info/docs/tools/vep/script/vep_download.html#docker
-
-# Install GATK
-cd /usr/local
-wget https://software.broadinstitute.org/gatk/download/auth?package=GATK -O GATK.tar.bz2
-bunzip2 GATK.tar.bz2
 
 WORKDIR /usr/local/somaticwrapper
 
