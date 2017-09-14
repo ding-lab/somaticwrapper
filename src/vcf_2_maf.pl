@@ -1,6 +1,6 @@
 # note that f_exac is specific to GRCh37
 
-sub bsub_vcf_2_maf{
+sub vcf_2_maf{
 
     my ($step_by_step) = @_;
     if ($step_by_step) {

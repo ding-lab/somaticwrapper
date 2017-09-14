@@ -17,7 +17,7 @@ my $db="$datd/dbsnp.noCOSMIC.vcf.gz";
 # Output of this script will be in $sample_full_path/filter_out
 
 
-sub bsub_parse_strelka{
+sub parse_strelka{
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;

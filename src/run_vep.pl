@@ -32,7 +32,7 @@ EOF
 
 }
 
-sub bsub_vep{
+sub run_vep {
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;

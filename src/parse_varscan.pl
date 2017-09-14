@@ -14,7 +14,7 @@ my $db="$datd/dbsnp.noCOSMIC.vcf.gz";
 #  varscan.out.som_snv.vcf
 # processing which takes place here will be written to $sample_full_path/varscan/filter_out ($filter_results)
 
-sub bsub_parse_varscan{
+sub parse_varscan{
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;

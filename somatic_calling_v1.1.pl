@@ -93,9 +93,11 @@ my $STRELKA_DIR="/usr/local/strelka";
 # old: VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl
 my $vep_cmd="/usr/local/ensembl-vep/vep";
 
-
+# For PINDEL testing, use the complete reference.
 #my $REF="/data/A_Reference/GRCh37-lite.fa";  # This does not work with strelka demo data because wrong reference
-my $REF="/data/A_Reference/demo20.fa";  # Strelka reference.  To use with vep, it has to have standard chrom names
+my $REF="/data/A_Reference/GCA_000001405.14_GRCh37.p13_no_alt_analysis_set.fna";   # This is GRCh37 with 'chrN' naming
+#my $REF="/data/A_Reference/demo20.fa";  # Strelka reference.  To use with vep, it has to have standard chrom names
+print("Using reference $REF\n");
 
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $pindel_dir="/usr/local/pindel";

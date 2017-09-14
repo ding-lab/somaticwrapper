@@ -27,8 +27,8 @@ sub parse_pindel {
     system("mkdir -p $filter_results");
 
     my $outlist="$filter_results/pindel.out.filelist";
-    my $pre_current_final="$pin_var_file.CvgVafStrand_pass.Homopolymer_pass.vcf";
     my $pin_var_file="$filter_results/pindel.out.raw";
+    my $pre_current_final="$pin_var_file.CvgVafStrand_pass.Homopolymer_pass.vcf";
     my $current_final="$filter_results/pindel.out.current_final.gvip.Somatic.vcf";
 
 
@@ -48,7 +48,7 @@ pindel.filter.homozyg_min_var_allele_freq = 0.8
 pindel.filter.mode = somatic
 pindel.filter.apply_filter = true
 pindel.filter.somatic.min_coverages = 10
-pindel.filter.somatic.min_var_allele_freq = 0.10
+pindel.filter.somatic.min_var_allele_freq = 0.05
 pindel.filter.somatic.require_balanced_reads = \"true\"
 pindel.filter.somatic.remove_complex_indels = \"true\"
 pindel.filter.somatic.max_num_homopolymer_repeat_units = 6
@@ -62,7 +62,7 @@ EOF
     print OUT <<"EOF";
 pindel.dbsnp.indel.annotator = $snpsift_jar
 pindel.dbsnp.indel.db = $db
-pindel.dbsnp.indel.rawvcf = $pindel_results/pindel.out.current_final.gvip.Somatic.vcf
+pindel.dbsnp.indel.rawvcf = $filter_results/pindel.out.current_final.gvip.Somatic.vcf
 pindel.dbsnp.indel.mode = filter
 pindel.dbsnp.indel.passfile  = $filter_results/pindel.out.current_final.gvip.dbsnp_pass.vcf
 pindel.dbsnp.indel.dbsnpfile = $filter_results/pindel.out.current_final.gvip.dbsnp_present.vcf
@@ -87,12 +87,23 @@ $module.reffasta = $reffasta
 $module.assembly = $assembly
 EOF
 
+# NOTE: the test data has e.g. 'chr1'
+# Our reference has e.g. '1'.  Need to update the reference?
+# According to Cyriac (https://www.biostars.org/p/119295/#119308), old GRCh37 uses the '1' format, but newer versions (as well as hg19) use the 'chr1'.
+# So, we will download the newer GRCh37 from here: ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_genbank/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh37.p13/seqs_for_alignment_pipelines/
+
 # 0. Pull out all reads (?) from pindel raw output with the label ChrID
 #   http://gmt.genome.wustl.edu/packages/pindel/user-manual.html
-# 1. run pindel_filter
+# 1. run pindel_filter.  This produces
+#    CvgVafStrand_pass 
+#    CvgVafStrand_fail
+#    Homopolymer_pass  *** this has nothing for our run, but Song's run has a bunch of results
+#    Homopolymer_fail  *** this is an empty file for us, but Song's run has a bunch of results
 # 2. Label things
 # 3. Run dbSnP filter
 # 4. Run VEP annotation
+
+#pin_var_file=pindel.out.raw
 
 # TODO: trace this through with non-trivial data to make sure it works
     my $outfn = "$job_files_dir/$current_job_file";
@@ -105,6 +116,8 @@ find $pindel_results -name \'*_D\' -o -name \'*_SI\' -o -name \'*_INV\' -o -name
 list=\$(xargs -a  $outlist)
 cat \$list | grep ChrID > $pin_var_file
 $perl $gvip_dir/pindel_filter.v0.5.pl $filter_results/pindel_filter.input
+
+exit
 
 $perl $gvip_dir/genomevip_label.pl Pindel $pin_var_file.CvgVafStrand_pass.vcf $pin_var_file.CvgVafStrand_pass.gvip.vcf
 $perl $gvip_dir/genomevip_label.pl Pindel $pre_current_final $pin_var_file.CvgVafStrand_pass.Homopolymer_pass.gvip.vcf 

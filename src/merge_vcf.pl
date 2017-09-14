@@ -1,5 +1,5 @@
 
-sub bsub_merge_vcf{
+sub merge_vcf{
 
     my ($step_by_step) = @_;
     if ($step_by_step) {

@@ -1,5 +1,5 @@
 
-sub bsub_varscan{
+sub run_varscan{
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
