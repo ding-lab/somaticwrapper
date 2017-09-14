@@ -1,5 +1,5 @@
 # Set up data directory which will be used by SomaticWrapper
-# This script is run outside of the container
+# This script is run outside on the host
 # The output is a directory mounted within the container
 #
 # Copy test data from Strelka for test purposes
