@@ -113,8 +113,6 @@ list=\$(xargs -a  $outlist)
 cat \$list | grep ChrID > $pin_var_file
 $perl $gvip_dir/pindel_filter.v0.5.pl $filter_results/pindel_filter.input
 
-exit
-
 $perl $gvip_dir/genomevip_label.pl Pindel $pin_var_file.CvgVafStrand_pass.vcf $pin_var_file.CvgVafStrand_pass.gvip.vcf
 $perl $gvip_dir/genomevip_label.pl Pindel $pre_current_final $pin_var_file.CvgVafStrand_pass.Homopolymer_pass.gvip.vcf 
 $perl $gvip_dir/genomevip_label.pl Pindel $pin_var_file.CvgVafStrand_pass.Homopolymer_fail.vcf $pin_var_file.CvgVafStrand_pass.Homopolymer_fail.gvip.vcf 

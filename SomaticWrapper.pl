@@ -79,7 +79,7 @@ my $perl = "/usr/bin/perl";
 my $hold_RM_job = "norm";
 my $hold_job_file = "";
 # $bsub will typically be "bash" to execute entire script.  Set it to "cat" for debugging, "bsub" to submit to LSF
-my $bsub = "bash"; 
+my $bsub = "cat"; 
 my $sample_full_path = "";
 my $sample_name = "";
 
@@ -134,7 +134,7 @@ for (my $i=0;$i<@sample_dir_list;$i++) {
             }elsif ($step_number == 8) {
                 merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk);
             }elsif ($step_number == 9) {
-                die("vcf_2_maf() disabled while CRCh38 issues resolved.\n");
+                die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
                 vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
             }
         }

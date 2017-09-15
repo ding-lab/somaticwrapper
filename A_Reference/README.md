@@ -1,7 +1,10 @@
-Scripts here run from inside docker container
+Scripts here run from inside docker container to download and index reference files.
 
-They need to be just once, to download and set up the GRCh37 reference.
+* `1_get_GRCh37.sh` processes GRCh37-lite, which has chromosomes labeled '1'
+* `2_get_GRCh37.p13.sh` processes GRCh37.p13, which has chromosomes labeled 'chr1'.  See notes in that script for details
+* `3_prepare_strelka_demo.sh` processes the `demo20.fa` reference used for the strelka demo work.  This reference needs to be generated 
+outside of the host image with the script `somaticwrapper/docker/2_setup_data.sh`.
 
-This is not necessary for demo using Strelka data, since test reference is copied to A_Reference
-with the script docker/2_setup_data.sh
+Processes only the references necessary for your work.  Note that steps 1 and 2 are time and storage intensive.
 
+TODO: add scripts to download and process GRCh38

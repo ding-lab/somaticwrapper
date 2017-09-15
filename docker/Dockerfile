@@ -62,10 +62,11 @@ RUN cd /usr/local \
     unzip snpEff_latest_core.zip \
     rm snpEff_latest_core.zip
 
-# Install GATK
+# Install GATK and picard
 RUN cd /usr/local \
     wget https://software.broadinstitute.org/gatk/download/auth?package=GATK -O GATK.tar.bz2 \
-    bunzip2 GATK.tar.bz2 
+    bunzip2 GATK.tar.bz2 \
+    wget https://github.com/broadinstitute/picard/releases/download/2.12.1/picard.jar
 
 # install VEP - this downloads a cache, which should probably be installed as a runtime step (like reference)
 # Rather than installed in docker image.  See here for discussion of caches: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
