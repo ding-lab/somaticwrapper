@@ -3,6 +3,10 @@
 # Dir cache: /data/D_VEP
 
 
+# NOTE: the pipeline as implemented does not read teh output of this step, since annotaiton takes place
+# after merge_vcf
+# This code remains functional, however, and annotates various Varscan and Strelka (not pindel) output
+
 my $assembly="GRCh37";
 my $cachedir="/data/D_VEP";
 

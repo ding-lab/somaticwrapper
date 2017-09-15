@@ -8,6 +8,8 @@ my $datd="/data/B_Filter";
 my $db="$datd/dbsnp.noCOSMIC.vcf.gz";
 #my $db="$datd/short.dbsnp.noCOSMIC.vcf.gz";
 
+# Skipping VEP annotation
+
 sub parse_pindel {
     my $sample_name = shift;
     my $sample_full_path = shift;
@@ -69,8 +71,8 @@ EOF
 
 # Note that in subsequent filtering (merge_vcf) only the file
 #   pindel.out.current_final.gvip.dbsnp_pass.vcf
-# is used
-
+# is used, and the vep annotation is ignored.  
+# For this reason, we're disabling VEP annotation here.
 
 #cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF
     my $module = "pindel.vep";
@@ -89,25 +91,17 @@ $module.reffasta = $REF
 $module.assembly = $assembly
 EOF
 
-# NOTE: the test data has e.g. 'chr1'
-# Our reference has e.g. '1'.  Need to update the reference?
-# According to Cyriac (https://www.biostars.org/p/119295/#119308), old GRCh37 uses the '1' format, but newer versions (as well as hg19) use the 'chr1'.
-# So, we will download the newer GRCh37 from here: ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_genbank/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh37.p13/seqs_for_alignment_pipelines/
-
-# 0. Pull out all reads (?) from pindel raw output with the label ChrID
+# 0. Pull out all reads from pindel raw output with the label ChrID
 #   http://gmt.genome.wustl.edu/packages/pindel/user-manual.html
 # 1. run pindel_filter.  This produces
 #    CvgVafStrand_pass 
 #    CvgVafStrand_fail
-#    Homopolymer_pass  *** this has nothing for our run, but Song's run has a bunch of results
-#    Homopolymer_fail  *** this is an empty file for us, but Song's run has a bunch of results
+#    Homopolymer_pass  
+#    Homopolymer_fail  
 # 2. Label things
 # 3. Run dbSnP filter
-# 4. Run VEP annotation
+# 4. Run VEP annotation  -> but we're skipping this because VEP annotation takes place downstream anyway
 
-#pin_var_file=pindel.out.raw
-
-# TODO: trace this through with non-trivial data to make sure it works
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");
     open(OUT, ">$outfn") or die $!;
@@ -131,7 +125,8 @@ export JAVA_OPTS=\"-Xms256m -Xmx512m\"
 
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/pindel_dbsnp_filter.indel.input
 
-$perl $gvip_dir/vep_annotator.pl $filter_results/pindel_vep.input &> $filter_results/pindel_vep.log
+# Skipping VEP annotation because it is ignored in merge_vcf
+# $perl $gvip_dir/vep_annotator.pl $filter_results/pindel_vep.input &> $filter_results/pindel_vep.log
 
 EOF
 

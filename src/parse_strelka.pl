@@ -1,6 +1,9 @@
 my $datd="/data/B_Filter";
 my $jar="/usr/local/snpEff/SnpSift.jar";
 
+# bam readcount not used because not using FP Filter
+#my $bam_readcount = "/usr/local/bin/bam-readcount";
+
 # filtered database created in B_Filter
 my $db="$datd/dbsnp.noCOSMIC.vcf.gz";
 #my $db="$datd/short.dbsnp.noCOSMIC.vcf.gz";
@@ -49,51 +52,53 @@ streka.dbsnp.snv.dbsnpfile = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_
 EOF
 
 
+# dbSnP Indel filter not used
 # create strelka_dbsnp_filter.indel.input
-    my $dbsnp_indel = "$filter_results/strelka_dbsnp_filter.indel.input";
-    print("Writing to $dbsnp_indel\n");
-    open(OUT, ">$dbsnp_indel") or die $!;
-    print OUT <<"EOF";
-streka.dbsnp.indel.annotator = $jar
-streka.dbsnp.indel.db = $db
-streka.dbsnp.indel.rawvcf = $filter_results/strelka.somatic.indel.strlk_pass.gvip.vcf
-streka.dbsnp.indel.mode = filter
-streka.dbsnp.indel.passfile  = $filter_results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf
-streka.dbsnp.indel.dbsnpfile = $filter_results/strelka.somatic.indel.all.gvip.dbsnp_present.vcf
-EOF
+#    my $dbsnp_indel = "$filter_results/strelka_dbsnp_filter.indel.input";
+#    print("Writing to $dbsnp_indel\n");
+#    open(OUT, ">$dbsnp_indel") or die $!;
+#    print OUT <<"EOF";
+#streka.dbsnp.indel.annotator = $jar
+#streka.dbsnp.indel.db = $db
+#streka.dbsnp.indel.rawvcf = $filter_results/strelka.somatic.indel.strlk_pass.gvip.vcf
+#streka.dbsnp.indel.mode = filter
+#streka.dbsnp.indel.passfile  = $filter_results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf
+#streka.dbsnp.indel.dbsnpfile = $filter_results/strelka.somatic.indel.all.gvip.dbsnp_present.vcf
+#EOF
 
 
+# FP Filter not used
 # create strelka_fpfilter.snv.input
-    my $fp_snv = "$filter_results/strelka_fpfilter.snv.input";
-    print("Writing to $fp_snv\n");
-    open(OUT, ">$fp_snv") or die $!;
-    print OUT <<"EOF";
-strelka.fpfilter.snv.bam_readcount = /usr/local/bin/bam-readcount
-strelka.fpfilter.snv.bam_file = $IN_bam_T
-strelka.fpfilter.snv.REF = $REF
-strelka.fpfilter.snv.variants_file = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf
-strelka.fpfilter.snv.passfile = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp_pass.vcf
-strelka.fpfilter.snv.failfile = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp_fail.vcf
-strelka.fpfilter.snv.rc_in = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.rc.in.vcf
-strelka.fpfilter.snv.rc_out = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.rc.out.vcf
-strelka.fpfilter.snv.fp_out = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp.out.vcf
-strelka.fpfilter.snv.min_mapping_qual = 0
-strelka.fpfilter.snv.min_base_qual = 15
-strelka.fpfilter.snv.min_num_var_supporting_reads = 4
-strelka.fpfilter.snv.min_var_allele_freq = 0.05
-strelka.fpfilter.snv.min_avg_rel_read_position = 0.10
-strelka.fpfilter.snv.min_avg_rel_dist_to_3prime_end = 0.10
-strelka.fpfilter.snv.min_var_strandedness = 0.01
-strelka.fpfilter.snv.min_allele_depth_for_testing_strandedness = 5
-strelka.fpfilter.snv.min_ref_allele_avg_base_qual = 30
-strelka.fpfilter.snv.min_var_allele_avg_base_qual = 30
-strelka.fpfilter.snv.max_rel_read_length_difference = 0.25
-strelka.fpfilter.snv.max_mismatch_qual_sum_for_var_reads = 150
-strelka.fpfilter.snv.max_avg_mismatch_qual_sum_difference = 150
-strelka.fpfilter.snv.min_ref_allele_avg_mapping_qual = 30
-strelka.fpfilter.snv.min_var_allele_avg_mapping_qual = 30
-strelka.fpfilter.snv.max_avg_mapping_qual_difference = 50
-EOF
+#    my $fp_snv = "$filter_results/strelka_fpfilter.snv.input";
+#    print("Writing to $fp_snv\n");
+#    open(OUT, ">$fp_snv") or die $!;
+#    print OUT <<"EOF";
+#strelka.fpfilter.snv.bam_readcount = $bam-readcount
+#strelka.fpfilter.snv.bam_file = $IN_bam_T
+#strelka.fpfilter.snv.REF = $REF
+#strelka.fpfilter.snv.variants_file = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf
+#strelka.fpfilter.snv.passfile = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp_pass.vcf
+#strelka.fpfilter.snv.failfile = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp_fail.vcf
+#strelka.fpfilter.snv.rc_in = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.rc.in.vcf
+#strelka.fpfilter.snv.rc_out = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.rc.out.vcf
+#strelka.fpfilter.snv.fp_out = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp.out.vcf
+#strelka.fpfilter.snv.min_mapping_qual = 0
+#strelka.fpfilter.snv.min_base_qual = 15
+#strelka.fpfilter.snv.min_num_var_supporting_reads = 4
+#strelka.fpfilter.snv.min_var_allele_freq = 0.05
+#strelka.fpfilter.snv.min_avg_rel_read_position = 0.10
+#strelka.fpfilter.snv.min_avg_rel_dist_to_3prime_end = 0.10
+#strelka.fpfilter.snv.min_var_strandedness = 0.01
+#strelka.fpfilter.snv.min_allele_depth_for_testing_strandedness = 5
+#strelka.fpfilter.snv.min_ref_allele_avg_base_qual = 30
+#strelka.fpfilter.snv.min_var_allele_avg_base_qual = 30
+#strelka.fpfilter.snv.max_rel_read_length_difference = 0.25
+#strelka.fpfilter.snv.max_mismatch_qual_sum_for_var_reads = 150
+#strelka.fpfilter.snv.max_avg_mismatch_qual_sum_difference = 150
+#strelka.fpfilter.snv.min_ref_allele_avg_mapping_qual = 30
+#strelka.fpfilter.snv.min_var_allele_avg_mapping_qual = 30
+#strelka.fpfilter.snv.max_avg_mapping_qual_difference = 50
+#EOF
 
 # Create run script
     my $outfn = "$job_files_dir/$current_job_file";
@@ -102,17 +107,17 @@ EOF
 
 
 # Note that dbsnp_filter.pl automatically adds dbsnp_anno.vcf suffix to rawvcf when creating output
-# Step 5 creates these two files:
-#   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf  - not empty
-#   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_present.vcf - empty (header only)
-# Step 6 creates these two files:
-#   strelka/filter_out/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf  - not empty
-#   strelka/filter_out/strelka.somatic.indel.all.gvip.dbsnp_present.vcf - empty (header only)
-# Step 7 creates this file:
-#   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.fp.out.vcf - not empty
+# Step 5 (dbSnP Filter on SNV) creates these two files:
+#   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf  -> used for merge_vcf
+#   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_present.vcf 
+# Step 6 (dbSnP Filter on Indel) creates these two files:
+#   strelka/filter_out/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf  
+#   strelka/filter_out/strelka.somatic.indel.all.gvip.dbsnp_present.vcf 
+# Step 7 (FP Filter on SNV) creates this file:
+#   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.fp.out.vcf 
 
 # Note that in subsequent steps (merge_vcf) only the file strelka.somatic.snv.all.gvip.dbsnp_pass.vcf is used.
-# output of steps 6 and 7 is discarded
+# output of steps 6 and 7 is discarded.  We are removing these steps at Song's suggestion
 
     print OUT <<"EOF";
 #!/bin/bash
@@ -125,6 +130,8 @@ $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/all.somatic.indels.v
 $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/passed.somatic.snvs.vcf $filter_results/strelka.somatic.snv.strlk_pass.gvip.vcf
 $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/passed.somatic.indels.vcf $filter_results/strelka.somatic.indel.strlk_pass.gvip.vcf
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/strelka_dbsnp_filter.snv.input
+
+# Following steps not used
 #$perl $gvip_dir/dbsnp_filter.pl $filter_results/strelka_dbsnp_filter.indel.input
 #$perl $gvip_dir/snv_filter.pl $filter_results/strelka_fpfilter.snv.input
 

@@ -78,8 +78,8 @@ my $f_centromere="$sw_dir/C_Centromeres/pindel-centromere-exclude.bed";
 my $perl = "/usr/bin/perl";
 my $hold_RM_job = "norm";
 my $hold_job_file = "";
-#my $bsub = "bash"; # $bsub will typically be "bash" to execute entire script.  Set it to "cat" to allow scripts to be run by hand, "bsub" to submit to LSF
-my $bsub = "cat"; 
+# $bsub will typically be "bash" to execute entire script.  Set it to "cat" for debugging, "bsub" to submit to LSF
+my $bsub = "bash"; 
 my $sample_full_path = "";
 my $sample_name = "";
 
@@ -127,12 +127,14 @@ for (my $i=0;$i<@sample_dir_list;$i++) {
             } elsif ($step_number == 5) {
                 run_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $pindel_dir, $sw_dir, $f_centromere);
             }elsif ($step_number == 6) {
+                warn("run_vep() is ignored in pipeline, so output of this step is discarded.  Continuing anyway.\n\n");
                 run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $gvip_dir, $vep_cmd);
             }elsif ($step_number == 7) {
                 parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $pindel_dir);
             }elsif ($step_number == 8) {
                 merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk);
             }elsif ($step_number == 9) {
+                die("vcf_2_maf() disabled while CRCh38 issues resolved.\n");
                 vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
             }
         }
