@@ -50,8 +50,8 @@ REFI="$STRELKA_DIR/src/demo/data/demo20.fa.fai"
 #####
 # so that this example works with vep annotation (which assumes real chrom names), we need to rename chrom "demo20" to standard name "20"
 # fix the reference first
+# Note that we still need to index this in A_Reference/3_index_strelka_demo.sh
 sed 's/demo20/20/g' $REF > $REF_DIR/demo20.fa
-samtools faidx $REF_DIR/demo20.fa
 
 echo writing to $SAMPLE_DIR
 
