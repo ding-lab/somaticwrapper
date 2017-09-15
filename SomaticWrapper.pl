@@ -78,7 +78,8 @@ my $f_centromere="$sw_dir/C_Centromeres/pindel-centromere-exclude.bed";
 my $perl = "/usr/bin/perl";
 my $hold_RM_job = "norm";
 my $hold_job_file = "";
-my $bsub = "bash"; # or bsub 
+#my $bsub = "bash"; # $bsub will typically be "bash" to execute entire script.  Set it to "cat" to allow scripts to be run by hand, "bsub" to submit to LSF
+my $bsub = "cat"; 
 my $sample_full_path = "";
 my $sample_name = "";
 

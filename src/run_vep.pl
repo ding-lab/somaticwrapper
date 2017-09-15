@@ -108,11 +108,7 @@ sub run_vep {
     print OUT <<"EOF";
 #!/bin/bash
 
-#export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8
-#export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin
-#export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_60-x64
 export JAVA_OPTS=\"-Xms256m -Xmx512m\"
-#export PATH=\${JAVA_HOME}/bin:\${PATH}
 
 $perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.snv.input &> $filter_results/vep.log
 $perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.indel.input &>> $filter_results/vep.log

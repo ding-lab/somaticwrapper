@@ -125,8 +125,8 @@ $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/all.somatic.indels.v
 $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/passed.somatic.snvs.vcf $filter_results/strelka.somatic.snv.strlk_pass.gvip.vcf
 $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/passed.somatic.indels.vcf $filter_results/strelka.somatic.indel.strlk_pass.gvip.vcf
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/strelka_dbsnp_filter.snv.input
-$perl $gvip_dir/dbsnp_filter.pl $filter_results/strelka_dbsnp_filter.indel.input
-$perl $gvip_dir/snv_filter.pl $filter_results/strelka_fpfilter.snv.input
+#$perl $gvip_dir/dbsnp_filter.pl $filter_results/strelka_dbsnp_filter.indel.input
+#$perl $gvip_dir/snv_filter.pl $filter_results/strelka_fpfilter.snv.input
 
 EOF
     close OUT;
