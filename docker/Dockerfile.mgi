@@ -1,0 +1,22 @@
+# Dockerfile for MGI-specific modifications
+FROM mwyczalkowski/somatic-wrapper:latest
+
+USER root
+
+# This is required to play well at MGI
+# MGI also does not respect USER directive, so change permissions so anyone can write
+RUN apt-get update && \
+    apt-get install -y libnss-sss \
+    && apt-get clean
+
+
+RUN rm -rf /usr/local/BreakPointSurveyor \
+    && mkdir /usr/local/BreakPointSurveyor \
+    && chmod 777 /usr/local/BreakPointSurveyor
+
+USER bps
+
+COPY container-init/mgi-bps.bashrc /home/bps
+COPY container-init/mgi-bps_start.sh /home/bps
+
+CMD ["/bin/bash", "/home/bps/mgi-bps_start.sh"]

@@ -1,4 +1,4 @@
-sub bsub_pindel{
+sub run_pindel{
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;

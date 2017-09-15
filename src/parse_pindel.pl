@@ -1,6 +1,5 @@
 my $assembly="GRCh37";
 my $cachedir="/data/D_VEP";
-my $reffasta="/data/A_Reference/demo20.fa";
 
 my $snpsift_jar="/usr/local/snpEff/SnpSift.jar";
 
@@ -8,6 +7,8 @@ my $snpsift_jar="/usr/local/snpEff/SnpSift.jar";
 my $datd="/data/B_Filter";
 my $db="$datd/dbsnp.noCOSMIC.vcf.gz";
 #my $db="$datd/short.dbsnp.noCOSMIC.vcf.gz";
+
+# Skipping VEP annotation
 
 sub parse_pindel {
     my $sample_name = shift;
@@ -27,8 +28,8 @@ sub parse_pindel {
     system("mkdir -p $filter_results");
 
     my $outlist="$filter_results/pindel.out.filelist";
-    my $pre_current_final="$pin_var_file.CvgVafStrand_pass.Homopolymer_pass.vcf";
     my $pin_var_file="$filter_results/pindel.out.raw";
+    my $pre_current_final="$pin_var_file.CvgVafStrand_pass.Homopolymer_pass.vcf";
     my $current_final="$filter_results/pindel.out.current_final.gvip.Somatic.vcf";
 
 
@@ -48,7 +49,7 @@ pindel.filter.homozyg_min_var_allele_freq = 0.8
 pindel.filter.mode = somatic
 pindel.filter.apply_filter = true
 pindel.filter.somatic.min_coverages = 10
-pindel.filter.somatic.min_var_allele_freq = 0.10
+pindel.filter.somatic.min_var_allele_freq = 0.05
 pindel.filter.somatic.require_balanced_reads = \"true\"
 pindel.filter.somatic.remove_complex_indels = \"true\"
 pindel.filter.somatic.max_num_homopolymer_repeat_units = 6
@@ -62,13 +63,16 @@ EOF
     print OUT <<"EOF";
 pindel.dbsnp.indel.annotator = $snpsift_jar
 pindel.dbsnp.indel.db = $db
-pindel.dbsnp.indel.rawvcf = $pindel_results/pindel.out.current_final.gvip.Somatic.vcf
+pindel.dbsnp.indel.rawvcf = $filter_results/pindel.out.current_final.gvip.Somatic.vcf
 pindel.dbsnp.indel.mode = filter
 pindel.dbsnp.indel.passfile  = $filter_results/pindel.out.current_final.gvip.dbsnp_pass.vcf
 pindel.dbsnp.indel.dbsnpfile = $filter_results/pindel.out.current_final.gvip.dbsnp_present.vcf
 EOF
 
-
+# Note that in subsequent filtering (merge_vcf) only the file
+#   pindel.out.current_final.gvip.dbsnp_pass.vcf
+# is used, and the vep annotation is ignored.  
+# For this reason, we're disabling VEP annotation here.
 
 #cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF
     my $module = "pindel.vep";
@@ -83,18 +87,21 @@ $module.vcf = $vcf
 $module.output = $output
 $module.vep_cmd = $vep_cmd
 $module.cachedir = $cachedir
-$module.reffasta = $reffasta
+$module.reffasta = $REF
 $module.assembly = $assembly
 EOF
 
-# 0. Pull out all reads (?) from pindel raw output with the label ChrID
+# 0. Pull out all reads from pindel raw output with the label ChrID
 #   http://gmt.genome.wustl.edu/packages/pindel/user-manual.html
-# 1. run pindel_filter
+# 1. run pindel_filter.  This produces
+#    CvgVafStrand_pass 
+#    CvgVafStrand_fail
+#    Homopolymer_pass  
+#    Homopolymer_fail  
 # 2. Label things
 # 3. Run dbSnP filter
-# 4. Run VEP annotation
+# 4. Run VEP annotation  -> but we're skipping this because VEP annotation takes place downstream anyway
 
-# TODO: trace this through with non-trivial data to make sure it works
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");
     open(OUT, ">$outfn") or die $!;
@@ -116,16 +123,14 @@ export JAVA_OPTS=\"-Xms256m -Xmx512m\"
 
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/pindel_dbsnp_filter.indel.input
 
-$perl $gvip_dir/vep_annotator.pl $filter_results/pindel_vep.input &> $filter_results/pindel_vep.log
+# Skipping VEP annotation because it is ignored in merge_vcf
+# $perl $gvip_dir/vep_annotator.pl $filter_results/pindel_vep.input &> $filter_results/pindel_vep.log
 
 EOF
 
     close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     print("Executing:\n $bsub_com \n");
-
-    print("Aborting\n");
-    die();
 
     system ( $bsub_com ); 
 }

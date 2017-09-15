@@ -14,7 +14,7 @@ my $db="$datd/dbsnp.noCOSMIC.vcf.gz";
 #  varscan.out.som_snv.vcf
 # processing which takes place here will be written to $sample_full_path/varscan/filter_out ($filter_results)
 
-sub bsub_parse_varscan{
+sub parse_varscan{
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
@@ -25,24 +25,28 @@ sub bsub_parse_varscan{
 
     $current_job_file = "j4_parse_varscan".$sample_name.".sh";
 
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-
     my $varscan_results = "$sample_full_path/varscan/varscan_out";
     my $filter_results = "$sample_full_path/varscan/filter_out";
     system("mkdir -p $filter_results");
 
+
+# These based on original script
+my $TMPBASE="$filter_results/varscan.out.som";
+my $snvoutbase="${TMPBASE}_snv";
+my $indeloutbase="${TMPBASE}_indel";
+
+my $thissnvorig="${snvoutbase}.gvip.Somatic.hc.vcf";  # This is genrated by varscan processSomatic
+my $myindelorig="${indeloutbase}.gvip.vcf";
+my $thissnvpass="${snvoutbase}.gvip.Somatic.hc.somfilter_pass.vcf";
+
+
     my $log_file="$filter_results/varscan.out.som.log";
 
-    my $snvoutbase="$filter_results/varscan.out.som_snv";
-    my $snvoutgvip="$snvoutbase.gvip.vcf";
+    my $snvoutgvip="$filter_results/varscan.out.som_snv.gvip.vcf";
+    my $somsnvpass="$filter_results/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf";
 
     my $indeloutbase="$filter_results/varscan.out.som_indel";
     my $indeloutgvip="$indeloutbase.gvip.vcf";
-
-    my $thissnvorig="$indeloutbase.gvip.Somatic.hc.vcf";
-    my $thissnvpass="$indeloutbase.gvip.Somatic.hc.somfilter_pass.vcf";
-
 
 # cat > $sample_full_path/varscan/vs_dbsnp_filter.snv.input <<EOF
     my $out = "$filter_results/vs_dbsnp_filter.snv.input";
@@ -51,11 +55,10 @@ sub bsub_parse_varscan{
     print OUT <<"EOF";
 varscan.dbsnp.snv.annotator = $snpsift_jar
 varscan.dbsnp.snv.db = $db
-varscan.dbsnp.snv.rawvcf = $snvoutbase.gvip.Somatic.hc.somfilter_pass.vcf
-#    should be according to Song's script: varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf
+varscan.dbsnp.snv.rawvcf = $somsnvpass
 varscan.dbsnp.snv.mode = filter
-varscan.dbsnp.snv.passfile  = $snvoutbase.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf
-varscan.dbsnp.snv.dbsnpfile = $snvoutbase.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf
+varscan.dbsnp.snv.passfile  = $filter_results/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf
+varscan.dbsnp.snv.dbsnpfile = $filter_results/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf
 EOF
 
 # cat > $sample_full_path/varscan/vs_dbsnp_filter.indel.input <<EOF
@@ -82,50 +85,65 @@ EOF
     print OUT <<"EOF";
 #!/bin/bash
 export VARSCAN_DIR="/usr/local"
-# export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin
 export JAVA_OPTS=\"-Xms256m -Xmx512m\"
-
-# NOTE: comments below are to help track demo run.  Can be ignored and deleted.
 
 # Script below creates varscan.out.som_snv.gvip.vcf
 $perl $gvip_dir/genomevip_label.pl VarScan $varscan_results/varscan.out.som_snv.vcf $snvoutgvip
+
 # Script below creates varscan.out.som_indel.gvip.vcf
 $perl $gvip_dir/genomevip_label.pl VarScan $varscan_results/varscan.out.som_indel.vcf $indeloutgvip
 
 echo \'APPLYING PROCESS FILTER TO SOMATIC SNVS:\' &> $log_file
-# Script below creates files below in regular and "hc" versions
-    # varscan.out.som_snv.gvip.Somatic.vcf  - not empty
-    # varscan.out.som_snv.gvip.Germline.vcf - empty
-    # varscan.out.som_snv.gvip.LOH.vcf      - not empty
+# Script below creates:
+    # varscan.out.som_snv.gvip.Somatic.hc.vcf     
+    # varscan.out.som_snv.gvip.Somatic.vcf        
+    # varscan.out.som_snv.gvip.LOH.hc.vcf         
+    # varscan.out.som_snv.gvip.LOH.vcf            
+    # varscan.out.som_snv.gvip.Germline.hc.vcf    
+    # varscan.out.som_snv.gvip.Germline.vcf       
 java \${JAVA_OPTS} -jar $varscan_jar processSomatic $snvoutgvip $somatic_snv_params &>> $log_file
 
 echo \'APPLYING PROCESS FILTER TO SOMATIC INDELS:\' &>> $log_file
-# Script below creates files below in regular and "hc" versions
-    # varscan.out.som_indel.gvip.Somatic.vcf    - not empty
-    # varscan.out.som_indel.gvip.Germline.vcf   - empty
-    # varscan.out.som_indel.gvip.LOH.vcf        - empty
+# Script below creates:
+    # varscan.out.som_indel.gvip.Germline.hc.vcf    
+    # varscan.out.som_indel.gvip.Germline.vcf       
+    # varscan.out.som_indel.gvip.LOH.hc.vcf         
+    # varscan.out.som_indel.gvip.LOH.vcf            
+    # varscan.out.som_indel.gvip.Somatic.hc.vcf     
+    # varscan.out.som_indel.gvip.Somatic.vcf        
 java \${JAVA_OPTS} -jar $varscan_jar processSomatic $indeloutgvip   $somatic_indel_params  &>> $log_file
 
-echo \'APPLYING SOMATIC FILTER:\' &>> $log_file
-# Script below creates file,
-    # varscan.out.som_indel.gvip.Somatic.hc.somfilter_pass.vcf  - empty
-java \${JAVA_OPTS} -jar $varscan_jar somaticFilter  $thissnvorig $somatic_filter_params  --indel-file  $indeloutgvip --output-file  $thissnvpass  &>> $log_file
 
-# Script below reads:
-    # varscan.out.som_indel.gvip.Somatic.hc.somfilter_pass.vcf
+### Somatic Filter filters SNV based on indel
+# http://varscan.sourceforge.net/using-varscan.html#v2.3_somaticFilter
+echo \'APPLYING SOMATIC FILTER:\' &>> $log_file
+
+# Script below creates:
+    # varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf   -> used for SNV dbSnP 
+java \${JAVA_OPTS} -jar $varscan_jar somaticFilter  $thissnvorig $somatic_filter_params  --indel-file  $indeloutgvip --output-file  $somsnvpass  &>> $log_file   
+
+### dbSnP Filter
+
+# 1) SNV
+# Script below reads:  
+    # varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf
 # and generates:
-    # varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf  - empty
-    # varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf     - empty
-    # varscan.out.som_indel.gvip.Somatic.hc.somfilter_pass.dbsnp_anno.vcf   - empty
+    # varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf  
+    # varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf     -> used for merge_vcf
+    # varscan.out.som_indel.gvip.Somatic.hc.somfilter_pass.dbsnp_anno.vcf   
 $perl $gvip_dir/dbsnp_filter.pl  $filter_results/vs_dbsnp_filter.snv.input
 
+# 1) indel
 # Script below reads
     # varscan.out.som_indel.gvip.Somatic.hc.vcf
 # and generates:
-    # varscan.out.som_indel.gvip.Somatic.hc.dbsnp_present.vcf - empty
-    # varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf    - not empty
-    # varscan.out.som_indel.gvip.Somatic.hc.dbsnp_anno.vcf    - not empty
+    # varscan.out.som_indel.gvip.Somatic.hc.dbsnp_present.vcf 
+    # varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf    -> used for merge_vdf
+    # varscan.out.som_indel.gvip.Somatic.hc.dbsnp_anno.vcf    
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/vs_dbsnp_filter.indel.input
+
+# Genome VIP SNV filter , and two GenomeVIP VEP annotation calls deleted from end of workflow per 
+# discussion with Song
 
 EOF
 
