@@ -18,7 +18,8 @@ COSMIC_USERNAME="cosmic_username"
 SSHPASS="cosmic_password"
 EOF
 
-echo Please edit the file $DAT with your credentials and run this script again
+echo Created template file $DAT 
+echo Please edit this file to add your credentials and run this script again
 exit
 
 else
@@ -44,7 +45,9 @@ COSD="/cosmic/$REF/cosmic/$VER/VCF"
 VCFGZ="CosmicCodingMuts.vcf.gz"
 VCF="$COSD/$VCFGZ"
 
-echo Downloading $VCF to $OUTD
+echo Downloading $VCF to $OUTD:
+echo sftp "$COSMIC_USERNAME"@sftp-cancer.sanger.ac.uk
+# if the download below doesn't work, run sftp by hand.  May need to verify authenticity of host first time doing this
 
 export SSHPASS="SauCer+7067"
 sshpass -e sftp -oBatchMode=no -b - "$COSMIC_USERNAME"@sftp-cancer.sanger.ac.uk << EOF
