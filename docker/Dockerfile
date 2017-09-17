@@ -73,23 +73,26 @@ RUN cd /usr/local \
 # install VEP - we do not install cache into the image, it will be downloaded during setup
 # See here for discussion of caches: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
 # Cache dir will be /data/D_Ensembl
+
+# TODO: move the apt-get stuff to top 
 RUN cd /usr/local \
     && cpanm DBI \
     && git clone https://github.com/Ensembl/ensembl-vep.git \
     && cd ensembl-vep \
     && perl INSTALL.pl /data/D_Ensembl -a a
 
+
 # for db VEP lookups, need to install the following:
-RUN apt-get update && apt-get install -y \
-    libmysqlclient-dev \
-    && apt-get clean \
-    && cpanm DBD::mysql
+#     apt-get install -y \
+#       libmysqlclient-dev \
+#        mysql-server \
+#    && cpanm DBI cpanm DBD::mysql \
+# We'll do this when setting up the Strelka demo, since otherwise not needed.
 
 #DBD::mysql needed for non-offline work
 # apt-get install libmysqlclient-dev  - yes
 # apt-get install mysql-server        - maybe
 #cpanm DBD::mysql
-
 
 WORKDIR /usr/local/somaticwrapper
 
