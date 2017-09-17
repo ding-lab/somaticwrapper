@@ -46,7 +46,7 @@ EOF
     print OUT <<"EOF";
 #!/bin/bash
 export JAVA_OPTS=\"-Xmx2g\"
-# java \$JAVA_OPTS -jar $gatk -R $REF -T CombineVariants -o $merger_out --variant:varscan $varscan_vcf --variant:strelka $strelka_vcf --variant:varindel $varscan_indel --variant:pindel $pindel_vcf -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel
+ java \$JAVA_OPTS -jar $gatk -R $REF -T CombineVariants -o $merger_out --variant:varscan $varscan_vcf --variant:strelka $strelka_vcf --variant:varindel $varscan_indel --variant:pindel $pindel_vcf -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel
 
 $perl $gvip_dir/vep_annotator.pl $filter_results/vep.merged.input # &> $filter_results/vep.merged.log
 

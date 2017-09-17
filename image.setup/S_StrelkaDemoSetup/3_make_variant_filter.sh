@@ -4,6 +4,7 @@
 # Creates dbsnp.noCOSMIC.vcf
 
 DATD="/data/B_Filter"
+mkdir -p $DATD
 JAR="/usr/local/snpEff/SnpSift.jar"
 
 # Using VCFs distributed with this project.  These were created by B_Filter/4_makeStrelkaTestData.sh
