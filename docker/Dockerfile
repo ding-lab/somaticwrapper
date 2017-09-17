@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y \
     libncurses-dev \
     sshpass \
     vim \
+    subversion \
     && apt-get clean
 
 RUN cd /usr/local \
@@ -47,26 +48,26 @@ RUN cd /usr/local \
 
 # install bam-readcount, as per https://gist.github.com/ckandoth/87ba44948cb747916f8d
 RUN cd /usr/local \
-    wget https://github.com/genome/bam-readcount/archive/master.tar.gz \
-    tar -zxf master.tar.gz \
-    rm master.tar.gz \
-    mkdir bam-readcount-master/build \
-    cd bam-readcount-master/build \
-    cmake ../ \
-    make \
-    cp bin/bam-readcount /usr/local/bin
+    && wget https://github.com/genome/bam-readcount/archive/master.tar.gz \
+    && tar -zxf master.tar.gz \
+    && rm master.tar.gz \
+    && mkdir bam-readcount-master/build \
+    && cd bam-readcount-master/build \
+    && cmake ../ \
+    && make \
+    && cp bin/bam-readcount /usr/local/bin
 
 # install SnpEff, per http://snpeff.sourceforge.net/download.html
 RUN cd /usr/local \
-    wget http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip \
-    unzip snpEff_latest_core.zip \
-    rm snpEff_latest_core.zip
+    && wget http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip \
+    && unzip snpEff_latest_core.zip \
+    && rm snpEff_latest_core.zip
 
 # Install GATK and picard
 RUN cd /usr/local \
-    wget https://software.broadinstitute.org/gatk/download/auth?package=GATK -O GATK.tar.bz2 \
-    bunzip2 GATK.tar.bz2 \
-    wget https://github.com/broadinstitute/picard/releases/download/2.12.1/picard.jar
+    && wget https://software.broadinstitute.org/gatk/download/auth?package=GATK -O GATK.tar.bz2 \
+    && bunzip2 GATK.tar.bz2 \
+    && wget https://github.com/broadinstitute/picard/releases/download/2.12.1/picard.jar
 
 # install VEP - this downloads a cache, which should probably be installed as a runtime step (like reference)
 # Rather than installed in docker image.  See here for discussion of caches: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
