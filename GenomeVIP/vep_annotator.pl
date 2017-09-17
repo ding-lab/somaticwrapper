@@ -25,43 +25,60 @@ map {chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/^\s+//;  $_[1] =~ 
 my $opts="";
 if( exists($paras{'vep_opts'}) ) { $opts = $paras{'vep_opts'} };
 
+# db mode 1) uses online database (so cache isn't installed) 2) does not use tmp files
+# It is meant to be used for testing and lightweight applications.  Use the cache for
+# better performance.  See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
 my $cmd="";
 
-# split off original header
-my (undef, $tmp_orig_calls)  = tempfile();
-$cmd="/bin/grep -v ^# $paras{'vcf'} > $tmp_orig_calls";
-   system($cmd);
+if ($paras{'usedb'}) {
+    print("VEP DB Query mode\n");
+    print("Reading: $paras{'vcf'}\n");
+    print("Writing: $paras{'output'}\n");
+ 
+    $cmd = "perl $paras{'vep_cmd'} $opts --database --port 3337 --buffer_size 10000  --assembly $paras{'assembly'} --fork 4 --format vcf --vcf -i $paras{'vcf'} -o $paras{'output'} --force_overwrite  --fasta $paras{'reffasta'}";
 
-# run vep if input VCF not empty
-my (undef, $tmp_vep_out) = tempfile();
-if (-s $tmp_orig_calls) {
-    $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --assembly $paras{'assembly'} --fork 4 --format vcf --vcf -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
     print($cmd . "\n");
     system($cmd);
+
 } else {
-    print("VCF is empty\n");
-    system("touch $tmp_vep_out");
-}
+    print("VEP Cache mode\n");
 
-# re-merge headers and move
-my (undef, $tmp_merge) = tempfile();
-$cmd = "grep ^##fileformat $tmp_vep_out > $tmp_merge";
-   system($cmd);
-$cmd = "grep ^# $paras{'vcf'} | grep -v ^##fileformat | grep -v ^#CHROM >> $tmp_merge";
-   system($cmd);
-$cmd = "grep -v ^##fileformat $tmp_vep_out >> $tmp_merge";
-   system($cmd);
-$cmd = "cat $tmp_merge > $paras{'output'}";
-   system($cmd);
+    # split off original header
+    my (undef, $tmp_orig_calls)  = tempfile();
+    $cmd="/bin/grep -v ^# $paras{'vcf'} > $tmp_orig_calls";
+       system($cmd);
 
-#Save other output
-my @suffix=("_summary.html", "_warnings.txt");
-foreach (@suffix) {
-    my $file = $tmp_vep_out.$_;   if ( -e $file ) { $cmd = "cat $file > $paras{'output'}".$_; system($cmd); }
+    # run vep if input VCF not empty
+    my (undef, $tmp_vep_out) = tempfile();
+    if (-s $tmp_orig_calls) {
+        $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --assembly $paras{'assembly'} --fork 4 --format vcf --vcf -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
+        print($cmd . "\n");
+        system($cmd);
+    } else {
+        print("VCF is empty\n");
+        system("touch $tmp_vep_out");
+    }
+
+    # re-merge headers and move
+    my (undef, $tmp_merge) = tempfile();
+    $cmd = "grep ^##fileformat $tmp_vep_out > $tmp_merge";
+       system($cmd);
+    $cmd = "grep ^# $paras{'vcf'} | grep -v ^##fileformat | grep -v ^#CHROM >> $tmp_merge";
+       system($cmd);
+    $cmd = "grep -v ^##fileformat $tmp_vep_out >> $tmp_merge";
+       system($cmd);
+    $cmd = "cat $tmp_merge > $paras{'output'}";
+       system($cmd);
+
+    #Save other output
+    my @suffix=("_summary.html", "_warnings.txt");
+    foreach (@suffix) {
+        my $file = $tmp_vep_out.$_;   if ( -e $file ) { $cmd = "cat $file > $paras{'output'}".$_; system($cmd); }
+    }
+    # clean up
+    $cmd = "rm -f $tmp_orig_calls $tmp_vep_out"."*"." ".$tmp_merge;
+    system($cmd);
 }
-# clean up
-$cmd = "rm -f $tmp_orig_calls $tmp_vep_out"."*"." ".$tmp_merge;
-system($cmd);
 
 1;
 

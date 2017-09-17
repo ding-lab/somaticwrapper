@@ -49,7 +49,8 @@ $purple      [4]  Parse VarScan result
 $cyan        [5]  Run Pindel
 $gray        [6]  Run VEP annotation
 $gray        [7]  Parse Pindel
-$gray        [8]  Merge vcf files  
+$gray        [8]  Merge vcf files using local VEP cache
+$gray        [8b]  Merge vcf files using VEP db queries 
 $gray        [9] generate maf file 
 $normal
 OUT
@@ -59,7 +60,7 @@ my ( $run_dir, $step_number ) = @ARGV;
 if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
-die $usage unless ($step_number >=0)&&(($step_number <= 10));
+#die $usage unless ($step_number >=0)&&(($step_number <= 10));
 
 my $working_name= (split(/\//,$run_dir))[-2];
 
@@ -76,10 +77,8 @@ system("mkdir -p $job_files_dir");
 my $f_centromere="$sw_dir/C_Centromeres/pindel-centromere-exclude.bed";
 
 my $perl = "/usr/bin/perl";
-my $hold_RM_job = "norm";
-my $hold_job_file = "";
 # $bsub will typically be "bash" to execute entire script.  Set it to "cat" for debugging, "bsub" to submit to LSF
-my $bsub = "cat"; 
+my $bsub = "bash"; 
 my $sample_full_path = "";
 my $sample_name = "";
 
@@ -99,7 +98,8 @@ my $vep_cmd="/usr/local/ensembl-vep/vep";
 my $REF="/data/A_Reference/demo20.fa";  # Strelka reference.  To use with vep, it has to have standard chrom names
 print("Using reference $REF\n");
 
-# According to Qingsong don't need ExAC anymore
+# Currently not doing ExAC filtering.  Need to liftover to GRCh38
+
 #my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $pindel_dir="/usr/local/pindel";
 my $gatk="/usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar";
@@ -116,24 +116,26 @@ for (my $i=0;$i<@sample_dir_list;$i++) {
         if (-d $sample_full_path) { # is a full path directory containing a sample
             print $yellow, "\nSubmitting jobs for the sample ",$sample_name, "...",$normal, "\n";
 
-            if ($step_number == 1) {
+            if ($step_number eq '1') {
                 run_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $STRELKA_DIR, $REF);
-            } elsif ($step_number == 2) {
+            } elsif ($step_number eq '2') {
                 run_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF);
-            } elsif ($step_number == 3) {
+            } elsif ($step_number eq '3') {
                 parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
-            } elsif ($step_number == 4) {
+            } elsif ($step_number eq '4') {
                 parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
-            } elsif ($step_number == 5) {
+            } elsif ($step_number eq '5') {
                 run_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $pindel_dir, $sw_dir, $f_centromere);
-            }elsif ($step_number == 6) {
+            }elsif ($step_number eq '6') {
                 warn("run_vep() is ignored in pipeline, so output of this step is discarded.  Continuing anyway.\n\n");
                 run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $gvip_dir, $vep_cmd);
-            }elsif ($step_number == 7) {
+            }elsif ($step_number eq '7') {
                 parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $pindel_dir);
-            }elsif ($step_number == 8) {
-                merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk);
-            }elsif ($step_number == 9) {
+            }elsif ($step_number eq '8') {
+                merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, 0);
+            }elsif ($step_number eq '8b') {
+                merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, 1);
+            }elsif ($step_number eq '9') {
                 die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
                 vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
             }

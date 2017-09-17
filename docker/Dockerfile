@@ -67,24 +67,29 @@ RUN cd /usr/local \
 RUN cd /usr/local \
     && wget https://software.broadinstitute.org/gatk/download/auth?package=GATK -O GATK.tar.bz2 \
     && bunzip2 GATK.tar.bz2 \
+    && tar -xf GATK.tar \
     && wget https://github.com/broadinstitute/picard/releases/download/2.12.1/picard.jar
 
-# install VEP - this downloads a cache, which should probably be installed as a runtime step (like reference)
-# Rather than installed in docker image.  See here for discussion of caches: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
-# So the plan is to 1) install VEP in docker, with no cache, and 2) when starting first container, download cache then
-# TODO: (I did CTRL-C to move on)  This will take an hour or so prob
-#  - use CTRL-C to cancel if you do not wish to convert this cache now (you may run convert_cache.pl later)
+# install VEP - we do not install cache into the image, it will be downloaded during setup
+# See here for discussion of caches: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
+# Cache dir will be /data/D_Ensembl
+RUN cd /usr/local \
+    && cpanm DBI \
+    && git clone https://github.com/Ensembl/ensembl-vep.git \
+    && cd ensembl-vep \
+    && perl INSTALL.pl /data/D_Ensembl -a a
 
-#cd /usr/local
-#cpanm DBI
-#git clone https://github.com/Ensembl/ensembl-vep.git
-#cd ensembl-vep
-#perl INSTALL.pl
-#  - y, y
-#  - homo_sapiens_vep_90_GRCh37.tar.gz homo_sapiens_vep_90_GRCh37.tar.gz 
-#  - this is typically 59 60
-# cache files stored in /root/.vep  -> this should be set to /data/D_VEP
-# See also here for how to install cache separately in a docker environment: https://www.ensembl.org/info/docs/tools/vep/script/vep_download.html#docker
+# for db VEP lookups, need to install the following:
+RUN apt-get update && apt-get install -y \
+    libmysqlclient-dev \
+    && apt-get clean \
+    && cpanm DBD::mysql
+
+#DBD::mysql needed for non-offline work
+# apt-get install libmysqlclient-dev  - yes
+# apt-get install mysql-server        - maybe
+#cpanm DBD::mysql
+
 
 WORKDIR /usr/local/somaticwrapper
 

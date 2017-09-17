@@ -12,6 +12,7 @@ sub merge_vcf {
     my $gvip_dir = shift;
     my $vep_cmd = shift;
     my $gatk = shift;
+    my $usedb = shift;  # 1 for testing/demo, 0 for production
 
 
     $current_job_file = "j8_merge_vcf.".$sample_name.".sh";
@@ -35,6 +36,7 @@ merged.vep.vep_cmd = $vep_cmd
 merged.vep.cachedir = $cachedir
 merged.vep.reffasta = $REF
 merged.vep.assembly = $assembly
+merged.vep.usedb = $usedb
 EOF
 
     my $outfn = "$job_files_dir/$current_job_file";
@@ -44,8 +46,10 @@ EOF
     print OUT <<"EOF";
 #!/bin/bash
 export JAVA_OPTS=\"-Xmx2g\"
-java \$JAVA_OPTS -jar $gatk -R $REF -T CombineVariants -o $merger_out --variant:varscan $varscan_vcf --variant:strelka $strelka_vcf --variant:varindel $varscan_indel --variant:pindel $pindel_vcf -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel
-$perl $gvip_dir/vep_annotator.pl $filter_results/vep.merged.input &> $filter_results/vep.merged.log
+# java \$JAVA_OPTS -jar $gatk -R $REF -T CombineVariants -o $merger_out --variant:varscan $varscan_vcf --variant:strelka $strelka_vcf --variant:varindel $varscan_indel --variant:pindel $pindel_vcf -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel
+
+$perl $gvip_dir/vep_annotator.pl $filter_results/vep.merged.input # &> $filter_results/vep.merged.log
+
 EOF
 
     close OUT;
