@@ -14,8 +14,8 @@ mkdir -p $OUTD
 if [ ! -f $DAT ]; then
 cat <<EOF > $DAT
 # Use username/password you registered at http://cancer.sanger.ac.uk/cosmic
-COSMIC_USERNAME="cosmic_username"
-SSHPASS="cosmic_password"
+export COSMIC_USERNAME="cosmic_username"
+export SSHPASS="cosmic_password"
 EOF
 
 echo Created template file $DAT 
@@ -25,8 +25,6 @@ exit
 else
 source ./COSMIC_credentials.dat
 fi
-
-echo $COSMIC_USERNAME
 
 REF="grch37"
 
@@ -49,14 +47,28 @@ echo Downloading $VCF to $OUTD:
 echo sftp "$COSMIC_USERNAME"@sftp-cancer.sanger.ac.uk
 # if the download below doesn't work, run sftp by hand.  May need to verify authenticity of host first time doing this
 
-export SSHPASS="SauCer+7067"
-sshpass -e sftp -oBatchMode=no -b - "$COSMIC_USERNAME"@sftp-cancer.sanger.ac.uk << EOF
+#sshpass -e sftp -oBatchMode=no -b - "$COSMIC_USERNAME"@sftp-cancer.sanger.ac.uk << EOF
+#lcd $OUTD
+#get $VCF
+#bye
+#EOF
 
-lcd $OUTD
-get $VCF
+# Testing to see if downloaded file exists.  If not, provide advice
+if [ ! -f $OUTD/$VCFGZ ]; then
 
-bye
+cat <<EOF
+Error downloading data.  Please confirm login credentials by running the command,
+    sftp "$COSMIC_USERNAME"@sftp-cancer.sanger.ac.uk
+
+In some cases need to verify authenticity of host just the first time this command is run.
 EOF
+exit
+
+else
+
+echo $OUTD/$VCFGZ downloaded successfully
+
+fi
 
 # Now convert to bgz format and index.  Note that extension needs to be .gz for downstream
 # java snpsift code to work
