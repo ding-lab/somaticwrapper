@@ -11,8 +11,8 @@ SRC=ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/00-All.vc
 OUT=human_9606_b150_GRCh37p13.All.5col.vcf.gz
 
 # GRCh37 common
-SRC=ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/00-common_all.vcf.gz
-OUT=human_9606_b150_GRCh37p13.Common.5col.vcf.gz
+#SRC=ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/00-common_all.vcf.gz
+#OUT=human_9606_b150_GRCh37p13.Common.5col.vcf.gz
 # This has '1' notation 
 
 
