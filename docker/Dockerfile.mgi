@@ -5,18 +5,39 @@ USER root
 
 # This is required to play well at MGI
 # MGI also does not respect USER directive, so change permissions so anyone can write
-RUN apt-get update && \
-    apt-get install -y libnss-sss \
+#
+# Install mysql so that can use db-based VEP annotation (mysql cannot be installed at MGI later)
+# based on
+# https://stackoverflow.com/questions/38356219/mysql-in-docker-frozen-at-root-password-config
+#    && apt-get install -y mysql-server libmysqlclient-dev libnss-sss \
+RUN apt-get update \
+    && { \
+        echo debconf debconf/frontend select Noninteractive; \
+        echo mysql-community-server mysql-community-server/data-dir select ''; \
+        echo mysql-community-server mysql-community-server/root-pass password ''; \
+        echo mysql-community-server mysql-community-server/re-root-pass password ''; \
+        echo mysql-community-server mysql-community-server/remove-test-db select true; \
+    } | debconf-set-selections \
+    && apt-get install -y mysql-server libmysqlclient-dev libnss-sss\
     && apt-get clean
-
 
 RUN rm -rf /usr/local/BreakPointSurveyor \
     && mkdir /usr/local/BreakPointSurveyor \
     && chmod 777 /usr/local/BreakPointSurveyor
 
+# Patching SomaticWrapper.pl to take into account MGI-specific paths
+#   To make a patch:
+#       diff -u SomaticWrapper.pl SomaticWrapper-mgi.pl > SomaticWrapper-mgi.patch
+#   To apply a patch:
+#       patch SomaticWrapper.pl SomaticWrapper-mgi.patch
+
+COPY image-init/SomaticWrapper-mgi.patch /usr/local
+RUN cd /usr/local/somaticwrapper \
+    && patch SomaticWrapper.pl /usr/local/SomaticWrapper-mgi.patch 
+
 USER bps
 
-COPY container-init/mgi-bps.bashrc /home/bps
-COPY container-init/mgi-bps_start.sh /home/bps
+COPY image-init/mgi-bps.bashrc /home/bps
+COPY image-init/mgi-bps_start.sh /home/bps
 
 CMD ["/bin/bash", "/home/bps/mgi-bps_start.sh"]

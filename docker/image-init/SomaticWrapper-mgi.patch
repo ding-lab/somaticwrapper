@@ -1,0 +1,11 @@
+--- SomaticWrapper.pl	2017-09-17 15:03:55.000000000 -0500
++++ SomaticWrapper-mgi.pl	2017-09-18 14:22:00.000000000 -0500
+@@ -64,7 +64,7 @@
+ 
+ my $working_name= (split(/\//,$run_dir))[-2];
+ 
+-my $sw_dir="/usr/local/somaticwrapper";
++my $sw_dir="/gscuser/mwyczalk/projects/SomaticWrapper/somaticwrapper";
+ 
+ # Distinguising between location of modules of somatic wrapper and GenomeVIP
+ my $gvip_dir="$sw_dir/GenomeVIP";
