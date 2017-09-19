@@ -70,6 +70,24 @@ RUN cd /usr/local \
     && tar -xf GATK.tar \
     && wget https://github.com/broadinstitute/picard/releases/download/2.12.1/picard.jar
 
+# DEVELOPMENT 
+# Install mysql so that can use db-based VEP annotation 
+# NOTE: this can be removed if using VEP cache on e.g. production servers
+# based on
+# https://stackoverflow.com/questions/38356219/mysql-in-docker-frozen-at-root-password-config
+#    && apt-get install -y mysql-server libmysqlclient-dev libnss-sss \
+RUN apt-get update \
+    && { \
+        echo debconf debconf/frontend select Noninteractive; \
+        echo mysql-community-server mysql-community-server/data-dir select ''; \
+        echo mysql-community-server mysql-community-server/root-pass password ''; \
+        echo mysql-community-server mysql-community-server/re-root-pass password ''; \
+        echo mysql-community-server mysql-community-server/remove-test-db select true; \
+    } | debconf-set-selections \
+    && apt-get install -y mysql-server libmysqlclient-dev \
+    && apt-get clean
+RUN cpanm DBD::mysql
+
 # install VEP - we do not install cache into the image, it will be downloaded during setup
 # See here for discussion of caches: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
 # Cache dir will be /data/D_Ensembl
@@ -80,19 +98,6 @@ RUN cd /usr/local \
     && git clone https://github.com/Ensembl/ensembl-vep.git \
     && cd ensembl-vep \
     && perl INSTALL.pl /data/D_Ensembl -a a
-
-
-# for db VEP lookups, need to install the following:
-#     apt-get install -y \
-#       libmysqlclient-dev \
-#        mysql-server \
-#    && cpanm DBI cpanm DBD::mysql \
-# We'll do this when setting up the Strelka demo, since otherwise not needed.
-
-#DBD::mysql needed for non-offline work
-# apt-get install libmysqlclient-dev  - yes
-# apt-get install mysql-server        - maybe
-#cpanm DBD::mysql
 
 WORKDIR /usr/local/somaticwrapper
 

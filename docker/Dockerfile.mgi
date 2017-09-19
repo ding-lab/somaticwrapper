@@ -1,25 +1,25 @@
 # Dockerfile for MGI-specific modifications
 FROM mwyczalkowski/somatic-wrapper:latest
 
+
+# TODO
+# Start registering at MGI, not dockerhub
+
+#docker build .
+#docker tag <resulting_id> registry.gsc.wustl.edu/<username>/<image_name>
+#docker push registry.gsc.wustl.edu/<username>/<image_name>
+
+# Also, mysql is now installed by default, so get rid of the code below
+
 USER root
 
 # This is required to play well at MGI
 # MGI also does not respect USER directive, so change permissions so anyone can write
-#
-# Install mysql so that can use db-based VEP annotation (mysql cannot be installed at MGI later)
-# based on
-# https://stackoverflow.com/questions/38356219/mysql-in-docker-frozen-at-root-password-config
-#    && apt-get install -y mysql-server libmysqlclient-dev libnss-sss \
 RUN apt-get update \
-    && { \
-        echo debconf debconf/frontend select Noninteractive; \
-        echo mysql-community-server mysql-community-server/data-dir select ''; \
-        echo mysql-community-server mysql-community-server/root-pass password ''; \
-        echo mysql-community-server mysql-community-server/re-root-pass password ''; \
-        echo mysql-community-server mysql-community-server/remove-test-db select true; \
-    } | debconf-set-selections \
-    && apt-get install -y mysql-server libmysqlclient-dev libnss-sss\
+    && apt-get install -y libnss-sss\
     && apt-get clean
+
+RUN cpanm DBD::mysql
 
 RUN rm -rf /usr/local/BreakPointSurveyor \
     && mkdir /usr/local/BreakPointSurveyor \
@@ -31,9 +31,13 @@ RUN rm -rf /usr/local/BreakPointSurveyor \
 #   To apply a patch:
 #       patch SomaticWrapper.pl SomaticWrapper-mgi.patch
 
-COPY image-init/SomaticWrapper-mgi.patch /usr/local
-RUN cd /usr/local/somaticwrapper \
-    && patch SomaticWrapper.pl /usr/local/SomaticWrapper-mgi.patch 
+# this doesn't work, because cannot use /usr/local/somaticwrapper.  Need to use
+#   /gscuser/mwyczalk/projects/SomaticWrapper/somaticwrapper/
+# COPY image-init/SomaticWrapper-mgi.patch /usr/local
+# RUN cd /usr/local/somaticwrapper \
+#    && patch SomaticWrapper.pl /usr/local/SomaticWrapper-mgi.patch 
+
+
 
 USER bps
 

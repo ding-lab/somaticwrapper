@@ -6,3 +6,9 @@ somatic_wrapper is public
 
 TODO: Split the development stuff (Docker, etc) from things which need to be run to initialize the
 image on the host.
+
+MGI stuff:
+On your Mac, you'll need to run `docker login registry.gsc.wustl.edu`
+Once you've updated the Dockerfile (or helpers) as desired, then you can `docker build .` from the directory, take the hash it produces,
+run `docker tag <HASH> registry.gsc.wustl.edu/fdu/mgibio-cle-test`, and `docker push registry.gsc.wustl.edu/fdu/mgibio-cle-test`
+That'll send it to our private repo; then you can use `docker(registry.gsc.wustl.edu/fdu/mgibio-cle-test)` in LSF 
