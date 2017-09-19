@@ -12,6 +12,9 @@ sub merge_vcf {
     my $gvip_dir = shift;
     my $vep_cmd = shift;
     my $gatk = shift;
+# db mode 1) uses online database (so cache isn't installed) 2) does not use tmp files
+# It is meant to be used for testing and lightweight applications.  Use the cache for
+# better performance.  See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
     my $usedb = shift;  # 1 for testing/demo, 0 for production
 
 

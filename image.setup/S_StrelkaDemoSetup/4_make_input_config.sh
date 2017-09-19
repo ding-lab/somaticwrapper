@@ -12,8 +12,11 @@ reference_fasta = /data/A_Reference/demo20.fa
 tumor_bam = /data/data/SWtest/SWtest.T.bam
 normal_bam = /data/data/SWtest/SWtest.N.bam
 
+# We will not use VEP cache for testing because it takes a while to install
+usedb = 1
+
 # MGI development requires a non-default location for somaticwrapper
-sw_dir = /gscuser/mwyczalk/projects/SomaticWrapper/somaticwrapper
+# sw_dir = /gscuser/mwyczalk/projects/SomaticWrapper/somaticwrapper
 EOF
 
 echo Written configuration to $OUT

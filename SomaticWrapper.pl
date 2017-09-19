@@ -36,12 +36,13 @@ require("src/vcf_2_maf.pl");
 (my $usage = <<OUT) =~ s/\t+//g;
 This script will process evaluate variants for WGS and WXS data
 Pipeline version: $version
-$yellow     Usage: perl $0 <run_folder> <step_number> $normal_color
+$yellow     Usage: perl $0 run_folder step_number config_file [config_file_2] $normal_color
 
-<run_dir> = full path of the folder holding analysis resuls
+run_dir = full path of the folder holding analysis resuls
             Note, per-sample analysis directory is run_dir/sample_name
-<step_number> run this pipeline step by step. (running the whole pipeline if step number is 0)
-<config_file> Input configuration file.  See below for format
+step_number run this pipeline step by step. (running the whole pipeline if step number is 0)
+config_file Input configuration file.  See below for format
+config_file Optional secondary configuration file, any parameters here override configuration previous configuration
 
 $green       [1]  Run streka
 $red         [2]  Run Varscan
@@ -60,7 +61,7 @@ Input File configuration
 OUT
 
 die $usage unless @ARGV == 3;
-my ( $run_dir, $step_number, $config_file ) = @ARGV;
+my ( $run_dir, $step_number, $config_file, $config_file2 ) = @ARGV;
 if ($run_dir =~/(.+)\/$/) {  # ?
     $run_dir = $1;
 }
@@ -68,9 +69,26 @@ if ($run_dir =~/(.+)\/$/) {  # ?
 print("Reading configuration file $config_file\n");
 
 # get paras from config file
+# for a "key = value" pair of "xxx.yyy.zzz = foo", generates entry $params{'zzz'}='foo'
 open(CONFIG, $config_file);
 my (%paras);
 map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<CONFIG>);
+close(CONFIG);
+
+# Goal of an optional secondary configuration file is to allow for local configuration changes which are not tracked by git.
+# An example is to have a different sw_dir on MGI, but don't want MGI-specific changes propagated to main branch
+# check if parameter is defined, and if file exists
+if (defined $config_file2) {
+    if (-e $config_file2) {
+        print("Reading secondary configuration file $config_file2\n");
+        open(CONFIG2, $config_file2);
+        map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<CONFIG2>);
+        close(CONFIG2);
+    } else {
+        print("Optional configuration file $config_file2 does not exist.  Continuing. \n");
+    }
+}
+
 map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
 
 
@@ -87,6 +105,11 @@ map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
 
 # Optional configuration file parameters
 # sw_dir - Somatic Wrapper installation directory.  Default is /usr/local/somaticwrapper, modified for MGI installation
+# usedb - whether to use online VEP database lookups.  If value is 0 or undefined, default to cache (which requires installation)
+    # more detail from GenomeVIP/vep_annotator.pl:
+    # db mode 1) uses online database (so cache isn't installed) 2) does not use tmp files
+    # It is meant to be used for testing and lightweight applications.  Use the cache for
+    # better performance.  See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
 
 
 # default convention:
@@ -97,7 +120,7 @@ die("tumor_bam undefined in $config_file\n") unless exists $paras{'tumor_bam'};
 my $tumor_bam = $paras{'tumor_bam'};
 
 die("normal_bam undefined in $config_file\n") unless exists $paras{'normal_bam'};
-my $tumor_bam = $paras{'normal_bam'};
+my $normal_bam = $paras{'normal_bam'};
 
 die("reference_fasta undefined in $config_file\n") unless exists $paras{'reference_fasta'};
 my $REF = $paras{'reference_fasta'};
@@ -111,9 +134,14 @@ if (exists $paras{'sw_dir'} ) {
     $sw_dir=$paras{'sw_dir'};
 }
 
+# This is the default somatic wrapper installation directory
+my $usedb=0;
+if (exists $paras{'usedb'} ) {
+    $usedb=$paras{'usedb'};
+}
+
 print("Using reference $REF\n");
 print ("SW dir: $sw_dir \n");
-die();
 
 
 # Define where centromere definion file is for pindel processing.  See C_Centromeres for discussion
@@ -135,7 +163,7 @@ my $gatk="/usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar";
 my $bsub = "bash"; 
 
 #begin to process each sample
-$sample_full_path = $run_dir."/".$sample_name;
+my $sample_full_path = $run_dir."/".$sample_name;
 
 # automatically generated scripts in runtime
 my $job_files_dir="$sample_full_path/runtime";
@@ -160,12 +188,12 @@ if (-d $sample_full_path) { # is a full path directory containing sample analysi
     } elsif ($step_number eq '7') {
         parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $pindel_dir);
     } elsif ($step_number eq '8') {
-        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, 0);
-    } elsif ($step_number eq '8b') {
-        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, 1);
+        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, $usedb);
     } elsif ($step_number eq '9') {
         die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
         vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
+    } else {
+        die("Unknown step number $step_number\n");
     }
 }
 
