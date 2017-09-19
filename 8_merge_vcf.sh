@@ -1,3 +1,4 @@
 # Test case
 # running just parse merge VCF
-perl SomaticWrapper.pl /data/data 8
+CONFIG=/data/data/SWtest/sw.config
+perl SomaticWrapper.pl /data/data 8 $CONFIG
