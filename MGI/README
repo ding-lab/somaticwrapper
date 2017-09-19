@@ -1,0 +1,8 @@
+MGI environment is different 
+
+TODO: reproduce analysis done by Song for,
+
+/gscuser/scao/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt
+
+9/19/17 17:10 pm submitted:
+    bash submit_SomaticWrapper_MGI.sh 5 /gscuser/mwyczalk/projects/SomaticWrapper/config/01BR001.config

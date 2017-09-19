@@ -7,7 +7,7 @@ DATD="/data/B_Filter"
 JAR="/usr/local/snpEff/SnpSift.jar"
 
 #DBSNP="$DATD/short.5col.vcf.gz"
-DBSNP="$DATD/human_9606_b150_GRCh37p13.5col.vcf.gz"
+DBSNP="$DATD/human_9606_b150_GRCh37p13.All.5col.vcf.gz"
 COSMICDB="$DATD/CosmicCodingMuts.grch37.v82.vcf.gz"
 
 

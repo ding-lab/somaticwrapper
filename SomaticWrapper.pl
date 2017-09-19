@@ -58,6 +58,19 @@ $normal_color
 
 Input File configuration
 
+Format:
+    key = value
+
+Required configuration file keys
+    tumor_bam
+    normal_bam
+    reference_fasta
+    sample_name
+
+Optional configuration file parameters
+    sw_dir - Somatic Wrapper installation directory
+    usedb - whether to use online VEP database lookups (1 for true)
+
 OUT
 
 die $usage unless @ARGV == 3;
@@ -140,9 +153,8 @@ if (exists $paras{'usedb'} ) {
     $usedb=$paras{'usedb'};
 }
 
-print("Using reference $REF\n");
-print ("SW dir: $sw_dir \n");
-
+# TODO: allow custom dbSnP/COSMIC filter, so that Strelka Demo filter does not clobber real filter
+# this will be an optional parameter with default value of dbsnp.noCOSMIC.vcf.gz
 
 # Define where centromere definion file is for pindel processing.  See C_Centromeres for discussion
 # This should really live in the data directory
@@ -168,6 +180,11 @@ my $sample_full_path = $run_dir."/".$sample_name;
 # automatically generated scripts in runtime
 my $job_files_dir="$sample_full_path/runtime";
 system("mkdir -p $job_files_dir");
+
+print("Using reference $REF\n");
+print("SomaticWrapper dir: $sw_dir \n");
+print("Analysis dir: $sample_full_path\n");
+print("Run script dir: $job_files_dir\n");
 
 if (-d $sample_full_path) { # is a full path directory containing sample analysis
     print $yellow, "\nSubmitting jobs for the sample ",$sample_name, "...",$normal_color, "\n";

@@ -47,11 +47,11 @@ echo Downloading $VCF to $OUTD:
 echo sftp "$COSMIC_USERNAME"@sftp-cancer.sanger.ac.uk
 # if the download below doesn't work, run sftp by hand.  May need to verify authenticity of host first time doing this
 
-#sshpass -e sftp -oBatchMode=no -b - "$COSMIC_USERNAME"@sftp-cancer.sanger.ac.uk << EOF
-#lcd $OUTD
-#get $VCF
-#bye
-#EOF
+sshpass -e sftp -oBatchMode=no -b - "$COSMIC_USERNAME"@sftp-cancer.sanger.ac.uk << EOF
+lcd $OUTD
+get $VCF
+bye
+EOF
 
 # Testing to see if downloaded file exists.  If not, provide advice
 if [ ! -f $OUTD/$VCFGZ ]; then
