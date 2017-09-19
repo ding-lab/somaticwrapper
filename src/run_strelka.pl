@@ -1,5 +1,7 @@
 
 sub run_strelka {
+    my $IN_bam_T = shift;
+    my $IN_bam_N = shift;
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
@@ -8,8 +10,6 @@ sub run_strelka {
     my $REF = shift;
 
     $current_job_file = "j1_streka_".$sample_name.".sh"; 
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
     if (! -e $IN_bam_T) {#make sure there is a input fasta file 
         print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         print "Warning: Died because there is no input bam file for bwa:\n";
