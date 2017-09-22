@@ -20,7 +20,7 @@ COSMICDB="data/COSMIC.vcf.gz"
 #ANNO="$DATD/dbsnp_cosmic_anno.vcf"
 
 # Output VCF.  Append '.gz' if ANNO is not defined
-OUT="$DATD/dbsnp.noCOSMIC.vcf.gz"  
+OUT="$DATD/dbsnp-demo.noCOSMIC.vcf.gz"  
 
 if [ ! -z "$ANNO" ]; then
 
