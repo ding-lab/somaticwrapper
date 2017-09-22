@@ -14,3 +14,10 @@ run `docker tag <HASH> registry.gsc.wustl.edu/fdu/mgibio-cle-test`, and `docker 
 That'll send it to our private repo; then you can use `docker(registry.gsc.wustl.edu/fdu/mgibio-cle-test)` in LSF 
 
 But first need to get certificate: https://confluence.gsc.wustl.edu/pages/viewpage.action?spaceKey=IT&title=Docker+Private+Registry
+
+-> this probably isn't worthwhile
+
+TODO:
+
+Ultimately we need to rebuild somaticwrapper so it does not use BreakpointSurveyor image as starting point.
+This is unnecessary, and leads to weirdness like the github repository being cloned on container exit
