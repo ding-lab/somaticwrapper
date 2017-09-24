@@ -1,8 +1,76 @@
-MGI environment is different 
+MGI environment is unique and requires different procedures.  Specifically,
+* Docker environment has MGI volumes mounted
+    * Both Docker and MGI data available
+        * Container data in e.g. /data not visible from outside container
+        * Container still sees user home directory and other MGI partitions, e.g. /gscmnt/gc3025/dinglab
+        * Take care to avoid MGI-specific paths with an image
+    * Path issues arise when MGI user configuration files (e.g. .bashrc) are automatically evaluated.
+        * We install in image a configuration file /home/bps/mgi-bps.bashrc which sets paths.  It is evaluated upon
+          startup by script /home/bps/mgi-bps_start.sh
+* User is same uid as at MGI, and cannot run anything as root
+    * As a consequence, files installed as part of Dockerfile (by 'root') cannot be edited from within
+      container (no write privileges)
+    * It is more convenient during development to use MGI user directory than e.g. /usr/local/somaticwrapper,
+      since the latter can be modified while the former cannot
+* There is no `docker` command.  Docker container is launched using bsub
+    * Cannot build an image at MGI
+    * Cannot exec into a running container
+    * Will execute on an arbitrary machine
+        * Container data in e.g. /data is lost when job exits unless shared volume mounted during initialization
 
-TODO: reproduce analysis done by Song for,
 
-/gscuser/scao/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt
+Current Goal: 
 
-9/19/17 17:10 pm submitted:
-    bash submit_SomaticWrapper_MGI.sh 5 /gscuser/mwyczalk/projects/SomaticWrapper/config/01BR001.config
+reproduce analysis done by Song for sample 01BR001, whose run is found here:
+    /gscuser/scao/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt
+        
+Principal paths:
+
+    Data directory - host: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data
+                     Note, soft link here: /gscuser/mwyczalk/projects/SomaticWrapper
+    Data directory - container: /data
+    Config file - /data/run_config/01BR001.config
+    BSUB output directory: /gscuser/mwyczalk/projects/SomaticWrapper/runtime_bsub
+
+Progress: 
+
+[1]  Run streka - OK
+[2]  Run Varscan - OK
+[3]  Parse streka result - OK.  But sorting here fails
+[4]  Parse VarScan result - OK
+[5]  Run Pindel - OK
+[6]  Run VEP annotation - not running
+[7]  Parse Pindel - OK
+[8]  Merge vcf files using local VEP cache - problems here
+[9] generate maf file
+
+Executing steps: 
+
+Each step can be run either from within the container, or by submitting a job for execution on cluster.
+
+## Preliminary steps
+
+This has to be done on any new installation.  Running Strelka Demo is a special case.
+
+TODO: Describe how to set up image data for arbitrary run, Strelka Demo
+
+## Executing within the container
+
+Use `bash bash_SomaticWrapper_MGI.sh` to launch the container.  
+This will launch on a random machine (will take time to download image).
+
+You can check if in container if /data exists (there are better ways).  Do:
+
+export CONFIG=/data/run_config/01BR001.config
+
+Then run the steps by executing each individually (e.g., `bash 1_run_strelka.sh`)
+
+
+## Executing as a job on the cluster
+
+BSUB output directory: /gscuser/mwyczalk/projects/SomaticWrapper/runtime_bsub
+
+To run step 2 in container, do
+
+bash submit_SomaticWrapper_MGI.sh 2 /data/run_config/01BR001.config
+** debug note, make sure $bsub = bash

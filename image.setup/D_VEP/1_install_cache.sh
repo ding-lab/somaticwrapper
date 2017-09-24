@@ -1,4 +1,4 @@
-CACHED="/data/D_Ensembl"
+CACHED="/data/D_VEP"
 mkdir -p $CACHED
 
 CWD=`pwd`

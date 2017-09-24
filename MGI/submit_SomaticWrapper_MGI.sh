@@ -50,5 +50,4 @@ echo Written configuration to $SCRIPT
 LOGS="-e $SCRIPTD/bsub_run-step_$STEP.err -o $SCRIPTD/bsub_run-step_$STEP.out"
 
 
-# To run docker container in background, do something like,
 bsub -q research-hpc $HOST $LOGS -a 'docker (mwyczalkowski/somatic-wrapper:mgi)'  "/bin/bash $SCRIPT"

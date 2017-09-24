@@ -7,4 +7,4 @@
 if [ -z $CONFIG ]; then
     CONFIG=/data/data/SWtest/sw.config
     fi
-perl SomaticWrapper.pl /data/data 4 $CuNFIG
+perl SomaticWrapper.pl /data/data 4 $CONFIG

@@ -34,7 +34,3 @@ cd $CWD
 }
 
 index_ref $1
-
-#index_ref GCA_000001405.14_GRCh37.p13_no_alt_analysis_set.fna
-#index_ref GRCh37-lite.fa
-#index_ref demo20.fa

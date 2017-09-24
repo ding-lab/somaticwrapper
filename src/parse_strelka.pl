@@ -26,6 +26,7 @@ sub parse_strelka{
     my $job_files_dir = shift;
     my $bsub = shift;
     my $REF = shift;
+    my $ref_dict = shift;  # this ends up being not used
     my $perl = shift;
     my $gvip_dir = shift;
 
@@ -100,6 +101,13 @@ EOF
 #strelka.fpfilter.snv.max_avg_mapping_qual_difference = 50
 #EOF
 
+my $sortInput="$filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf";
+my $sortOutput="$filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.sorted.vcf";
+
+# assuming file extensions is unreliable
+#my $ref_dict = $REF;
+#$ref_dict =~ s/fa$/dict/;
+
 # Create run script
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");
@@ -118,6 +126,7 @@ EOF
 
 # Note that in subsequent steps (merge_vcf) only the file strelka.somatic.snv.all.gvip.dbsnp_pass.vcf is used.
 # output of steps 6 and 7 is discarded.  We are removing these steps at Song's suggestion
+# We subsequently sort the VCF to make into a standard format for GATK merging
 
     print OUT <<"EOF";
 #!/bin/bash
@@ -125,13 +134,16 @@ EOF
 export JAVA_OPTS=\"-Xms256m -Xmx512m\"
 export VARSCAN_DIR="/usr/local"
 
+# steps 1-4
 $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/all.somatic.snvs.vcf $filter_results/strelka.somatic.snv.all.gvip.vcf
 $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/all.somatic.indels.vcf $filter_results/strelka.somatic.indel.all.gvip.vcf
 $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/passed.somatic.snvs.vcf $filter_results/strelka.somatic.snv.strlk_pass.gvip.vcf
 $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/passed.somatic.indels.vcf $filter_results/strelka.somatic.indel.strlk_pass.gvip.vcf
+
+# step 5
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/strelka_dbsnp_filter.snv.input
 
-# Following steps not used
+# Following steps 6-7 are not used
 #$perl $gvip_dir/dbsnp_filter.pl $filter_results/strelka_dbsnp_filter.indel.input
 #$perl $gvip_dir/snv_filter.pl $filter_results/strelka_fpfilter.snv.input
 
@@ -139,7 +151,7 @@ EOF
     close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     print("Executing:\n $bsub_com \n");
-    
+
     system ( $bsub_com ); 
 
 }

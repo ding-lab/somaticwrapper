@@ -3,8 +3,7 @@
 # This reference used for 01BR001 test case
 # We'll download the fai and dict files so there's no need to prepare the reference ourselves
 
-#OUTD="/data/A_Reference"
-OUTD="/Users/mwyczalk/src/SomaticWrapper/data//A_Reference"
+OUTD="/data/A_Reference"
 mkdir -p $OUTD
 
 echo Saving reference to $OUTD

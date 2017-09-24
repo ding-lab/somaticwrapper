@@ -6,5 +6,5 @@
 # See here for discussion of caches: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
 
 # to install the cache, try
-# later, perl INSTALL.pl -a cf -s homo_sapiens -y GRCh37,GRCh38 --CACHEDIR /data/D_Ensembl
+# later, perl INSTALL.pl -a cf -s homo_sapiens -y GRCh37,GRCh38 --CACHEDIR /data/D_VEP
 

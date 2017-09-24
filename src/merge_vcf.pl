@@ -1,6 +1,20 @@
 my $assembly="GRCh37";
 my $cachedir="/data/D_VEP";
 
+# NOTES on running 01BR001
+# The file varscan/filter_out/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf has contig order which is 
+# incompatible with the reference.  See https://software.broadinstitute.org/gatk/documentation/article.php?id=1328
+# for how to correct this; to wit,
+# java -jar picard.jar SortVcf I=original.vcf O=sorted.vcf SEQUENCE_DICTIONARY=reference.dict
+# Where reference.dict is the .dict file associated with the reference.  Doing:
+# java -jar /usr/local/picard.jar SortVcf I=varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf-orig O=varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf SEQUENCE_DICTIONARY=/data/A_Reference/hg19.dict
+# Same problem with strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf
+# TODO: incorporate filtering of the following VCFs as the last filtering step:
+# * strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf
+# * varscan/filter_out/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf
+# * varscan/filter_out/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf
+# * pindel/filter_out/pindel.out.current_final.gvip.dbsnp_pass.vcf
+
 
 sub merge_vcf {
     my $sample_name = shift;
@@ -51,7 +65,9 @@ EOF
 export JAVA_OPTS=\"-Xmx2g\"
  java \$JAVA_OPTS -jar $gatk -R $REF -T CombineVariants -o $merger_out --variant:varscan $varscan_vcf --variant:strelka $strelka_vcf --variant:varindel $varscan_indel --variant:pindel $pindel_vcf -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel
 
-$perl $gvip_dir/vep_annotator.pl $filter_results/vep.merged.input # &> $filter_results/vep.merged.log
+$perl $gvip_dir/vep_annotator.pl $filter_results/vep.merged.input  # &> $filter_results/vep.merged.log
+
+echo Written final result to $merger_out
 
 EOF
 

@@ -65,11 +65,13 @@ Required configuration file keys
     tumor_bam
     normal_bam
     reference_fasta
+    reference_dict
     sample_name
 
 Optional configuration file parameters
     sw_dir - Somatic Wrapper installation directory
     usedb - whether to use online VEP database lookups (1 for true)
+    submit_cmd - command to initiate execution of generated script.  Default value 'bash', can set as 'cat' to allow step-by-step execution for debugging
 
 OUT
 
@@ -114,6 +116,7 @@ map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
 # tumor_bam
 # normal_bam
 # reference_fasta
+# reference_dict
 # sample_name
 
 # Optional configuration file parameters
@@ -138,6 +141,9 @@ my $normal_bam = $paras{'normal_bam'};
 die("reference_fasta undefined in $config_file\n") unless exists $paras{'reference_fasta'};
 my $REF = $paras{'reference_fasta'};
 
+die("reference_dict undefined in $config_file\n") unless exists $paras{'reference_dict'};
+my $ref_dict = $paras{'reference_dict'};
+
 die("sample_name undefined in $config_file\n") unless exists $paras{'sample_name'};
 my $sample_name = $paras{'sample_name'};
 
@@ -152,6 +158,14 @@ my $usedb=0;
 if (exists $paras{'usedb'} ) {
     $usedb=$paras{'usedb'};
 }
+
+# parameter submit_cmd will typically be "bash" to execute entire script.  Set it to "cat" for debugging, "bsub" to submit to LSF 
+my $bsub = "bash";
+if (exists $paras{'submit_cmd'} ) {
+    $bsub=$paras{'submit_cmd'};
+}
+
+
 
 # TODO: allow custom dbSnP/COSMIC filter, so that Strelka Demo filter does not clobber real filter
 # this will be an optional parameter with default value of dbsnp.noCOSMIC.vcf.gz
@@ -170,9 +184,6 @@ my $STRELKA_DIR="/usr/local/strelka";
 my $vep_cmd="/usr/local/ensembl-vep/vep";
 my $pindel_dir="/usr/local/pindel";
 my $gatk="/usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar";
-
-# $bsub will typically be "bash" to execute entire script.  Set it to "cat" for debugging, "bsub" to submit to LSF
-my $bsub = "bash"; 
 
 #begin to process each sample
 my $sample_full_path = $run_dir."/".$sample_name;
@@ -194,7 +205,7 @@ if (-d $sample_full_path) { # is a full path directory containing sample analysi
     } elsif ($step_number eq '2') {
         run_varscan($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $REF);
     } elsif ($step_number eq '3') {
-        parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
+        parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $ref_dict, $perl, $gvip_dir);
     } elsif ($step_number eq '4') {
         parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
     } elsif ($step_number eq '5') {

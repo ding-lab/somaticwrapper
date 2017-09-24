@@ -1,5 +1,5 @@
-# Download the GRCh38 human reference
-
+# Download the hg19/GRCh37 human reference
+# Not clear this is necessary
 
 OUTD="/data/A_Reference"
 mkdir -p $OUTD
