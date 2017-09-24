@@ -70,7 +70,52 @@ Then run the steps by executing each individually (e.g., `bash 1_run_strelka.sh`
 
 BSUB output directory: /gscuser/mwyczalk/projects/SomaticWrapper/runtime_bsub
 
-To run step 2 in container, do
+To run step 2 in container, run the following on host machine,
 
 bash submit_SomaticWrapper_MGI.sh 2 /data/run_config/01BR001.config
-** debug note, make sure $bsub = bash
+
+Note, Pindel requires increased memory to keep from crashing.  TODO: test automatically to see if pindel succeeds (exit status?)
+
+-------
+
+Critical comparison of original vs. new 01BR001 run
+
+Original:  /gscuser/scao/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt/01BR001
+New: /data/data/01BR001 aka /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/data/01BR001
+
+Key files:
+* strelka.somatic.snv.all.gvip.dbsnp_pass.vcf
+  - OLD - 699 non-header entries in VCF
+  - NEW - 1095 non-header entries in VCF
+* varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf
+  - old - 363 entries
+  - new - 603 entries
+* pindel.out.current_final.gvip.dbsnp_pass.vcf
+  - old - 285 entries
+  - new - 14 entries  *** this is a problem - chr 1 only ***
+* varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf
+  - old - 100 entries
+  - new - 1927 entries
+* merged.vcf
+  - old - 1429 entries
+  - new - 2874 entries
+
+-> It seems that the Pindel run dies early, analyzing chr1 around bp 16M.  Based on a bash run within an image,
+    Number of problematic reads in current window:              309690, + 231568 - 78122
+    Number of split-reads where the close end could be mapped:  102491, + 76964 - 25520
+    Percentage of problematic reads with close end mapped:      + 33.24% - 32.67%
+    BAM file index  0
+    Bam file name   /gscmnt/gc3025/dinglab/cptac/exome_batch2-1/25_DM/analysis/25_DM.sorted.rmdup.bam
+    Number of split-reads so far    102491
+
+    Insertsize in config: 500
+    The number of one end mapped read: 116890
+    Killed
+
+Is this a memory issue?  Song requests the following,
+   print PINDEL "#BSUB -R \"span[hosts=1] rusage[mem=30000]\"","\n";
+   print PINDEL "#BSUB -M 30000000\n";
+
+* this works!
+
+*** need to test exit status to make sure jobs completed successfully

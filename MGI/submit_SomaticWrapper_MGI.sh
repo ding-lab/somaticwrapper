@@ -49,5 +49,8 @@ echo Written configuration to $SCRIPT
 # logs will be written to $SCRIPTD/bsub_run-step_$STEP.err, .out
 LOGS="-e $SCRIPTD/bsub_run-step_$STEP.err -o $SCRIPTD/bsub_run-step_$STEP.out"
 
+# Extra memory required for Pindel run
+# Ideally, should specify memory requirements in configuration file
+MEM="-R \"rusage[mem=30000]\" -M 30000000"
 
-bsub -q research-hpc $HOST $LOGS -a 'docker (mwyczalkowski/somatic-wrapper:mgi)'  "/bin/bash $SCRIPT"
+bsub -q research-hpc $HOST $LOGS $MEM -a 'docker (mwyczalkowski/somatic-wrapper:mgi)'  "/bin/bash $SCRIPT"

@@ -10,8 +10,12 @@ DATAD="/gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data"
 echo Mapping /data to $DATAD
 export LSF_DOCKER_VOLUMES="$DATAD:/data"
 
+#print PINDEL "#BSUB -R \"span[hosts=1] rusage[mem=30000]\"","\n";
+#print PINDEL "#BSUB -M 30000000\n";
 
-bsub -q research-hpc $HOST -Is -a "docker(mwyczalkowski/somatic-wrapper:mgi)" "/bin/bash /home/bps/mgi-bps_start.sh"
+
+# Note memory usage, hoping to keep pindel from dying
+bsub -q research-hpc $HOST -Is -R "rusage[mem=30000]" -M 30000000 -a "docker(mwyczalkowski/somatic-wrapper:mgi)" "/bin/bash /home/bps/mgi-bps_start.sh"
 #COPY image-init/mgi-bps_start.sh /home/bps
 
 

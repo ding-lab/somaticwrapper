@@ -10,6 +10,10 @@ my $db="$datd/dbsnp.noCOSMIC.vcf.gz";
 
 # Skipping VEP annotation
 
+# principal output used in merging: pindel.out.current_final.gvip.dbsnp_pass.vcf
+# This is based on pindel.out.current_final.gvip.Somatic.vcf - this has just chr1
+#   - who creates pindel.out.current_final.gvip.Somatic.vcf?
+
 sub parse_pindel {
     my $sample_name = shift;
     my $sample_full_path = shift;
@@ -74,22 +78,22 @@ EOF
 # is used, and the vep annotation is ignored.  
 # For this reason, we're disabling VEP annotation here.
 
-#cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF
-    my $module = "pindel.vep";
-    my $vcf = "$filter_results/pindel.out.current_final.gvip.dbsnp_pass.vcf";
-    my $output = "$filter_results/pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf";
-
-    my $out = "$filter_results/pindel_vep.input";
-    print("Writing to $out\n");
-    open(OUT, ">$out") or die $!;
-    print OUT <<"EOF";
-$module.vcf = $vcf
-$module.output = $output
-$module.vep_cmd = $vep_cmd
-$module.cachedir = $cachedir
-$module.reffasta = $REF
-$module.assembly = $assembly
-EOF
+# #cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF
+#     my $module = "pindel.vep";
+#     my $vcf = "$filter_results/pindel.out.current_final.gvip.dbsnp_pass.vcf";
+#     my $output = "$filter_results/pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf";
+# 
+#     my $out = "$filter_results/pindel_vep.input";
+#     print("Writing to $out\n");
+#     open(OUT, ">$out") or die $!;
+#     print OUT <<"EOF";
+# $module.vcf = $vcf
+# $module.output = $output
+# $module.vep_cmd = $vep_cmd
+# $module.cachedir = $cachedir
+# $module.reffasta = $REF
+# $module.assembly = $assembly
+# EOF
 
 # 0. Pull out all reads from pindel raw output with the label ChrID
 #   http://gmt.genome.wustl.edu/packages/pindel/user-manual.html
