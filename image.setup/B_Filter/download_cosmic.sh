@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Usage: download_cosmic.sh REF VER
+# e.g., 
+# REF="grch37"
+# VER="v82"
+REF=$1
+VER=$2
+
+
 # Download data from COSMIC
 # You need to be registered to access the data: http://cancer.sanger.ac.uk/cosmic
 # Username and password are stored in COSMIC_credentials.dat
@@ -26,11 +34,6 @@ else
 source ./COSMIC_credentials.dat
 fi
 
-REF="grch37"
-
-# Cosmic Version
-VER="v82"
-
 # needs sshpass for automated download (apt-get install sshpass)
 #
 # An alternative is to simply download it by hand like,
@@ -40,8 +43,19 @@ VER="v82"
 #   get CosmicCodingMuts.vcf.gz
 
 COSD="/cosmic/$REF/cosmic/$VER/VCF"
-VCFGZ="CosmicCodingMuts.vcf.gz"
+VCFGZ="CosmicCodingMuts.vcf.gz"             # file as downloaded
+VCFBGZ="CosmicCodingMuts.$REF.$VER.vcf.gz"  # file as processed
 VCF="$COSD/$VCFGZ"
+
+if [ -f $VCFGZ ]; then
+echo File $VCFGZ exists.  Please delete if you want to re-download
+exit
+fi
+
+if [ -f $VCFBGZ ]; then
+echo File $VCFBGZ exists.  Please delete if you want to re-download
+exit
+fi
 
 echo Downloading $VCF to $OUTD:
 echo sftp "$COSMIC_USERNAME"@sftp-cancer.sanger.ac.uk
@@ -72,7 +86,6 @@ fi
 
 # Now convert to bgz format and index.  Note that extension needs to be .gz for downstream
 # java snpsift code to work
-VCFBGZ="CosmicCodingMuts.$REF.$VER.vcf.gz"
 gunzip -c $OUTD/$VCFGZ | bgzip > $OUTD/$VCFBGZ
 tabix -p vcf $OUTD/$VCFBGZ
 

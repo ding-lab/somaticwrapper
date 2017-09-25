@@ -3,11 +3,6 @@ my $cachedir="/data/D_VEP";
 
 my $snpsift_jar="/usr/local/snpEff/SnpSift.jar";
 
-# filtered database created in B_Filter
-my $datd="/data/B_Filter";
-my $db="$datd/dbsnp.noCOSMIC.vcf.gz";
-#my $db="$datd/short.dbsnp.noCOSMIC.vcf.gz";
-
 # Skipping VEP annotation
 
 # principal output used in merging: pindel.out.current_final.gvip.dbsnp_pass.vcf
@@ -24,6 +19,7 @@ sub parse_pindel {
     my $gvip_dir = shift;
     my $vep_cmd = shift;
     my $pindel_dir = shift;
+    my $db = shift;
 
     $current_job_file = "j7_parse_pindel".$sample_name.".sh";
 

@@ -132,7 +132,7 @@ if ($paras{'apply_filter'} eq "true"  &&  $paras{'mode'} ne "pooled") {
 	    if($paras{'remove_complex_indels'} =~ /true/) {  
 		if ( $t[1] eq "I" || $t[1] eq "D") {
 		    if ( $t[1] eq "I" || ($t[1] eq "D" && $t[4] == 0) ) {
-			print "Indel filter: passed\n";
+			# print "Indel filter: passed\n";
 			$filter1_pass_fh->print($_."\n");
 		    } else {
 			$filter1_fail_fh->print($_."\n");

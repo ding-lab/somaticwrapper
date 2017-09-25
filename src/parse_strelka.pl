@@ -1,12 +1,7 @@
-my $datd="/data/B_Filter";
 my $jar="/usr/local/snpEff/SnpSift.jar";
 
 # bam readcount not used because not using FP Filter
 #my $bam_readcount = "/usr/local/bin/bam-readcount";
-
-# filtered database created in B_Filter
-my $db="$datd/dbsnp.noCOSMIC.vcf.gz";
-#my $db="$datd/short.dbsnp.noCOSMIC.vcf.gz";
 
 # The following files are created by prior steps, $sample_full_path/strelka/strelka_out/results
     # all.somatic.indels.vcf
@@ -20,7 +15,7 @@ my $db="$datd/dbsnp.noCOSMIC.vcf.gz";
 # Output of this script will be in $sample_full_path/filter_out
 
 
-sub parse_strelka{
+sub parse_strelka {
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
@@ -29,6 +24,7 @@ sub parse_strelka{
     my $ref_dict = shift;  # this ends up being not used
     my $perl = shift;
     my $gvip_dir = shift;
+    my $db = shift;
 
     $current_job_file = "j3_parse_strelka".$sample_name.".sh";
 
@@ -131,7 +127,7 @@ my $sortOutput="$filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.sorted.v
     print OUT <<"EOF";
 #!/bin/bash
 
-export JAVA_OPTS=\"-Xms256m -Xmx512m\"
+export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 export VARSCAN_DIR="/usr/local"
 
 # steps 1-4

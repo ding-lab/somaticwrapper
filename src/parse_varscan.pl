@@ -1,10 +1,5 @@
-my $datd="/data/B_Filter";
 my $varscan_jar="/usr/local/VarScan.jar";
 my $snpsift_jar="/usr/local/snpEff/SnpSift.jar";
-
-# filtered database created in B_Filter
-my $db="$datd/dbsnp.noCOSMIC.vcf.gz";
-#my $db="$datd/short.dbsnp.noCOSMIC.vcf.gz";
 
 # The following files were created in $sample_full_path/varscan
 #  bamfilelist.inp
@@ -22,6 +17,7 @@ sub parse_varscan{
     my $REF = shift;
     my $perl = shift;
     my $gvip_dir = shift;
+    my $db = shift;
 
     $current_job_file = "j4_parse_varscan".$sample_name.".sh";
 

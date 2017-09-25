@@ -92,30 +92,17 @@ Key files:
   - new - 603 entries
 * pindel.out.current_final.gvip.dbsnp_pass.vcf
   - old - 285 entries
-  - new - 14 entries  *** this is a problem - chr 1 only ***
+  - new - 895 entries  
 * varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf
   - old - 100 entries
   - new - 1927 entries
 * merged.vcf
   - old - 1429 entries
-  - new - 2874 entries
-
--> It seems that the Pindel run dies early, analyzing chr1 around bp 16M.  Based on a bash run within an image,
-    Number of problematic reads in current window:              309690, + 231568 - 78122
-    Number of split-reads where the close end could be mapped:  102491, + 76964 - 25520
-    Percentage of problematic reads with close end mapped:      + 33.24% - 32.67%
-    BAM file index  0
-    Bam file name   /gscmnt/gc3025/dinglab/cptac/exome_batch2-1/25_DM/analysis/25_DM.sorted.rmdup.bam
-    Number of split-reads so far    102491
-
-    Insertsize in config: 500
-    The number of one end mapped read: 116890
-    Killed
-
-Is this a memory issue?  Song requests the following,
-   print PINDEL "#BSUB -R \"span[hosts=1] rusage[mem=30000]\"","\n";
-   print PINDEL "#BSUB -M 30000000\n";
-
-* this works!
+  - new - 3754 entries
 
 *** need to test exit status to make sure jobs completed successfully
+
+---
+Example of running arbitrary command in container:
+
+bash submit_adhoc.sh "cd /gscuser/mwyczalk/projects/SomaticWrapper/somaticwrapper/image.setup/B_Filter; /bin/bash ./3b_make_variant_filter_GRCh38.sh"

@@ -29,7 +29,7 @@ sub merge_vcf {
 # db mode 1) uses online database (so cache isn't installed) 2) does not use tmp files
 # It is meant to be used for testing and lightweight applications.  Use the cache for
 # better performance.  See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
-    my $usedb = shift;  # 1 for testing/demo, 0 for production
+    my $use_vep_db = shift;  # 1 for testing/demo, 0 for production
 
 
     $current_job_file = "j8_merge_vcf.".$sample_name.".sh";
@@ -53,7 +53,7 @@ merged.vep.vep_cmd = $vep_cmd
 merged.vep.cachedir = $cachedir
 merged.vep.reffasta = $REF
 merged.vep.assembly = $assembly
-merged.vep.usedb = $usedb
+merged.vep.usedb = $use_vep_db
 EOF
 
     my $outfn = "$job_files_dir/$current_job_file";

@@ -44,16 +44,15 @@ step_number run this pipeline step by step. (running the whole pipeline if step 
 config_file Input configuration file.  See below for format
 config_file Optional secondary configuration file, any parameters here override configuration previous configuration
 
-$green       [1]  Run streka
-$red         [2]  Run Varscan
-$yellow      [3]  Parse streka result
-$purple      [4]  Parse VarScan result
-$cyan        [5]  Run Pindel
-$gray        [6]  Run VEP annotation
-$gray        [7]  Parse Pindel
-$gray        [8]  Merge vcf files using local VEP cache
-$gray        [8b] Merge vcf files using VEP db queries 
-$gray        [9] generate maf file 
+$green       [1 or run_strelka]  Run streka
+$red         [2 or run_varscan]  Run Varscan
+$yellow      [3 or parse_strelka]  Parse streka result
+$purple      [4 or parse_varscan]  Parse VarScan result
+$cyan        [5 or run_pindel]  Run Pindel
+$gray        [6 or run_vep]  Run VEP annotation
+$gray        [7 or parse_pindel]  Parse Pindel
+$gray        [8 or merge_vcf]  Merge vcf files using local VEP cache
+$gray        [9 or vcf2maf] generate maf file 
 $normal_color
 
 Input File configuration
@@ -70,7 +69,7 @@ Required configuration file keys
 
 Optional configuration file parameters
     sw_dir - Somatic Wrapper installation directory
-    usedb - whether to use online VEP database lookups (1 for true)
+    use_vep_db - whether to use online VEP database lookups (1 for true)
     submit_cmd - command to initiate execution of generated script.  Default value 'bash', can set as 'cat' to allow step-by-step execution for debugging
 
 OUT
@@ -121,7 +120,7 @@ map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
 
 # Optional configuration file parameters
 # sw_dir - Somatic Wrapper installation directory.  Default is /usr/local/somaticwrapper, modified for MGI installation
-# usedb - whether to use online VEP database lookups.  If value is 0 or undefined, default to cache (which requires installation)
+# use_vep_db - whether to use online VEP database lookups.  If value is 0 or undefined, default to cache (which requires installation)
     # more detail from GenomeVIP/vep_annotator.pl:
     # db mode 1) uses online database (so cache isn't installed) 2) does not use tmp files
     # It is meant to be used for testing and lightweight applications.  Use the cache for
@@ -153,10 +152,9 @@ if (exists $paras{'sw_dir'} ) {
     $sw_dir=$paras{'sw_dir'};
 }
 
-# This is the default somatic wrapper installation directory
-my $usedb=0;
-if (exists $paras{'usedb'} ) {
-    $usedb=$paras{'usedb'};
+my $use_vep_db=0;
+if (exists $paras{'use_vep_db'} ) {
+    $use_vep_db=$paras{'use_vep_db'};
 }
 
 # parameter submit_cmd will typically be "bash" to execute entire script.  Set it to "cat" for debugging, "bsub" to submit to LSF 
@@ -165,10 +163,10 @@ if (exists $paras{'submit_cmd'} ) {
     $bsub=$paras{'submit_cmd'};
 }
 
-
-
-# TODO: allow custom dbSnP/COSMIC filter, so that Strelka Demo filter does not clobber real filter
-# this will be an optional parameter with default value of dbsnp.noCOSMIC.vcf.gz
+my $dbsnp_db = "none";
+if (exists $paras{'dbsnp_db'} ) {
+    $dbsnp_db=$paras{'dbsnp_db'};
+}
 
 # Define where centromere definion file is for pindel processing.  See C_Centromeres for discussion
 # This should really live in the data directory
@@ -200,24 +198,24 @@ print("Run script dir: $job_files_dir\n");
 if (-d $sample_full_path) { # is a full path directory containing sample analysis
     print $yellow, "\nSubmitting jobs for the sample ",$sample_name, "...",$normal_color, "\n";
 
-    if ($step_number eq '1') {
+    if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
         run_strelka($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $STRELKA_DIR, $REF);
-    } elsif ($step_number eq '2') {
+    } elsif (($step_number eq '2') || ($step_number eq 'run_varscan')) {
         run_varscan($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $REF);
-    } elsif ($step_number eq '3') {
-        parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $ref_dict, $perl, $gvip_dir);
-    } elsif ($step_number eq '4') {
-        parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
-    } elsif ($step_number eq '5') {
+    } elsif (($step_number eq '3') || ($step_number eq 'parse_strelka')) {
+        parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $ref_dict, $perl, $gvip_dir, $dbsnp_db);
+    } elsif (($step_number eq '4') || ($step_number eq 'parse_varscan')) {
+        parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $dbsnp_db);
+    } elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
         run_pindel($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $pindel_dir, $f_centromere);
-    } elsif ($step_number eq '6') {
+    } elsif (($step_number eq '6') || ($step_number eq 'run_vep')) {
         warn("run_vep() is ignored in pipeline, so output of this step is discarded.  Continuing anyway.\n\n");
         run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $gvip_dir, $vep_cmd);
-    } elsif ($step_number eq '7') {
-        parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $pindel_dir);
-    } elsif ($step_number eq '8') {
-        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, $usedb);
-    } elsif ($step_number eq '9') {
+    } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
+        parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db);
+    } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
+        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db);
+    } elsif (($step_number eq '9') || ($step_number eq 'vcf2maf')) {
         die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
         vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
     } else {
