@@ -1,0 +1,10 @@
+Comparing intermediate output files of 01BR001 run
+
+ORIGD=/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt/01BR001
+NEWD=/gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/data/01BR001
+
+Evaluating concordance with Song's run for
+1) original dbSnP
+2) new dbSnP filter
+
+Comparison through parse_varscan successful

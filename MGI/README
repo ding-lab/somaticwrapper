@@ -106,3 +106,5 @@ Key files:
 Example of running arbitrary command in container:
 
 bash submit_adhoc.sh "cd /gscuser/mwyczalk/projects/SomaticWrapper/somaticwrapper/image.setup/B_Filter; /bin/bash ./3b_make_variant_filter_GRCh38.sh"
+
+NOTE: this is very ad hoc, and needs further work.  In particular, runtime and log directories should go in data directory

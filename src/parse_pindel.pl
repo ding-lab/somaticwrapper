@@ -108,19 +108,25 @@ EOF
     print OUT <<"EOF";
 #!/bin/bash
 
+echo Collecting results in $pindel_results
 find $pindel_results -name \'*_D\' -o -name \'*_SI\' -o -name \'*_INV\' -o -name \'*_TD\'  > $outlist
 list=\$(xargs -a  $outlist)
 cat \$list | grep ChrID > $pin_var_file
+
+echo Running pindel_filter.v0.5.pl
 $perl $gvip_dir/pindel_filter.v0.5.pl $filter_results/pindel_filter.input
 
+echo Running genomevip_label.pl
 $perl $gvip_dir/genomevip_label.pl Pindel $pin_var_file.CvgVafStrand_pass.vcf $pin_var_file.CvgVafStrand_pass.gvip.vcf
 $perl $gvip_dir/genomevip_label.pl Pindel $pre_current_final $pin_var_file.CvgVafStrand_pass.Homopolymer_pass.gvip.vcf 
 $perl $gvip_dir/genomevip_label.pl Pindel $pin_var_file.CvgVafStrand_pass.Homopolymer_fail.vcf $pin_var_file.CvgVafStrand_pass.Homopolymer_fail.gvip.vcf 
 
+# how does this differ from cp?
 cat $pin_var_file.CvgVafStrand_pass.Homopolymer_pass.gvip.vcf > $current_final
 
-export JAVA_OPTS=\"-Xms256m -Xmx512m\"
+export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 
+echo Running dbsnp_filter.pl
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/pindel_dbsnp_filter.indel.input
 
 # Skipping VEP annotation because it is ignored in merge_vcf
