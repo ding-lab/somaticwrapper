@@ -6,8 +6,7 @@ my $snpsift_jar="/usr/local/snpEff/SnpSift.jar";
 # Skipping VEP annotation
 
 # principal output used in merging: pindel.out.current_final.gvip.dbsnp_pass.vcf
-# This is based on pindel.out.current_final.gvip.Somatic.vcf - this has just chr1
-#   - who creates pindel.out.current_final.gvip.Somatic.vcf?
+# This is based on pindel.out.current_final.gvip.Somatic.vcf 
 
 sub parse_pindel {
     my $sample_name = shift;
@@ -49,7 +48,7 @@ pindel.filter.homozyg_min_var_allele_freq = 0.8
 pindel.filter.mode = somatic
 pindel.filter.apply_filter = true
 pindel.filter.somatic.min_coverages = 10
-pindel.filter.somatic.min_var_allele_freq = 0.05
+pindel.filter.somatic.min_var_allele_freq = 0.10
 pindel.filter.somatic.require_balanced_reads = \"true\"
 pindel.filter.somatic.remove_complex_indels = \"true\"
 pindel.filter.somatic.max_num_homopolymer_repeat_units = 6

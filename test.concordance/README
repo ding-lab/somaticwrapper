@@ -8,3 +8,70 @@ Evaluating concordance with Song's run for
 2) new dbSnP filter
 
 Comparison through parse_varscan successful
+
+---
+Testing Pindel:
+
+Pindel Run: line count of output files:
+
+    NEW
+         2 pindel_out/01BR001.config
+         0 pindel_out/01BR001_BP
+         0 pindel_out/01BR001_CloseEndMapped
+   7892379 pindel_out/01BR001_D
+         0 pindel_out/01BR001_INT_final
+    220307 pindel_out/01BR001_INV
+         0 pindel_out/01BR001_LI
+      3939 pindel_out/01BR001_RP
+   3072378 pindel_out/01BR001_SI
+    170081 pindel_out/01BR001_TD
+  11359086 total
+
+    Song's
+         2 /gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt/01BR001/pindel/01BR001.config
+         0 /gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt/01BR001/pindel/01BR001_BP
+         0 /gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt/01BR001/pindel/01BR001_CloseEndMapped
+   7885583 /gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt/01BR001/pindel/01BR001_D
+         0 /gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt/01BR001/pindel/01BR001_INT_final
+    220086 /gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt/01BR001/pindel/01BR001_INV
+         0 /gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt/01BR001/pindel/01BR001_LI
+      3962 /gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt/01BR001/pindel/01BR001_RP
+   3069339 /gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt/01BR001/pindel/01BR001_SI
+    166810 /gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/somatic/test.for.matt/01BR001/pindel/01BR001_TD
+  11345782 total
+
+The input data varies slightly (different version of Pindel?).  The results are largely in line with each other,
+    Comparing dat/parse_pindel.7a.orig.vcf.gz and dat/parse_pindel.7a.new.vcf.gz using /gsc/bin/vcf-compare
+    Number of sites found only in
+        2   dat/parse_pindel.7a.new.vcf.gz (0.6%)
+        332 dat/parse_pindel.7a.new.vcf.gz (99.4%)  dat/parse_pindel.7a.orig.vcf.gz (100.0%)
+
+    Number of REF matches:  332
+    Number of ALT matches:  332
+    Number of REF mismatches:   0
+    Number of ALT mismatches:   0
+    Comparing dat/parse_pindel.7b.orig.vcf.gz and dat/parse_pindel.7b.new.vcf.gz using /gsc/bin/vcf-compare
+    Number of sites found only in
+        2   dat/parse_pindel.7b.new.vcf.gz (0.7%)
+        285 dat/parse_pindel.7b.new.vcf.gz (99.3%)  dat/parse_pindel.7b.orig.vcf.gz (100.0%)
+
+    Number of REF matches:  285
+    Number of ALT matches:  285
+    Number of REF mismatches:   0
+    Number of ALT mismatches:   0
+
+---
+Final merge.vcf comparison looks good:
+
+    Comparing dat/merge_vcf.8e.orig.vcf.gz and dat/merge_vcf.8e.new.vcf.gz using /gsc/bin/vcf-compare
+    The version "4.2" not supported, assuming VCFv4.0
+    The version "4.2" not supported, assuming VCFv4.0
+    Number of sites found only in
+        1   dat/merge_vcf.8e.orig.vcf.gz (0.1%)
+        2   dat/merge_vcf.8e.new.vcf.gz (0.1%)
+        1428    dat/merge_vcf.8e.new.vcf.gz (99.9%) dat/merge_vcf.8e.orig.vcf.gz (99.9%)
+
+    Number of REF matches:  1428
+    Number of ALT matches:  1428
+    Number of REF mismatches:   0
+    Number of ALT mismatches:   0
