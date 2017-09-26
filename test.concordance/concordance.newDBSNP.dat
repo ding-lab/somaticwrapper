@@ -1,0 +1,188 @@
+Comparing dat/run_strelka.1a.orig.vcf.gz and dat/run_strelka.1a.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	1095	dat/run_strelka.1a.new.vcf.gz (100.0%)	dat/run_strelka.1a.orig.vcf.gz (100.0%)
+
+Number of REF matches:	1095
+Number of ALT matches:	1095
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/run_strelka.1b.orig.vcf.gz and dat/run_strelka.1b.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	9	dat/run_strelka.1b.new.vcf.gz (100.0%)	dat/run_strelka.1b.orig.vcf.gz (100.0%)
+
+Number of REF matches:	9
+Number of ALT matches:	9
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/parse_strelka.2.orig.vcf.gz and dat/parse_strelka.2.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	4	dat/parse_strelka.2.new.vcf.gz (0.7%)
+	150	dat/parse_strelka.2.orig.vcf.gz (21.5%)
+	549	dat/parse_strelka.2.new.vcf.gz (99.3%)	dat/parse_strelka.2.orig.vcf.gz (78.5%)
+
+Number of REF matches:	549
+Number of ALT matches:	549
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/run_varscan.3a.orig.vcf.gz and dat/run_varscan.3a.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	1	dat/run_varscan.3a.orig.vcf.gz (0.0%)
+	270789	dat/run_varscan.3a.new.vcf.gz (100.0%)	dat/run_varscan.3a.orig.vcf.gz (100.0%)
+
+Number of REF matches:	270789
+Number of ALT matches:	270789
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/run_varscan.3b.orig.vcf.gz and dat/run_varscan.3b.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	26081	dat/run_varscan.3b.new.vcf.gz (100.0%)	dat/run_varscan.3b.orig.vcf.gz (100.0%)
+
+Number of REF matches:	26081
+Number of ALT matches:	26081
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/parse_varscan.4.1a.orig.vcf.gz and dat/parse_varscan.4.1a.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	1930	dat/parse_varscan.4.1a.new.vcf.gz (100.0%)	dat/parse_varscan.4.1a.orig.vcf.gz (100.0%)
+
+Number of REF matches:	1930
+Number of ALT matches:	1930
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/parse_varscan.4.1b.orig.vcf.gz and dat/parse_varscan.4.1b.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	2421	dat/parse_varscan.4.1b.new.vcf.gz (100.0%)	dat/parse_varscan.4.1b.orig.vcf.gz (100.0%)
+
+Number of REF matches:	2421
+Number of ALT matches:	2421
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/parse_varscan.4.1c.orig.vcf.gz and dat/parse_varscan.4.1c.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	217765	dat/parse_varscan.4.1c.new.vcf.gz (100.0%)	dat/parse_varscan.4.1c.orig.vcf.gz (100.0%)
+
+Number of REF matches:	217765
+Number of ALT matches:	217765
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/parse_varscan.4.2a.orig.vcf.gz and dat/parse_varscan.4.2a.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	20402	dat/parse_varscan.4.2a.new.vcf.gz (100.0%)	dat/parse_varscan.4.2a.orig.vcf.gz (100.0%)
+
+Number of REF matches:	20402
+Number of ALT matches:	20402
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/parse_varscan.4.2b.orig.vcf.gz and dat/parse_varscan.4.2b.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	193	dat/parse_varscan.4.2b.new.vcf.gz (100.0%)	dat/parse_varscan.4.2b.orig.vcf.gz (100.0%)
+
+Number of REF matches:	193
+Number of ALT matches:	193
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/parse_varscan.4.2c.orig.vcf.gz and dat/parse_varscan.4.2c.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	208	dat/parse_varscan.4.2c.new.vcf.gz (100.0%)	dat/parse_varscan.4.2c.orig.vcf.gz (100.0%)
+
+Number of REF matches:	208
+Number of ALT matches:	208
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/parse_varscan.4.3.orig.vcf.gz and dat/parse_varscan.4.3.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	603	dat/parse_varscan.4.3.new.vcf.gz (100.0%)	dat/parse_varscan.4.3.orig.vcf.gz (100.0%)
+
+Number of REF matches:	603
+Number of ALT matches:	603
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/parse_varscan.4.4.orig.vcf.gz and dat/parse_varscan.4.4.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	3	dat/parse_varscan.4.4.new.vcf.gz (1.2%)
+	112	dat/parse_varscan.4.4.orig.vcf.gz (30.9%)
+	251	dat/parse_varscan.4.4.new.vcf.gz (98.8%)	dat/parse_varscan.4.4.orig.vcf.gz (69.1%)
+
+Number of REF matches:	251
+Number of ALT matches:	251
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/parse_varscan.4.5.orig.vcf.gz and dat/parse_varscan.4.5.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	1	dat/parse_varscan.4.5.new.vcf.gz (1.4%)
+	30	dat/parse_varscan.4.5.orig.vcf.gz (30.0%)
+	70	dat/parse_varscan.4.5.new.vcf.gz (98.6%)	dat/parse_varscan.4.5.orig.vcf.gz (70.0%)
+
+Number of REF matches:	70
+Number of ALT matches:	70
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/parse_pindel.7a.orig.vcf.gz and dat/parse_pindel.7a.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	2	dat/parse_pindel.7a.new.vcf.gz (0.6%)
+	332	dat/parse_pindel.7a.new.vcf.gz (99.4%)	dat/parse_pindel.7a.orig.vcf.gz (100.0%)
+
+Number of REF matches:	332
+Number of ALT matches:	332
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/parse_pindel.7b.orig.vcf.gz and dat/parse_pindel.7b.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	2	dat/parse_pindel.7b.new.vcf.gz (0.7%)
+	12	dat/parse_pindel.7b.orig.vcf.gz (4.2%)
+	273	dat/parse_pindel.7b.new.vcf.gz (99.3%)	dat/parse_pindel.7b.orig.vcf.gz (95.8%)
+
+Number of REF matches:	273
+Number of ALT matches:	273
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/merge_vcf.8a.orig.vcf.gz and dat/merge_vcf.8a.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	4	dat/merge_vcf.8a.new.vcf.gz (0.7%)
+	150	dat/merge_vcf.8a.orig.vcf.gz (21.5%)
+	549	dat/merge_vcf.8a.new.vcf.gz (99.3%)	dat/merge_vcf.8a.orig.vcf.gz (78.5%)
+
+Number of REF matches:	549
+Number of ALT matches:	549
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/merge_vcf.8b.orig.vcf.gz and dat/merge_vcf.8b.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	3	dat/merge_vcf.8b.new.vcf.gz (1.2%)
+	112	dat/merge_vcf.8b.orig.vcf.gz (30.9%)
+	251	dat/merge_vcf.8b.new.vcf.gz (98.8%)	dat/merge_vcf.8b.orig.vcf.gz (69.1%)
+
+Number of REF matches:	251
+Number of ALT matches:	251
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/merge_vcf.8c.orig.vcf.gz and dat/merge_vcf.8c.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	1	dat/merge_vcf.8c.new.vcf.gz (1.4%)
+	30	dat/merge_vcf.8c.orig.vcf.gz (30.0%)
+	70	dat/merge_vcf.8c.new.vcf.gz (98.6%)	dat/merge_vcf.8c.orig.vcf.gz (70.0%)
+
+Number of REF matches:	70
+Number of ALT matches:	70
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/merge_vcf.8d.orig.vcf.gz and dat/merge_vcf.8d.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	2	dat/merge_vcf.8d.new.vcf.gz (0.7%)
+	12	dat/merge_vcf.8d.orig.vcf.gz (4.2%)
+	273	dat/merge_vcf.8d.new.vcf.gz (99.3%)	dat/merge_vcf.8d.orig.vcf.gz (95.8%)
+
+Number of REF matches:	273
+Number of ALT matches:	273
+Number of REF mismatches:	0
+Number of ALT mismatches:	0
+Comparing dat/merge_vcf.8e.orig.vcf.gz and dat/merge_vcf.8e.new.vcf.gz using /gsc/bin/vcf-compare
+Number of sites found only in
+	10	dat/merge_vcf.8e.new.vcf.gz (0.9%)
+	296	dat/merge_vcf.8e.orig.vcf.gz (20.7%)
+	1133	dat/merge_vcf.8e.new.vcf.gz (99.1%)	dat/merge_vcf.8e.orig.vcf.gz (79.3%)
+
+Number of REF matches:	1133
+Number of ALT matches:	1133
+Number of REF mismatches:	0
+Number of ALT mismatches:	0

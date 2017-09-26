@@ -71,33 +71,32 @@ index_vcf $OUT.new.vcf
 }
 
 # 1) strelka run
-#run_strelka_evaluate "dat/run_strelka.1a" "passed.somatic.snvs.vcf"
-#run_strelka_evaluate "dat/run_strelka.1b" "passed.somatic.indels.vcf"
+run_strelka_evaluate "dat/run_strelka.1a" "passed.somatic.snvs.vcf"
+run_strelka_evaluate "dat/run_strelka.1b" "passed.somatic.indels.vcf"
 
 # 2) strelka filter
 parse_strelka_evaluate "dat/parse_strelka.2" "strelka.somatic.snv.all.gvip.dbsnp_pass.vcf"
 
 # 3) varscan run
-#run_varscan_evaluate "dat/run_varscan.3a" "varscan.out.som_snv.vcf"
-#run_varscan_evaluate "dat/run_varscan.3b" "varscan.out.som_indel.vcf"
+run_varscan_evaluate "dat/run_varscan.3a" "varscan.out.som_snv.vcf"
+run_varscan_evaluate "dat/run_varscan.3b" "varscan.out.som_indel.vcf"
 
 # 4) varscan filter
 # steps 4.1, 4.2, 4.3 identical
-#parse_varscan_evaluate "dat/parse_varscan.4.1a" "varscan.out.som_snv.gvip.Somatic.hc.vcf"
-#parse_varscan_evaluate "dat/parse_varscan.4.1b" "varscan.out.som_snv.gvip.LOH.hc.vcf"
-#parse_varscan_evaluate "dat/parse_varscan.4.1c" "varscan.out.som_snv.gvip.Germline.hc.vcf"
-#
-#parse_varscan_evaluate "dat/parse_varscan.4.2a" "varscan.out.som_indel.gvip.Germline.hc.vcf"
-#parse_varscan_evaluate "dat/parse_varscan.4.2b" "varscan.out.som_indel.gvip.LOH.hc.vcf"
-#parse_varscan_evaluate "dat/parse_varscan.4.2c" "varscan.out.som_indel.gvip.Somatic.hc.vcf"
-#
-#parse_varscan_evaluate "dat/parse_varscan.4.3" "varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf"
-#parse_varscan_evaluate "dat/parse_varscan.4.4" "varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf"
-#parse_varscan_evaluate "dat/parse_varscan.4.5" "varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf"
+parse_varscan_evaluate "dat/parse_varscan.4.1a" "varscan.out.som_snv.gvip.Somatic.hc.vcf"
+parse_varscan_evaluate "dat/parse_varscan.4.1b" "varscan.out.som_snv.gvip.LOH.hc.vcf"
+parse_varscan_evaluate "dat/parse_varscan.4.1c" "varscan.out.som_snv.gvip.Germline.hc.vcf"
 
-#parse_pindel_evaluate "dat/parse_pindel.7a" "pindel.out.current_final.gvip.Somatic.vcf"
-#parse_pindel_evaluate "dat/parse_pindel.7b" "pindel.out.current_final.gvip.dbsnp_pass.vcf"
+parse_varscan_evaluate "dat/parse_varscan.4.2a" "varscan.out.som_indel.gvip.Germline.hc.vcf"
+parse_varscan_evaluate "dat/parse_varscan.4.2b" "varscan.out.som_indel.gvip.LOH.hc.vcf"
+parse_varscan_evaluate "dat/parse_varscan.4.2c" "varscan.out.som_indel.gvip.Somatic.hc.vcf"
 
+parse_varscan_evaluate "dat/parse_varscan.4.3" "varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf"
+parse_varscan_evaluate "dat/parse_varscan.4.4" "varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf"
+parse_varscan_evaluate "dat/parse_varscan.4.5" "varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf"
+
+parse_pindel_evaluate "dat/parse_pindel.7a" "pindel.out.current_final.gvip.Somatic.vcf"
+parse_pindel_evaluate "dat/parse_pindel.7b" "pindel.out.current_final.gvip.dbsnp_pass.vcf"
 
 # 8a is significantly different
 parse_strelka_evaluate "dat/merge_vcf.8a" "strelka.somatic.snv.all.gvip.dbsnp_pass.vcf"
