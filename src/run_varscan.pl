@@ -79,13 +79,13 @@ sub run_varscan{
 #!/bin/bash
 JAVA_OPTS="-Xms256m -Xmx512m"
 
-echo Log to $log
+#echo Log to $log
 
 SAMTOOLS_CMD="$samtools mpileup -q 1 -Q 13 -B -f $REF -b $bam_list "
 
 JAVA_CMD="java \$JAVA_OPTS -jar $jar somatic - $run_name $varscan_args --output-snp $snvout --output-indel $indelout"
 
-\$SAMTOOLS_CMD | \$JAVA_CMD &> $log
+\$SAMTOOLS_CMD | \$JAVA_CMD # &> $log
 
 EOF
     close OUT;

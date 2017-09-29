@@ -68,6 +68,8 @@ Then run the steps by executing each individually (e.g., `bash 1_run_strelka.sh`
 
 ## Executing as a job on the cluster
 
+# See notes in /gscuser/mwyczalk/projects/SomaticWrapper/SW_testing
+
 BSUB output directory: /gscuser/mwyczalk/projects/SomaticWrapper/runtime_bsub
 
 To run step 2 in container, run the following on host machine,
