@@ -1,0 +1,36 @@
+Directory made for local test and analysis of test VEP data for BRCA77 project.
+It is made within this project because it is being developed within a container
+-> once developed better move it out of this projet
+
+Using test dataset with SAMPLE_NAME=TCGA-HI-TEST
+
+It was installed via scripts here: /Users/mwyczalk/src/SomaticWrapper/BRCA77.analysis
+
+Below is excerpt of log dealing with VEP annotation (log path: /gscuser/mwyczalk/projects/SomaticWrapper/runtime_bsub/TCGA-A2-A0CM.GRCh37/bsub_run-step_8.out)
+    assembly    GRCh37
+    reffasta    /data/A_Reference/Homo_sapiens_assembly19.fasta
+    usedb   0
+    cachedir    /data/D_VEP
+    vep_cmd /usr/local/ensembl-vep/vep
+    vcf /data/data/TCGA-A2-A0CM.GRCh37/merged/merged.vcf
+    output_vep  1
+    output  /data/data/TCGA-A2-A0CM.GRCh37/merged/merged.VEP.vcf.vep
+    VEP Cache mode
+    perl /usr/local/ensembl-vep/vep  --buffer_size 10000 --offline --cache --dir /data/D_VEP --assembly GRCh37 --fork 4 --format vcf --symbol -i /tmp/MHq97ukYyj -o /tmp/fYO5Wh2_Vu --force_overwrite  --fasta /data/A_Reference/Homo_sapiens_assembly19.fasta
+
+Description of VEP format: http://www.ensembl.org/info/docs/tools/vep/vep_formats.html#default
+
+---
+
+Basic analysis (ad hoc script).  Top gene frequency
+     96 SEPT9
+     47 DDX11
+     42 SON
+     39 DONSON
+     34 IL32
+     31 TTLL3
+     26 YY1AP1
+     26 TTN-AS1
+     26 IL17RC
+     24 CCDC132
+
