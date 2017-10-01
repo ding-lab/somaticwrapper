@@ -16,7 +16,7 @@ sub merge_vcf {
 # It is meant to be used for testing and lightweight applications.  Use the cache for
 # better performance.  See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
     my $use_vep_db = shift;  # 1 for testing/demo, 0 for production
-
+    my $output_vep = shift;  # output annotated vep rather than vcf format after merge step
 
     $current_job_file = "j8_merge_vcf.".$sample_name.".sh";
     my $filter_results = "$sample_full_path/merged";
@@ -28,18 +28,23 @@ sub merge_vcf {
     my $varscan_indel = "$sample_full_path/varscan/filter_out/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf";
     my $merger_out = "$filter_results/merged.vcf";
 
+    my $merged_vep_output = "$filter_results/merged.VEP.vcf";
+    if ($output_vep) {
+        $merged_vep_output = "$merged_vep_output.vep";
+    }
 #cat > \${RUNDIR}/vep.merged.input <<EOF
     my $out = "$filter_results/vep.merged.input";
     print("Writing to $out\n");
     open(OUT, ">$out") or die $!;
     print OUT <<"EOF";
 merged.vep.vcf = $merger_out
-merged.vep.output = $filter_results/merged.VEP.vcf
+merged.vep.output = $merged_vep_output
 merged.vep.vep_cmd = $vep_cmd
 merged.vep.cachedir = $cachedir
 merged.vep.reffasta = $REF
 merged.vep.assembly = $assembly
 merged.vep.usedb = $use_vep_db
+merged.vep.output_vep = $output_vep
 EOF
 
     my $outfn = "$job_files_dir/$current_job_file";

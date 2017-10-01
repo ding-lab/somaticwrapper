@@ -71,6 +71,7 @@ Optional configuration file parameters
     sw_dir - Somatic Wrapper installation directory
     use_vep_db - whether to use online VEP database lookups (1 for true)
     submit_cmd - command to initiate execution of generated script.  Default value 'bash', can set as 'cat' to allow step-by-step execution for debugging
+    output_vep - write final annotated merged file in VEP rather than VCF format
 
 OUT
 
@@ -168,6 +169,11 @@ if (exists $paras{'dbsnp_db'} ) {
     $dbsnp_db=$paras{'dbsnp_db'};
 }
 
+my $output_vep = 0;
+if (exists $paras{'output_vep'} ) {
+    $output_vep=$paras{'output_vep'};
+}
+
 # Define where centromere definion file is for pindel processing.  See C_Centromeres for discussion
 # This should really live in the data directory
 # This should be defined in configuration file for pindel step
@@ -214,7 +220,7 @@ if (-d $sample_full_path) { # is a full path directory containing sample analysi
     } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
         parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db);
     } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
-        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db);
+        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db, $output_vep);
     } elsif (($step_number eq '9') || ($step_number eq 'vcf2maf')) {
         die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
         vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);

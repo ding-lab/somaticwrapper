@@ -16,14 +16,19 @@ use Getopt::Long;
 use POSIX qw( WIFEXITED );
 use File::Temp qw/ tempfile /;
 
+
+# if parameter flag output_vep is set, output will be in vep rather than VCF format
+
 # get paras from config file
 my (%paras);
 map {chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/^\s+//;  $_[1] =~ s/\s+$//; my $v = $_[1]; print $v."\n";  $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
  map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
 
 # check if options are present
-my $opts="";
+my $opts = "";
+my $vcf_flag="--vcf";
 if( exists($paras{'vep_opts'}) ) { $opts = $paras{'vep_opts'} };
+if( exists($paras{'output_vep'}) && ($paras{'output_vep'}) ) { $vcf_flag = "--symbol" };
 
 # db mode 1) uses online database (so cache isn't installed) 2) does not use tmp files
 # It is meant to be used for testing and lightweight applications.  Use the cache for
@@ -35,7 +40,7 @@ if ($paras{'usedb'}) {
     print("Reading: $paras{'vcf'}\n");
     print("Writing: $paras{'output'}\n");
  
-    $cmd = "perl $paras{'vep_cmd'} $opts --database --port 3337 --buffer_size 10000  --assembly $paras{'assembly'} --fork 4 --format vcf --vcf -i $paras{'vcf'} -o $paras{'output'} --force_overwrite  --fasta $paras{'reffasta'}";
+    $cmd = "perl $paras{'vep_cmd'} $opts --database --port 3337 --buffer_size 10000  --assembly $paras{'assembly'} --fork 4 --format vcf $vcf_flag -i $paras{'vcf'} -o $paras{'output'} --force_overwrite  --fasta $paras{'reffasta'}";
 
     print($cmd . "\n");
     system($cmd);
@@ -51,7 +56,7 @@ if ($paras{'usedb'}) {
     # run vep if input VCF not empty
     my (undef, $tmp_vep_out) = tempfile();
     if (-s $tmp_orig_calls) {
-        $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --assembly $paras{'assembly'} --fork 4 --format vcf --vcf -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
+        $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --assembly $paras{'assembly'} --fork 4 --format vcf $vcf_flag -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
         print($cmd . "\n");
         system($cmd);
     } else {
