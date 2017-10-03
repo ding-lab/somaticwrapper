@@ -7,7 +7,6 @@
 # after merge_vcf
 # This code remains functional, however, and annotates various Varscan and Strelka (not pindel) output
 
-my $assembly="GRCh37";
 my $cachedir="/data/D_VEP";
 
 sub write_vep_input {
@@ -20,6 +19,7 @@ sub write_vep_input {
     my $REF = shift;
     my $assembly = shift;
     my $vep_cmd = shift;
+    my $assembly = shift;
 
     print("Writing to $config_fn\n");
     open(OUT, ">$config_fn") or die $!;

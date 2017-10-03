@@ -1,4 +1,3 @@
-my $assembly="GRCh37";
 my $cachedir="/data/D_VEP";
 
 
@@ -17,6 +16,7 @@ sub merge_vcf {
 # better performance.  See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
     my $use_vep_db = shift;  # 1 for testing/demo, 0 for production
     my $output_vep = shift;  # output annotated vep rather than vcf format after merge step
+    my $assembly = shift;
 
     $current_job_file = "j8_merge_vcf.".$sample_name.".sh";
     my $filter_results = "$sample_full_path/merged";

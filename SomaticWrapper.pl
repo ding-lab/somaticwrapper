@@ -118,6 +118,7 @@ map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
 # reference_fasta
 # reference_dict
 # sample_name
+# assembly - GRCh37 or GRCh38
 
 # Optional configuration file parameters
 # sw_dir - Somatic Wrapper installation directory.  Default is /usr/local/somaticwrapper, modified for MGI installation
@@ -137,6 +138,9 @@ my $tumor_bam = $paras{'tumor_bam'};
 
 die("normal_bam undefined in $config_file\n") unless exists $paras{'normal_bam'};
 my $normal_bam = $paras{'normal_bam'};
+
+die("assembly undefined in $config_file\n") unless exists $paras{'assembly'};
+my $assembly = $paras{'assembly'};
 
 die("reference_fasta undefined in $config_file\n") unless exists $paras{'reference_fasta'};
 my $REF = $paras{'reference_fasta'};
@@ -216,11 +220,11 @@ if (-d $sample_full_path) { # is a full path directory containing sample analysi
         run_pindel($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $pindel_dir, $f_centromere);
     } elsif (($step_number eq '6') || ($step_number eq 'run_vep')) {
         warn("run_vep() is ignored in pipeline, so output of this step is discarded.  Continuing anyway.\n\n");
-        run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $gvip_dir, $vep_cmd);
+        run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $gvip_dir, $vep_cmd, $assembly);
     } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
         parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db);
     } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
-        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db, $output_vep);
+        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db, $output_vep, $assembly);
     } elsif (($step_number eq '9') || ($step_number eq 'vcf2maf')) {
         die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
         vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
