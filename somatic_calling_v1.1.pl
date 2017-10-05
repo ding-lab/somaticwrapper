@@ -8,6 +8,8 @@
 ##3 vaf_filter.pl ###
 ### 08/25/2017 ####
 ### add docker env for mgi ##
+### 09/28/17##
+## add finishing checks##
 
 #!/usr/bin/perl
 use strict;
@@ -315,7 +317,7 @@ sub bsub_strelka{
 	print STREKA "SG_DIR=".$sample_full_path."/strelka\n"; 
 	print STREKA "RUNDIR=".$sample_full_path."\n";
 	print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
-	print STREKA "STRELKA_VCF=".$sample_full_path."/strelka/strelka_out/passed.somatic.snvs.vcf"."\n";   
+	print STREKA "STRELKA_VCF=".$sample_full_path."/strelka/strelka_out/results/passed.somatic.snvs.vcf"."\n";   
 	print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
  	print STREKA "TASK_STATUS=".$sample_full_path."/strelka/strelka_out/task.complete"."\n";
 	print STREKA "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
@@ -326,6 +328,17 @@ sub bsub_strelka{
 	print STREKA "then\n";
 	print STREKA "mkdir \${myRUNDIR}\n";
 	print STREKA "fi\n";
+	### re-run, then delete task.complete file ###
+	print STREKA "if [ $status_rerun -eq 1 ]\n";
+    print STREKA "  then\n";
+    print STREKA "rm \${TASK_STATUS}\n";
+    print STREKA "fi\n";
+
+    print STREKA "if [ ! -f \${STRELKA_VCF} ]\n";
+    print STREKA "  then\n";
+    print STREKA "rm \${TASK_STATUS}\n";
+    print STREKA "fi\n";
+
     print STREKA "if [ ! -f  \${TASK_STATUS} ]\n";
 	print STREKA "then\n";
 	print STREKA "if [ -d \${STRELKA_OUT} ]\n";
@@ -347,6 +360,7 @@ sub bsub_strelka{
 	print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config $script_dir/strelka.ini --output-dir \$STRELKA_OUT\n";
 	print STREKA "cd \$STRELKA_OUT\n";
 	print STREKA "make -j 16\n";
+	print STREKA "touch \${TASK_STATUS}\n";
 	print STREKA "fi\n";
     close STREKA;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
@@ -401,20 +415,13 @@ sub bsub_varscan{
     print VARSCAN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print VARSCAN "#BSUB -J $current_job_file\n";
 	print VARSCAN "#BSUB -w \"$hold_job_file\"","\n";
-    #print VARSCAN "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
     print VARSCAN "#BSUB -q long\n";
-    #print VARSCAN "#BSUB -q research-hpc\n";
-  	#print VARSCAN "scr_t0=\`date \+\%s\`\n";
-    #print VARSCAN "chralt=\${chr\/:\/_}\n";
-	#print VARSCAN "dir=\$chralt\n";
 	print VARSCAN "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print VARSCAN "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
     print VARSCAN "myRUNDIR=".$sample_full_path."/varscan\n";
     print VARSCAN "STATUSDIR=".$sample_full_path."/status\n";
     print VARSCAN "RESULTSDIR=".$sample_full_path."/varscan_results\n";
     print VARSCAN "RUNDIR=".$sample_full_path."\n";
-    #print VARSCAN "numgps=10\n";
-	#print VARSCAN "SEQS=\"1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 X Y\"\n";
     print VARSCAN "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
    	print VARSCAN "GENOMEVIP_SCRIPTS=/gscmnt/gc2525/dinglab/rmashl/Software/bin/genomevip\n";
 	print VARSCAN "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
@@ -440,7 +447,12 @@ sub bsub_varscan{
     print VARSCAN "then\n";
     print VARSCAN "mkdir \${myRUNDIR}\/status\n";
     print VARSCAN "fi\n";
-    print VARSCAN "if [ ! -f  \${localstatus} ]\n";
+  ### re-run, then delete complete.vs_som_snvindel file ###
+    print VARSCAN "if [ $status_rerun -eq 1 ]\n";
+    print VARSCAN "  then\n";
+    print VARSCAN "rm \${localstatus}\n";
+    print VARSCAN "fi\n";
+ 	print VARSCAN "if [ ! -f  \${localstatus} ]\n";
     print VARSCAN "then\n";
 	print VARSCAN "cd \${RUNDIR}/varscan\n";
 	print VARSCAN "TMPBASE=.\/varscan.out.som\n";
@@ -478,6 +490,7 @@ sub bsub_varscan{
 	close VARSCAN;	
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com );
+
 }
 
 
@@ -577,19 +590,24 @@ sub bsub_parse_strelka{
 	print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.snvs.vcf ./strelka.somatic.snv.all.gvip.vcf\n";
     print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.indels.vcf ./strelka.somatic.indel.all.gvip.vcf\n";
 	print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.snvs.vcf ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
-    print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.indels.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n"; 
-    print STREKAP "strekasnvout=\${STRELKA_OUT}/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
+    print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.indels.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";    print STREKAP "strekasnvout=\${STRELKA_OUT}/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
 	print STREKAP "strekaindelout=\${STRELKA_OUT}/results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
-    print STREKAP "if [ $status_rerun -eq 1 ]\n";	
+    print STREKAP "statfile=complete.streka_parser\n";
+    print STREKAP "localstatus=\${STRELKA_OUT}\/\${statfile}\n";
+    #print STREKAP "if [ ! -d \${myRUNDIR}\/status ]\n";
+    #print STREKAP "then\n";
+    #print STREKAP "mkdir \${myRUNDIR}\/status\n";
+    #print STREKAP "fi\n";
+    ## re-run, then remove complete.vs_som_parser ###
+    print STREKAP "if [ $status_rerun -eq 1 ]\n";
     print STREKAP "  then\n";
-	print STREKAP "rm \${strekasnvout}\n"; 
-    print STREKAP "fi\n";	
-    print STREKAP '  if [ ! -s $strekasnvout ]',"\n";
-    print STREKAP "  then\n";
+    print STREKAP "rm \${localstatus}\n";
+    print STREKAP "fi\n";
+    print STREKAP "if [ ! -f  \${localstatus} ]\n";
+	print STREKAP "then\n"; 
     print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.snv.input\n";
     print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.indel.input\n";
     print STREKAP "     ".$run_script_path."snv_filter.pl ./strelka_fpfilter.snv.input\n";
-    print STREKAP " else\n";
     print STREKAP '      grep "Error occurred during initialization of VM" ${strekasnvout}',"\n";
     print STREKAP '      CHECK=$?',"\n";
     print STREKAP '      while [ ${CHECK} -eq 0 ]',"\n";
@@ -600,7 +618,8 @@ sub bsub_parse_strelka{
     print STREKAP '      grep "Error occurred during initialization of VM" ${strekasnvout}',"\n";
     print STREKAP '          CHECK=$?',"\n";
     print STREKAP "      done\n";
-    print STREKAP "  fi\n";
+    print STREKAP "touch \${localstatus}\n";
+	print STREKAP "  fi\n";
 	close STREKAP;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com ); 
@@ -721,13 +740,20 @@ sub bsub_parse_varscan{
     print VARSCANP "put_cmd=\"ln -s\"\n";
     print VARSCANP "del_cmd=\"rm -f\"\n";
     print VARSCANP "del_local=\"rm -f\"\n";
-    print VARSCANP "statfile=incomplete.vs_som_snvindels\n";
+    print VARSCANP "statfile=complete.vs_som_parser\n";
     print VARSCANP "localstatus=\${RUNDIR}\/status\/\${statfile}\n";
     print VARSCANP "if [ ! -d \${myRUNDIR}\/status ]\n";
     print VARSCANP "then\n";
     print VARSCANP "mkdir \${myRUNDIR}\/status\n";
     print VARSCANP "fi\n";
-    print VARSCANP "touch \${localstatus}\n";
+ 	## re-run, then remove complete.vs_som_parser ###
+    print VARSCANP "if [ $status_rerun -eq 1 ]\n";
+    print VARSCANP "  then\n";
+    print VARSCANP "rm \${localstatus}\n";
+    print VARSCANP "fi\n";
+    print VARSCANP "if [ ! -f  \${localstatus} ]\n";
+#    print VARSCANP "touch \${localstatus}\n";
+	print VARSCANP "then\n";
     print VARSCANP "cd \${RUNDIR}/varscan\n";
     print VARSCANP "TMPBASE=.\/varscan.out.som\n";
     print VARSCANP "LOG=\${TMPBASE}.log\n";
@@ -762,6 +788,8 @@ sub bsub_parse_varscan{
 	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somaticFilter  ./\${thissnvorig} --min-coverage  20   --min-reads2  4   --min-strands2  1   --min-avg-qual  20   --min-var-freq  0.05 --p-value  0.05   --indel-file  ./\${myindelorig} --output-file  ./\${thissnvpass}  &>> \${LOG}\n";
 	print VARSCANP "     ".$run_script_path."dbsnp_filter.pl  \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input\n";
 	print VARSCANP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/varscan/vs_dbsnp_filter.indel.input\n";
+    print VARSCANP "touch \${localstatus}\n";
+	print VARSCANP "fi\n";
 	#print VARSCANP "     ".$run_script_path."snv_filter.pl  \${RUNDIR}/varscan/vs_fpfilter.somatic.snv.input\n";
 	#print VARSCANP "     ".$run_script_path."vep_annotator.pl ./vs_vep.snv.input >& ./vs_vep.snv.log\n";
 	#print VARSCANP "     ".$run_script_path."vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";
@@ -800,6 +828,19 @@ sub bsub_pindel{
     print PINDEL "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
 	print PINDEL "myRUNDIR=".$sample_full_path."/pindel\n";
 	print PINDEL "CONFIG=\${myRUNDIR}"."/".$sample_name.".config\n";
+	print PINDEL "statfile=complete.pindel\n";
+    print PINDEL "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
+    print PINDEL "if [ ! -d \${myRUNDIR}\/status ]\n";
+    print PINDEL "then\n";
+    print PINDEL "mkdir \${myRUNDIR}\/status\n";
+    print PINDEL "fi\n";
+  ### re-run, then delete complete.vs_som_snvindel file ###
+    print PINDEL "if [ $status_rerun -eq 1 ]\n";
+    print PINDEL "  then\n";
+    print PINDEL "rm \${localstatus}\n";
+    print PINDEL "fi\n";
+    print PINDEL "if [ ! -f  \${localstatus} ]\n";
+    print PINDEL "then\n";
 	print PINDEL "if [ ! -d \${myRUNDIR} ]\n";
     print PINDEL "then\n";
     print PINDEL "mkdir \${myRUNDIR}\n";
@@ -807,6 +848,8 @@ sub bsub_pindel{
 	print PINDEL "echo \"$IN_bam_T\t500\t$sample_name.T\" > \${CONFIG}\n";
     print PINDEL "echo \"$IN_bam_N\t500\t$sample_name.N\" >> \${CONFIG}\n";
 	print PINDEL "$pindel -T 4 -f $h37_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere\n";
+	print PINDEL "touch \${localstatus}\n";
+	print PINDEL "fi\n";
 	close PINDEL;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ( $bsub_com );	
@@ -961,7 +1004,6 @@ sub bsub_parse_pindel {
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
     `rm $lsf_err`;
-
     open(PP, ">$job_files_dir/$current_job_file") or die $!;
     print PP "#!/bin/bash\n";
     print PP "#BSUB -n 1\n";
@@ -999,14 +1041,22 @@ sub bsub_parse_pindel {
     print PP "pindel.dbsnp.indel.passfile  = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
     print PP "pindel.dbsnp.indel.dbsnpfile = ./pindel.out.current_final.gvip.dbsnp_present.vcf\n";
     print PP "EOF\n";
-	print PP "pindelout=\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
+  	print PP "myRUNDIR=".$sample_full_path."/pindel\n";
+	print PP "pindelout=\${myRUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n"; 
+    print PP "statfile=complete.pindel.parser\n";
+    print PP "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
+    print PP "if [ ! -d \${myRUNDIR}\/status ]\n";
+    print PP "then\n";
+    print PP "mkdir \${myRUNDIR}\/status\n";
+    print PP "fi\n";
+  ### re-run, then delete complete.pindel.parser file ###
     print PP "if [ $status_rerun -eq 1 ]\n";
     print PP "  then\n";
-    print PP "rm \${pindelout}\n";
+    print PP "rm \${localstatus}\n";
     print PP "fi\n";
+    print PP "if [ ! -f  \${localstatus} ]\n";
+    print PP "then\n";
 	print PP "cd \${RUNDIR}/pindel\n";
-	print PP '	if [ ! -f $pindelout ]',"\n";	
-	print PP "	then\n";	
 	print PP "outlist=pindel.out.filelist\n";
 	print PP "find \. -name \'*_D\' -o -name \'*_SI\' -o -name \'*_INV\' -o -name \'*_TD\'  > \./\${outlist}\n";
 	print PP 'list=$(xargs -a  ./$outlist)'."\n";
@@ -1019,9 +1069,8 @@ sub bsub_parse_pindel {
 	print PP "done\n";
 	print PP 'current_final=${pin_var_file/%raw/current_final.gvip.Somatic.vcf}'."\n";
 	print PP 'cat ./${pre_current_final/%vcf/gvip.vcf} > ./$current_final'."\n";
-	print PP "fi\n";
+#	print PP "fi\n";
     print PP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
-    #print PP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
 	print PP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print PP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print PP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
@@ -1029,11 +1078,8 @@ sub bsub_parse_pindel {
     print PP "else\n";
     print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
     print PP "fi\n";
-    print PP '  if [ ! -s $pindelout ]',"\n";
-	print PP "  then\n"; 	
 	print PP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";	
-	print PP "	else\n";
-	print PP '		grep "Error occurred during initialization of VM" ${pindelout}',"\n";# one possible blast error (see the end of this script). 
+	print PP '		grep "Error occurred during initialization of VM" ${pindelout}',"\n"; 
 	print PP '		CHECK=$?',"\n";
 	print PP '		while [ ${CHECK} -eq 0 ]',"\n";
 	print PP "		do\n";	
@@ -1041,20 +1087,20 @@ sub bsub_parse_pindel {
  	print PP '      grep "Error occurred during initialization of VM" ${pindelout}',"\n";
 	print PP '			CHECK=$?',"\n";
 	print PP "		done\n";
-	print PP "	fi\n";
-	print PP "cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF\n";
-	print PP "pindel.vep.vcf = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
-	print PP "pindel.vep.output = ./pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf\n";
-	print PP "pindel.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-	print PP "pindel.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-	print PP "pindel.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-	print PP "pindel.vep.assembly = GRCh37\n";
-	print PP "EOF\n";
-    #print PP ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
-	#print PP "     ".$run_script_path."vep_annotator.pl ./pindel_vep.input >& ./pindel_vep.log\n";  
+#	print PP "cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF\n";
+#	print PP "pindel.vep.vcf = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
+#	print PP "pindel.vep.output = ./pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf\n";
+#	print PP "pindel.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
+#	print PP "pindel.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
+#	print PP "pindel.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
+#	print PP "pindel.vep.assembly = GRCh37\n";
+#	print PP "EOF\n";
+	print PP "touch \${localstatus}\n";
+	print PP "fi\n";
 	close PP;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     system ($bsub_com);
+	
 	}
 
 sub bsub_mutect{
