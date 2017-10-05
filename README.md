@@ -1,4 +1,5 @@
-# somaticwrapper
+# somaticwrapper version 1.0 ##
+
 Detect somatic variants from tumor and normal exome data
 
 ### Song Cao ###
@@ -20,7 +21,9 @@ step = run this pipeline step by step. (user must provide)
 ref = the human reference: 
 
 with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
+
 without chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite.fa 
+
 mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
 
   [0]  Run all steps
