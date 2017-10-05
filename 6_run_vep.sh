@@ -1,7 +1,7 @@
 # run_varscan step
 
-echo Output of run_vep\(\) step is ignored in the pipeline.  Skipping step.
-exit
+#echo Output of run_vep\(\) step is ignored in the pipeline.  Skipping step.
+#exit
 
 # However, if you really want to run_vep(), just comment out the stuff above and run this:
 

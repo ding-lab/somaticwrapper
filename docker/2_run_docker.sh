@@ -1,4 +1,8 @@
 
+# This starts mwyczalkowski/somatic-wrapper:latest and maps directories:
+# Container: /data  
+# Host: /Users/mwyczalk/src/SomaticWrapper/data
+
 # Note that DATA_DIR is mapped to the container
 # SomaticWrapper work directory is $DATA_DIR/data
 #   This allows directories not executed by SomaticWrapper (e.g., A_Reference) to exist on the data partition too

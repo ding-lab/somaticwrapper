@@ -132,7 +132,7 @@ $perl $gvip_dir/dbsnp_filter.pl  $filter_results/vs_dbsnp_filter.snv.input
     # varscan.out.som_indel.gvip.Somatic.hc.vcf
 # and generates:
     # varscan.out.som_indel.gvip.Somatic.hc.dbsnp_present.vcf 
-    # varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf    -> used for merge_vdf
+    # varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf    -> used for merge_vcf
     # varscan.out.som_indel.gvip.Somatic.hc.dbsnp_anno.vcf    
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/vs_dbsnp_filter.indel.input
 

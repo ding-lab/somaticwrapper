@@ -38,7 +38,7 @@ This script will process evaluate variants for WGS and WXS data
 Pipeline version: $version
 $yellow     Usage: perl $0 run_folder step_number config_file [config_file_2] $normal_color
 
-run_dir = full path of the folder holding analysis resuls
+run_dir = full path of the folder holding analysis results
             Note, per-sample analysis directory is run_dir/sample_name
 step_number run this pipeline step by step. (running the whole pipeline if step number is 0)
 config_file Input configuration file.  See below for format
@@ -66,6 +66,7 @@ Required configuration file keys
     reference_fasta
     reference_dict
     sample_name
+    assembly - GRCh37 or GRCh38
 
 Optional configuration file parameters
     sw_dir - Somatic Wrapper installation directory

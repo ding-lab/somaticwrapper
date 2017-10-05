@@ -8,9 +8,6 @@ my $jar="/usr/local/snpEff/SnpSift.jar";
     # all.somatic.snvs.vcf
     # passed.somatic.indels.vcf
     # passed.somatic.snvs.vcf
-    # strelka_dbsnp_filter.indel.input
-    # strelka_dbsnp_filter.snv.input
-    # strelka_fpfilter.snv.input
 
 # Output of this script will be in $sample_full_path/filter_out
 
@@ -97,8 +94,8 @@ EOF
 #strelka.fpfilter.snv.max_avg_mapping_qual_difference = 50
 #EOF
 
-my $sortInput="$filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf";
-my $sortOutput="$filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.sorted.vcf";
+#my $sortInput="$filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf";
+#my $sortOutput="$filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.sorted.vcf";
 
 # assuming file extensions is unreliable
 #my $ref_dict = $REF;
@@ -124,15 +121,18 @@ my $sortOutput="$filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.sorted.v
 # output of steps 6 and 7 is discarded.  We are removing these steps at Song's suggestion
 # We subsequently sort the VCF to make into a standard format for GATK merging
 
+# TODO:  run genomevip_label at end of run steps, rather than beginning of parse steps.  This will make it easier
+# to understand the relationship between the steps.
+
     print OUT <<"EOF";
 #!/bin/bash
 
 export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 export VARSCAN_DIR="/usr/local"
 
-# steps 1-4
-$perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/all.somatic.snvs.vcf $filter_results/strelka.somatic.snv.all.gvip.vcf
-$perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/all.somatic.indels.vcf $filter_results/strelka.somatic.indel.all.gvip.vcf
+# steps 1-4.  Only step 3 used for merging, although run_vep also uses 4.
+# $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/all.somatic.snvs.vcf $filter_results/strelka.somatic.snv.all.gvip.vcf
+# $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/all.somatic.indels.vcf $filter_results/strelka.somatic.indel.all.gvip.vcf
 $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/passed.somatic.snvs.vcf $filter_results/strelka.somatic.snv.strlk_pass.gvip.vcf
 $perl $gvip_dir/genomevip_label.pl Strelka $strelka_results/passed.somatic.indels.vcf $filter_results/strelka.somatic.indel.strlk_pass.gvip.vcf
 
