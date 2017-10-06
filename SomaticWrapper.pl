@@ -49,10 +49,10 @@ $red         [2 or run_varscan]  Run Varscan
 $yellow      [3 or parse_strelka]  Parse streka result
 $purple      [4 or parse_varscan]  Parse VarScan result
 $cyan        [5 or run_pindel]  Run Pindel
-$gray        [6 or run_vep]  Run VEP annotation
 $gray        [7 or parse_pindel]  Parse Pindel
 $gray        [8 or merge_vcf]  Merge vcf files using local VEP cache
 $gray        [9 or vcf2maf] generate maf file 
+$gray        [10 or run_vep]  Run VEP annotation
 $normal_color
 
 Input File configuration
@@ -69,10 +69,15 @@ Required configuration file keys
     assembly - GRCh37 or GRCh38
 
 Optional configuration file parameters
-    sw_dir - Somatic Wrapper installation directory
+    sw_dir - Somatic Wrapper installation directory.  Default is /usr/local/somaticwrapper
     use_vep_db - whether to use online VEP database lookups (1 for true)
+          db mode a) uses online database (so cache isn't installed) b) does not use tmp files
+          It is meant to be used for testing and lightweight applications.  Use the cache for
+          better performance.  See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
+    vep_cache_dir - VEP cache directory, if not doing online VEP db lookups.  Default is "/data/D_VEP"
     submit_cmd - command to initiate execution of generated script.  Default value 'bash', can set as 'cat' to allow step-by-step execution for debugging
     output_vep - write final annotated merged file in VEP rather than VCF format
+    annotate_intermediate - VEP-annotate intermediate output files
 
 OUT
 
@@ -107,33 +112,6 @@ if (defined $config_file2) {
 
 map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
 
-
-
-# Data and software configuration
-
-# Data
-
-# Required configuration file parameters
-# tumor_bam
-# normal_bam
-# reference_fasta
-# reference_dict
-# sample_name
-# assembly - GRCh37 or GRCh38
-
-# Optional configuration file parameters
-# sw_dir - Somatic Wrapper installation directory.  Default is /usr/local/somaticwrapper, modified for MGI installation
-# use_vep_db - whether to use online VEP database lookups.  If value is 0 or undefined, default to cache (which requires installation)
-    # more detail from GenomeVIP/vep_annotator.pl:
-    # db mode 1) uses online database (so cache isn't installed) 2) does not use tmp files
-    # It is meant to be used for testing and lightweight applications.  Use the cache for
-    # better performance.  See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
-
-
-# default convention:
-#$sample_full_path = $run_dir."/".$sample_name;
-#my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-#my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 die("tumor_bam undefined in $config_file\n") unless exists $paras{'tumor_bam'};
 my $tumor_bam = $paras{'tumor_bam'};
 
@@ -169,15 +147,26 @@ if (exists $paras{'submit_cmd'} ) {
     $bsub=$paras{'submit_cmd'};
 }
 
-my $dbsnp_db = "none";
+my $dbsnp_db = "none";  # TODO: if dbsnp_db not defined, either give an error or skip dbSNP filtering
 if (exists $paras{'dbsnp_db'} ) {
     $dbsnp_db=$paras{'dbsnp_db'};
+}
+
+my $vep_cache_dir = "/data/D_VEP";
+if (exists $paras{'vep_cache_dir'} ) {
+    $vep_cache_dir=$paras{'vep_cache_dir'};
 }
 
 my $output_vep = 0;
 if (exists $paras{'output_vep'} ) {
     $output_vep=$paras{'output_vep'};
 }
+
+my $annotate_intermediate=0;
+if (exists $paras{'annotate_intermediate'} ) {
+    $annotate_intermediate=$paras{'annotate_intermediate'};
+}
+
 
 # Define where centromere definion file is for pindel processing.  See C_Centromeres for discussion
 # This should really live in the data directory
@@ -219,16 +208,16 @@ if (-d $sample_full_path) { # is a full path directory containing sample analysi
         parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $dbsnp_db);
     } elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
         run_pindel($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $pindel_dir, $f_centromere);
-    } elsif (($step_number eq '6') || ($step_number eq 'run_vep')) {
-        warn("run_vep() is ignored in pipeline, so output of this step is discarded.  Continuing anyway.\n\n");
-        run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $gvip_dir, $vep_cmd, $assembly);
     } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
         parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db);
     } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
-        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db, $output_vep, $assembly);
+        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db, $output_vep, $assembly, $vep_cache_dir);
     } elsif (($step_number eq '9') || ($step_number eq 'vcf2maf')) {
         die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
         vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
+    } elsif (($step_number eq '10') || ($step_number eq 'run_vep')) {
+        print("annotate_intermediate = $annotate_intermediate\n");
+        run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $use_vep_db, $output_vep, $annotate_intermediate);
     } else {
         die("Unknown step number $step_number\n");
     }

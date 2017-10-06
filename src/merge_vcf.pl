@@ -1,4 +1,3 @@
-my $cachedir="/data/D_VEP";
 
 
 sub merge_vcf {
@@ -17,6 +16,7 @@ sub merge_vcf {
     my $use_vep_db = shift;  # 1 for testing/demo, 0 for production
     my $output_vep = shift;  # output annotated vep rather than vcf format after merge step
     my $assembly = shift;
+    my $cache_dir = shift;
 
     $current_job_file = "j8_merge_vcf.".$sample_name.".sh";
     my $filter_results = "$sample_full_path/merged";
@@ -28,24 +28,6 @@ sub merge_vcf {
     my $varscan_indel = "$sample_full_path/varscan/filter_out/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf";
     my $merger_out = "$filter_results/merged.vcf";
 
-    my $merged_vep_output = "$filter_results/merged.VEP.vcf";
-    if ($output_vep) {
-        $merged_vep_output = "$merged_vep_output.vep";
-    }
-#cat > \${RUNDIR}/vep.merged.input <<EOF
-    my $out = "$filter_results/vep.merged.input";
-    print("Writing to $out\n");
-    open(OUT, ">$out") or die $!;
-    print OUT <<"EOF";
-merged.vep.vcf = $merger_out
-merged.vep.output = $merged_vep_output
-merged.vep.vep_cmd = $vep_cmd
-merged.vep.cachedir = $cachedir
-merged.vep.reffasta = $REF
-merged.vep.assembly = $assembly
-merged.vep.usedb = $use_vep_db
-merged.vep.output_vep = $output_vep
-EOF
 
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");
@@ -56,7 +38,6 @@ EOF
 export JAVA_OPTS=\"-Xmx2g\"
  java \$JAVA_OPTS -jar $gatk -R $REF -T CombineVariants -o $merger_out --variant:varscan $varscan_vcf --variant:strelka $strelka_vcf --variant:varindel $varscan_indel --variant:pindel $pindel_vcf -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel
 
-$perl $gvip_dir/vep_annotator.pl $filter_results/vep.merged.input  # &> $filter_results/vep.merged.log
 
 echo Written final result to $merger_out
 

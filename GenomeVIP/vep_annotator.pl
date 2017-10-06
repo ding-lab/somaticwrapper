@@ -21,8 +21,8 @@ use File::Temp qw/ tempfile /;
 
 # get paras from config file
 my (%paras);
-map {chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/^\s+//;  $_[1] =~ s/\s+$//; my $v = $_[1]; print $v."\n";  $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
- map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
+map {chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/^\s+//;  $_[1] =~ s/\s+$//; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
+map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
 
 # check if options are present
 my $opts = "";

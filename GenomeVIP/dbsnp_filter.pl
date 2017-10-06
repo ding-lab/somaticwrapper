@@ -30,14 +30,15 @@ sub checksize {
 
 # get paras from config file
 my (%paras);
-map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; print $v."\n";  $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
-# map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
+#map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; print $v."\n";  $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
+map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
+map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
 
 
 # Use uncompressed db to avoid being bitten by java compression bug
 my $anno=$paras{'rawvcf'}."dbsnp_anno.vcf";
 if ($paras{'rawvcf'} =~ /\.vcf$/) {
-    ($anno = $paras{'rawvcf'}) =~ s/\.vcf$/\.dbsnp_anno\.vcf/;
+    ($anno = $paras{'rawvcf'}) =~ s/\.vcf$/\.dbsnp_anno\.vcf/;  # This pollutes input directory
 }
 
 my $cmd = "java $ENV{'JAVA_OPTS'} -jar $paras{'annotator'} annotate -id $paras{'db'} $paras{'rawvcf'} > $anno";
