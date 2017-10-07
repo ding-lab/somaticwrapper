@@ -46,5 +46,7 @@ mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.2017
   
   [9]  Merge vcf files  
 
-  [10] generate maf file 
+  [10] generate maf file
+
+  [11] Merge maf together 
  
