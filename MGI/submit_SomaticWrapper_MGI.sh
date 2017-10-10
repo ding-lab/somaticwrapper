@@ -84,7 +84,7 @@ echo Running step $STEP >&2
 # One complication is that we cannot parse $CONFIG from host (/data not mapped); 
 #CONFIG=$2
 CONFIG=$1; shift
-echo Using configuration $CONFIG >&2
+echo Using configuration file $CONFIG >&2
 
 echo "/data mounts to $DATAD " >&2
 export LSF_DOCKER_VOLUMES="$DATAD:/data"
@@ -96,8 +96,6 @@ echo bsub run output directory is $SCRIPTD >&2
 SCRIPT="$SCRIPTD/bsub_run-step_$STEP.sh"
 echo Generating run script $SCRIPT >&2
 
-cat << EOF > $SCRIPT
-#!/bin/bash
 cat << EOF > $SCRIPT
 #!/bin/bash
 
