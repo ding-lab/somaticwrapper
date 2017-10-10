@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # run a given SomaticWrapper step (or set of steps) via LSF scheduler on MGI
-# Usage: submit_SomaticWrapper_MGI.sh STEP CONFIG SAMPLE_NAME [MEMGb]
+# Usage: submit_SomaticWrapper_MGI.sh [options] STEP CONFIG 
 #   STEP is the step number in SomaticWrapper.pl.  Names (e.g., "parse_pindel") can also be used (untested)
 #   CONFIG is the configuration file as described in SomaticWrapper.pl, with a path that is visible
 #       from within the running container (e.g., /data/foo)
@@ -12,7 +12,7 @@
 # -h DOCKERHOST - define a host to execute the image
 # -s SCRIPTD_BASE - Script run base directory, where bsub output will be written.  $SAMPLE_NAME is appended
 #    [default: /gscuser/mwyczalk/projects/SomaticWrapper/runtime_bsub/]
-# -S SAMPLE_NAME - sample name, here used only to modify SCRIPTD path
+# -S SAMPLE_NAME - sample name, here used only to modify SCRIPTD path.  Required
 # -p SW - Path to SomaticWrapper base dir  [default: /gscuser/mwyczalk/projects/SomaticWrapper/somaticwrapper]
 # -d - dry run, print out run command but don't execute
 
@@ -52,7 +52,7 @@ while getopts ":m:D:h:s:S:p:d" opt; do
       SCRIPTD_BASE=$OPTARG
       echo "Setting script base directory $SCRIPTD_BASE" >&2
       ;;
-    S)
+    S)      # this is required
       SAMPLE_NAME=$OPTARG
       ;;
     P)
@@ -73,6 +73,10 @@ while getopts ":m:D:h:s:S:p:d" opt; do
   esac
 done
 
+if [ -z $SAMPLE_NAME ]; then
+echo Sample Name not defined \(-S SAMPLE_NAME\)
+exit 1
+fi
 
 # /gscuser/mwyczalk/projects/SomaticWrapper/SW_testing/BRCA77/1_start_runs.sh
 
