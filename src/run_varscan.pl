@@ -7,6 +7,7 @@ sub run_varscan{
     my $job_files_dir = shift;
     my $bsub = shift;
     my $REF = shift;
+    my $varscan_config = shift;
 
     $current_job_file = "j2_varscan_".$sample_name.".sh";
     if (! -e $IN_bam_T) {#make sure there is a input fasta file 
@@ -59,21 +60,22 @@ sub run_varscan{
     my $snvout=$workdir."/".$run_name."_snv";
     my $indelout=$workdir."/".$run_name."_indel";
 
-    my $varscan_args=" \
-        --mpileup 1 \
-        --p-value 0.99 \
-        --somatic-p-value 0.05 \
-        --min-coverage-normal 30 \
-        --min-coverage-tumor 22 \
-        --min-var-freq 0.08 \
-        --min-freq-for-hom 0.75 \
-        --normal-purity 1.00 \
-        --tumor-purity 1.00 \
-        --strand-filter 1 \
-        --min-avg-qual 15 \
-        --output-vcf 1 \
-        --output-snp  \
-    ";
+# Contents below are example of varscan_config file
+#    my $varscan_args=" \
+#        --mpileup 1 \
+#        --p-value 0.99 \
+#        --somatic-p-value 0.05 \
+#        --min-coverage-normal 30 \
+#        --min-coverage-tumor 22 \
+#        --min-var-freq 0.08 \
+#        --min-freq-for-hom 0.75 \
+#        --normal-purity 1.00 \
+#        --tumor-purity 1.00 \
+#        --strand-filter 1 \
+#        --min-avg-qual 15 \
+#        --output-vcf 1 \
+#        --output-snp  \
+#    ";
 
     print OUT <<"EOF";
 #!/bin/bash

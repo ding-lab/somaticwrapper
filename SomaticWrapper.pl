@@ -1,10 +1,5 @@
-######### Song Cao###########
-## pipeline for somatic variant callings ##
-#   somatic_variant_callings.pl #
-### updated date: 04/05/2017 ###
-### updated date: 04/18/2017 ###
-### add vcf2maf.pl ###
-### 07/14/2017 ##
+######### Song Cao and Matt Wyczalkowski ###########
+## pipeline for somatic variant calling ##
 
 #!/usr/bin/perl
 use strict;
@@ -42,7 +37,7 @@ run_dir = full path of the folder holding analysis results
             Note, per-sample analysis directory is run_dir/sample_name
 step_number run this pipeline step by step. (running the whole pipeline if step number is 0)
 config_file Input configuration file.  See below for format
-config_file Optional secondary configuration file, any parameters here override configuration previous configuration
+config_file_2 Optional secondary configuration file, any parameters here override configuration previous configuration
 
 $green       [1 or run_strelka]  Run streka
 $red         [2 or run_varscan]  Run Varscan
@@ -78,6 +73,8 @@ Optional configuration file parameters
     submit_cmd - command to initiate execution of generated script.  Default value 'bash', can set as 'cat' to allow step-by-step execution for debugging
     output_vep - write final annotated merged file in VEP rather than VCF format
     annotate_intermediate - VEP-annotate intermediate output files
+    strelka_config - strelka.ini file, required for strelka run
+    varscan_config - varscan.ini file, required for varscan run
 
 OUT
 
@@ -91,7 +88,7 @@ print("Reading configuration file $config_file\n");
 
 # get paras from config file
 # for a "key = value" pair of "xxx.yyy.zzz = foo", generates entry $params{'zzz'}='foo'
-open(CONFIG, $config_file);
+open(CONFIG, $config_file) or die "Could not open file '$config_file' $!";
 my (%paras);
 map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<CONFIG>);
 close(CONFIG);
@@ -199,9 +196,12 @@ if (-d $sample_full_path) { # is a full path directory containing sample analysi
     print $yellow, "\nSubmitting jobs for the sample ",$sample_name, "...",$normal_color, "\n";
 
     if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
-        run_strelka($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $STRELKA_DIR, $REF);
+        die("strelka_config undefined in $config_file\n") unless exists $paras{'strelka_config'};
+    #    my $strelka_config = "/usr/local/somaticwrapper/config/strelka.ini";
+        run_strelka($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $STRELKA_DIR, $REF, $paras{'strelka_config'});
     } elsif (($step_number eq '2') || ($step_number eq 'run_varscan')) {
-        run_varscan($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $REF);
+        die("varscan_config undefined in $config_file\n") unless exists $paras{'varscan_config'};
+        run_varscan($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $paras{'varscan_config'});
     } elsif (($step_number eq '3') || ($step_number eq 'parse_strelka')) {
         parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $ref_dict, $perl, $gvip_dir, $dbsnp_db);
     } elsif (($step_number eq '4') || ($step_number eq 'parse_varscan')) {

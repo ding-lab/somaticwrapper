@@ -8,6 +8,7 @@ sub run_strelka {
     my $bsub = shift;
     my $STRELKA_DIR = shift;
     my $REF = shift;
+    my $strelka_config = shift;
 
     $current_job_file = "j1_streka_".$sample_name.".sh"; 
     if (! -e $IN_bam_T) {#make sure there is a input fasta file 
@@ -33,7 +34,7 @@ sub run_strelka {
         die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
     }
 
-    my $strelka_config = "/usr/local/somaticwrapper/config/strelka.ini";
+#    my $strelka_config = "/usr/local/somaticwrapper/config/strelka.ini";
     my $strelka_out=$sample_full_path."/strelka/strelka_out";
     my $strelka_bin="$STRELKA_DIR/bin/configureStrelkaWorkflow.pl";
 
