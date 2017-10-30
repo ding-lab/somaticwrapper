@@ -30,7 +30,11 @@ echo Writing logs to $LOGS
 
 # Extra memory required for Pindel run
 # Ideally, should specify memory requirements in configuration file
-MEM="-R \"rusage[mem=30000]\" -M 30000000"
+
+MEMGB=16
+MEM="-R \"rusage[mem=${MEMGB}000]\" -M ${MEMGB}000000"
+
+#MEM="-R \"rusage[mem=30000]\" -M 30000000"
 
 # Here we're putting together a script which will be run in new container to launch a job after sourcing environment variables
 # This script called ./runtime/run_$NOW.sh
