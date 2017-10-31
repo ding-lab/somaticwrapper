@@ -60,22 +60,11 @@ sub run_varscan{
     my $snvout=$workdir."/".$run_name."_snv";
     my $indelout=$workdir."/".$run_name."_indel";
 
-# Contents below are example of varscan_config file
-#    my $varscan_args=" \
-#        --mpileup 1 \
-#        --p-value 0.99 \
-#        --somatic-p-value 0.05 \
-#        --min-coverage-normal 30 \
-#        --min-coverage-tumor 22 \
-#        --min-var-freq 0.08 \
-#        --min-freq-for-hom 0.75 \
-#        --normal-purity 1.00 \
-#        --tumor-purity 1.00 \
-#        --strand-filter 1 \
-#        --min-avg-qual 15 \
-#        --output-vcf 1 \
-#        --output-snp  \
-#    ";
+    die "File not found: $varscan_config\n" if (! -e $varscan_config);
+    # ignore comments in varscan_config and convert newlines to spaces, so that all arguments are in one line
+    my $varscan_args=`grep -v "^#" $varscan_config | tr '\n' ' '`;
+    print("varscan_args = \n$varscan_args\n");
+    die("Exiting early\n");
 
     print OUT <<"EOF";
 #!/bin/bash
