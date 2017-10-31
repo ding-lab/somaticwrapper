@@ -6,3 +6,9 @@ multiple docker containers
 
 1. Run scripts in `S_StrelkaDemoSetup`
 2. 
+
+# To run arbitrary data
+
+1. set up image
+2. create config file (example)
+

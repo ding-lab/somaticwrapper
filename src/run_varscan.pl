@@ -63,8 +63,6 @@ sub run_varscan{
     die "File not found: $varscan_config\n" if (! -e $varscan_config);
     # ignore comments in varscan_config and convert newlines to spaces, so that all arguments are in one line
     my $varscan_args=`grep -v "^#" $varscan_config | tr '\n' ' '`;
-    print("varscan_args = \n$varscan_args\n");
-    die("Exiting early\n");
 
     print OUT <<"EOF";
 #!/bin/bash

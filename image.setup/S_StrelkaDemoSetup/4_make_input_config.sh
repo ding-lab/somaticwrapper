@@ -21,6 +21,9 @@ use_vep_db = 1
 # Write annotated data in VEP format (rather than VCF) with gene names 
 output_vep = 1
 
+strelka_config = /usr/local/somaticwrapper/config/strelka.WES.ini
+varscan_config = /usr/local/somaticwrapper/config/varscan.WES.ini
+
 ## command to initiate execution of generated script.  
 ## 'submit_cmd = cat' will simply print contents of run script, useful for debugging.
 ## Default value is 'bash'
