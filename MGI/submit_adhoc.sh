@@ -31,8 +31,9 @@ echo Writing logs to $LOGS
 # Extra memory required for Pindel run
 # Ideally, should specify memory requirements in configuration file
 
-MEMGB=16
+MEMGB=30
 MEM="-R \"rusage[mem=${MEMGB}000]\" -M ${MEMGB}000000"
+
 
 #MEM="-R \"rusage[mem=30000]\" -M 30000000"
 
