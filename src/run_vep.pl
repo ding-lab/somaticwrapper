@@ -81,11 +81,11 @@ sub run_vep {
             "$filter_results/varscan.out.som_indel.gvip.VEP.vcf",
             $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
 
-        write_vep_input(
+        write_vep_input(  # this one seems odd
             "$filter_results/strelka_vep.snv.input",
+            "strelka.vep",
             "$strelka_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf",
             "$filter_results/strelka.somatic_snv.current_final.gvip.Somatic.VEP.vcf",
-            "strelka.vep",
             $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
 
     ### This is not being calculated in parse_strelka 
@@ -153,7 +153,7 @@ $perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.snv.initial.input
 $perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.indel.initial.input 
 
 $perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.snv.input 
-$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.indel.input 
+#$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.indel.input 
 $perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.snv.initial.input 
 $perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.indel.initial.input 
 
