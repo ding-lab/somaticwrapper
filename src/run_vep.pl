@@ -54,10 +54,10 @@ sub run_vep {
 
     if ($annotate_intermediate) {
         write_vep_input(
-            "$filter_results/vs_vep.snv.input", 
-            "varscan.vep",
-            "$varscan_results/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf",
-            "$filter_results/varscan.out.som_snv.current_final.gvip.Somatic.VEP.vcf",
+            "$filter_results/vs_vep.snv.input",                                                     # Config fn
+            "varscan.vep",                                                                          # Module
+            "$varscan_results/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf",   # VCF (input)
+            "$filter_results/varscan.out.som_snv.current_final.gvip.Somatic.VEP.vcf",               # output
             $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
 
         write_vep_input(
