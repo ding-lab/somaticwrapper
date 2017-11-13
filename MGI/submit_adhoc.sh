@@ -18,7 +18,7 @@ echo Mapping /data to $DATAD
 export LSF_DOCKER_VOLUMES="$DATAD:/data"
 
 # Stick to a host where we've already downloaded the image for performance reasons
-DOCKERHOST="-m blade18-1-1.gsc.wustl.edu"
+#DOCKERHOST="-m blade18-1-1.gsc.wustl.edu"
 
 # logs will be written to ./runtime/bsub_run-DATE.err, .out
 NOW=$(date +%Y%m%d_%H%M%S)
@@ -31,11 +31,8 @@ echo Writing logs to $LOGS
 # Extra memory required for Pindel run
 # Ideally, should specify memory requirements in configuration file
 
-MEMGB=30
-MEM="-R \"rusage[mem=${MEMGB}000]\" -M ${MEMGB}000000"
-
-
-#MEM="-R \"rusage[mem=30000]\" -M 30000000"
+#MEMGB=30
+#MEM="-R \"rusage[mem=${MEMGB}000]\" -M ${MEMGB}000000"
 
 # Here we're putting together a script which will be run in new container to launch a job after sourcing environment variables
 # This script called ./runtime/run_$NOW.sh
