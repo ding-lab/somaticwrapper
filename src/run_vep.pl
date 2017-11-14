@@ -81,7 +81,7 @@ sub run_vep {
             "$filter_results/varscan.out.som_indel.gvip.VEP.vcf",
             $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
 
-        write_vep_input(  # this one seems odd
+        write_vep_input(  
             "$filter_results/strelka_vep.snv.input",
             "strelka.vep",
             "$strelka_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf",

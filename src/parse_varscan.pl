@@ -1,13 +1,14 @@
 my $varscan_jar="/usr/local/VarScan.jar";
 my $snpsift_jar="/usr/local/snpEff/SnpSift.jar";
 
-# The following files were created in $sample_full_path/varscan
+# The following files were created in $sample_full_path/varscan_out
 #  bamfilelist.inp
-#  status  -  Note that this is empty, can probably be removed
 #  varscan.out.som.log
-#  varscan.out.som_indel.vcf
-#  varscan.out.som_snv.vcf
+#  varscan.out.som_indel.vcf -> renamed to varscan.out.som_indel.gvip.vcf by genomevip_label.pl
+#  varscan.out.som_snv.vcf -> renamed to varscan.out.som_snv.gvip.vcf by genomevip_label.pl
 # processing which takes place here will be written to $sample_full_path/varscan/filter_out ($filter_results)
+
+# TODO: move the trivial genomevip_label step to run_varscan
 
 sub parse_varscan{
     my $sample_name = shift;
@@ -27,11 +28,11 @@ sub parse_varscan{
 
 
 # These based on original script
-my $TMPBASE="$filter_results/varscan.out.som";
-my $snvoutbase="${TMPBASE}_snv";
-my $indeloutbase="${TMPBASE}_indel";
+my $snvoutbase="$filter_results/varscan.out.som_snv";
+my $indeloutbase="$filter_results/varscan.out.som_indel";
 
-my $thissnvorig="${snvoutbase}.gvip.Somatic.hc.vcf";  # This is genrated by varscan processSomatic
+#my $thissnvorig="${snvoutbase}.gvip.Somatic.hc.vcf";  # This is genrated by varscan processSomatic
+my $thissnvorig="$filter_results/varscan.out.som_snv.gvip.Somatic.hc.vcf";  # This is genrated by varscan processSomatic
 my $myindelorig="${indeloutbase}.gvip.vcf";
 my $thissnvpass="${snvoutbase}.gvip.Somatic.hc.somfilter_pass.vcf";
 
@@ -42,7 +43,7 @@ my $thissnvpass="${snvoutbase}.gvip.Somatic.hc.somfilter_pass.vcf";
     my $somsnvpass="$filter_results/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf";
 
     my $indeloutbase="$filter_results/varscan.out.som_indel";
-    my $indeloutgvip="$indeloutbase.gvip.vcf";
+    my $indeloutgvip="$filter_results/varscan.out.som_indel.gvip.vcf";
 
     my $out = "$filter_results/vs_dbsnp_filter.snv.input";
     print("Writing to $out\n");
@@ -124,10 +125,10 @@ java \${JAVA_OPTS} -jar $varscan_jar somaticFilter  $thissnvorig $somatic_filter
 # and generates:
     # varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf  
     # varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf     -> used for merge_vcf
-    # varscan.out.som_indel.gvip.Somatic.hc.somfilter_pass.dbsnp_anno.vcf   
+    # varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_anno.vcf   
 $perl $gvip_dir/dbsnp_filter.pl  $filter_results/vs_dbsnp_filter.snv.input
 
-# 1) indel
+# 2) indel
 # Script below reads
     # varscan.out.som_indel.gvip.Somatic.hc.vcf
 # and generates:

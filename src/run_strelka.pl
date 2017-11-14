@@ -1,3 +1,15 @@
+# Run Strelka
+
+# Output in strelka/strelka_out/results: 
+# * all.somatic.indels.vcf
+# * all.somatic.snvs.vcf
+# * passed.somatic.indels.vcf
+# * passed.somatic.snvs.vcf
+
+# TODO: move genomevip_label.pl step from parse_strelka to here, since that does not alter data significantly but does rename it
+# In that step, the passed* vcf files are named, respectively,
+# * passed.somatic.indels.vcf -> strelka.somatic.snv.strlk_pass.gvip.vcf
+# * passed.somatic.snvs.vcf -> strelka.somatic.indel.strlk_pass.gvip.vcf
 
 sub run_strelka {
     my $IN_bam_T = shift;

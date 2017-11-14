@@ -28,12 +28,13 @@ sub parse_pindel {
 
     my $outlist="$filter_results/pindel.out.filelist";
     my $pin_var_file="$filter_results/pindel.out.raw";
-    my $pre_current_final="$pin_var_file.CvgVafStrand_pass.Homopolymer_pass.vcf";
+    #my $pre_current_final="$pin_var_file.CvgVafStrand_pass.Homopolymer_pass.vcf";
+    my $pre_current_final="$filter_results/pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf";
     my $current_final="$filter_results/pindel.out.current_final.gvip.Somatic.vcf";
 
 
 
-## Pindel Filter
+## Pindel Filter - below is input into pindel_filter.v0.5
 #cat > \${RUNDIR}/pindel/pindel_filter.input <<EOF
     my $out = "$filter_results/pindel_filter.input";
     print("Writing to $out\n");
@@ -68,35 +69,13 @@ pindel.dbsnp.indel.passfile  = $filter_results/pindel.out.current_final.gvip.dbs
 pindel.dbsnp.indel.dbsnpfile = $filter_results/pindel.out.current_final.gvip.dbsnp_present.vcf
 EOF
 
-# Note that in subsequent filtering (merge_vcf) only the file
-#   pindel.out.current_final.gvip.dbsnp_pass.vcf
-# is used, and the vep annotation is ignored.  
-# For this reason, we're disabling VEP annotation here.
-
-# #cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF
-#     my $module = "pindel.vep";
-#     my $vcf = "$filter_results/pindel.out.current_final.gvip.dbsnp_pass.vcf";
-#     my $output = "$filter_results/pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf";
-# 
-#     my $out = "$filter_results/pindel_vep.input";
-#     print("Writing to $out\n");
-#     open(OUT, ">$out") or die $!;
-#     print OUT <<"EOF";
-# $module.vcf = $vcf
-# $module.output = $output
-# $module.vep_cmd = $vep_cmd
-# $module.cachedir = $cachedir
-# $module.reffasta = $REF
-# $module.assembly = $assembly
-# EOF
-
 # 0. Pull out all reads from pindel raw output with the label ChrID
 #   http://gmt.genome.wustl.edu/packages/pindel/user-manual.html
 # 1. run pindel_filter.  This produces
-#    CvgVafStrand_pass 
-#    CvgVafStrand_fail
-#    Homopolymer_pass  
-#    Homopolymer_fail  
+#    pindel.out.raw.CvgVafStrand_pass 
+#    pindel.out.raw.CvgVafStrand_fail
+#    pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass  
+#    pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail  
 # 2. Label things
 # 3. Run dbSnP filter
 # 4. Run VEP annotation  -> but we're skipping this because VEP annotation takes place downstream anyway
@@ -116,12 +95,13 @@ echo Running pindel_filter.v0.5.pl
 $perl $gvip_dir/pindel_filter.v0.5.pl $filter_results/pindel_filter.input
 
 echo Running genomevip_label.pl
-$perl $gvip_dir/genomevip_label.pl Pindel $pin_var_file.CvgVafStrand_pass.vcf $pin_var_file.CvgVafStrand_pass.gvip.vcf
-$perl $gvip_dir/genomevip_label.pl Pindel $pre_current_final $pin_var_file.CvgVafStrand_pass.Homopolymer_pass.gvip.vcf 
-$perl $gvip_dir/genomevip_label.pl Pindel $pin_var_file.CvgVafStrand_pass.Homopolymer_fail.vcf $pin_var_file.CvgVafStrand_pass.Homopolymer_fail.gvip.vcf 
+$perl $gvip_dir/genomevip_label.pl Pindel $filter_results/pindel.out.raw.CvgVafStrand_pass.vcf $filter_results/pindel.out.raw.CvgVafStrand_pass.gvip.vcf
+#$perl $gvip_dir/genomevip_label.pl Pindel $pre_current_final $filter_results/pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.gvip.vcf 
+$perl $gvip_dir/genomevip_label.pl Pindel $filter_results/pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf $filter_results/pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.gvip.vcf 
+$perl $gvip_dir/genomevip_label.pl Pindel $filter_results/pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail.vcf $filter_results/pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail.gvip.vcf 
 
 # how does this differ from cp?
-cat $pin_var_file.CvgVafStrand_pass.Homopolymer_pass.gvip.vcf > $current_final
+cat $pin_var_file.CvgVafStrand_pass.Homopolymer_pass.gvip.vcf > $current_final      # pindel.out.current_final.gvip.Somatic.vcf
 
 export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 

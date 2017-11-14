@@ -1,3 +1,9 @@
+# Generates the files in varscan/varscan_out
+# * bamfilelist.inp
+# * varscan.out.som_indel.vcf
+# * varscan.out.som_snv.vcf
+
+
 
 sub run_varscan{
     my $IN_bam_T = shift;

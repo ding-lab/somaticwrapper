@@ -9,7 +9,7 @@ my $jar="/usr/local/snpEff/SnpSift.jar";
     # passed.somatic.indels.vcf
     # passed.somatic.snvs.vcf
 
-# Output of this script will be in $sample_full_path/filter_out
+# Output of this script will be in strelka/filter_out
 
 
 sub parse_strelka {
@@ -45,62 +45,6 @@ streka.dbsnp.snv.passfile  = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_
 streka.dbsnp.snv.dbsnpfile = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_present.vcf
 EOF
 
-
-# dbSnP Indel filter not used
-# create strelka_dbsnp_filter.indel.input
-#    my $dbsnp_indel = "$filter_results/strelka_dbsnp_filter.indel.input";
-#    print("Writing to $dbsnp_indel\n");
-#    open(OUT, ">$dbsnp_indel") or die $!;
-#    print OUT <<"EOF";
-#streka.dbsnp.indel.annotator = $jar
-#streka.dbsnp.indel.db = $db
-#streka.dbsnp.indel.rawvcf = $filter_results/strelka.somatic.indel.strlk_pass.gvip.vcf
-#streka.dbsnp.indel.mode = filter
-#streka.dbsnp.indel.passfile  = $filter_results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf
-#streka.dbsnp.indel.dbsnpfile = $filter_results/strelka.somatic.indel.all.gvip.dbsnp_present.vcf
-#EOF
-
-
-# FP Filter not used
-# create strelka_fpfilter.snv.input
-#    my $fp_snv = "$filter_results/strelka_fpfilter.snv.input";
-#    print("Writing to $fp_snv\n");
-#    open(OUT, ">$fp_snv") or die $!;
-#    print OUT <<"EOF";
-#strelka.fpfilter.snv.bam_readcount = $bam-readcount
-#strelka.fpfilter.snv.bam_file = $IN_bam_T
-#strelka.fpfilter.snv.REF = $REF
-#strelka.fpfilter.snv.variants_file = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf
-#strelka.fpfilter.snv.passfile = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp_pass.vcf
-#strelka.fpfilter.snv.failfile = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp_fail.vcf
-#strelka.fpfilter.snv.rc_in = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.rc.in.vcf
-#strelka.fpfilter.snv.rc_out = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.rc.out.vcf
-#strelka.fpfilter.snv.fp_out = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp.out.vcf
-#strelka.fpfilter.snv.min_mapping_qual = 0
-#strelka.fpfilter.snv.min_base_qual = 15
-#strelka.fpfilter.snv.min_num_var_supporting_reads = 4
-#strelka.fpfilter.snv.min_var_allele_freq = 0.05
-#strelka.fpfilter.snv.min_avg_rel_read_position = 0.10
-#strelka.fpfilter.snv.min_avg_rel_dist_to_3prime_end = 0.10
-#strelka.fpfilter.snv.min_var_strandedness = 0.01
-#strelka.fpfilter.snv.min_allele_depth_for_testing_strandedness = 5
-#strelka.fpfilter.snv.min_ref_allele_avg_base_qual = 30
-#strelka.fpfilter.snv.min_var_allele_avg_base_qual = 30
-#strelka.fpfilter.snv.max_rel_read_length_difference = 0.25
-#strelka.fpfilter.snv.max_mismatch_qual_sum_for_var_reads = 150
-#strelka.fpfilter.snv.max_avg_mismatch_qual_sum_difference = 150
-#strelka.fpfilter.snv.min_ref_allele_avg_mapping_qual = 30
-#strelka.fpfilter.snv.min_var_allele_avg_mapping_qual = 30
-#strelka.fpfilter.snv.max_avg_mapping_qual_difference = 50
-#EOF
-
-#my $sortInput="$filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf";
-#my $sortOutput="$filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.sorted.vcf";
-
-# assuming file extensions is unreliable
-#my $ref_dict = $REF;
-#$ref_dict =~ s/fa$/dict/;
-
 # Create run script
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");
@@ -111,10 +55,10 @@ EOF
 # Step 5 (dbSnP Filter on SNV) creates these two files:
 #   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf  -> used for merge_vcf
 #   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_present.vcf 
-# Step 6 (dbSnP Filter on Indel) creates these two files:
+# Step 6 (dbSnP Filter on Indel) creates these two files - not used:
 #   strelka/filter_out/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf  
 #   strelka/filter_out/strelka.somatic.indel.all.gvip.dbsnp_present.vcf 
-# Step 7 (FP Filter on SNV) creates this file:
+# Step 7 (FP Filter on SNV) creates this file - not used:
 #   strelka/filter_out/strelka.somatic.snv.all.gvip.dbsnp_pass.fp.out.vcf 
 
 # Note that in subsequent steps (merge_vcf) only the file strelka.somatic.snv.all.gvip.dbsnp_pass.vcf is used.
