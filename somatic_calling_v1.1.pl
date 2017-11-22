@@ -10,7 +10,8 @@
 ### add docker env for mgi ##
 ### 09/28/17##
 ## add finishing checks##
-
+### 11/13/17 ###
+## add option for log directory##
 #!/usr/bin/perl
 use strict;
 use warnings;
@@ -31,9 +32,10 @@ my $normal = "\e[0m";
 (my $usage = <<OUT) =~ s/\t+//g;
 Somatic variant calling pipeline 
 Pipeline version: $version
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref $normal
+$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log $normal
 
 <rdir> = full path of the folder holding files for this sequence run (user must provide)
+<log> = full path of the folder for saving log file; usually upper folder of rdir
 <srg> = bam having read group or not: 1, yes and 0, no (default 1)
 <sre> = re-run: 1, yes and 0, no  (default 0)
 <step> run this pipeline step by step. (user must provide)
@@ -41,7 +43,7 @@ $yellow     Usage: perl $0  --srg --step --sre --rdir --ref $normal
 with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
 without chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite.fa
 mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
-
+hg19: /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta 
 $red 	     [0]  Run all steps
 $green       [1]  Run streka
 $green 		 [2]  Run Varscan
@@ -67,7 +69,7 @@ my $help = 0;
 
 #__FILE NAME (STRING, NO DEFAULT)
 my $run_dir="";
-
+my $log_dir="";
 my $h37_REF="";
 
 #__PARSE COMMAND LINE
@@ -77,17 +79,19 @@ my $status = &GetOptions (
       "sre=i" => \$status_rerun,	
       "rdir=s" => \$run_dir,
 	  "ref=s"  => \$h37_REF,
+	  "log=s"  => \$log_dir,
    	  "help" => \$help, 
 	);
  
 #print $status,"\n";
 
-if ($help || $run_dir eq "" || $step_number<0) {
+if ($help || $run_dir eq "" || $log_dir eq "" || $step_number<0) {
 	  print $usage;
       exit;
    }
 
 print "run dir=",$run_dir,"\n";
+print "run dir=",$log_dir,"\n";
 print "step num=",$step_number,"\n";
 print "status rerun=",$status_rerun,"\n";
 print "status readgroup=",$status_rg,"\n";
@@ -104,23 +108,28 @@ my $email = "scao\@wustl\.edu";
 # everything else below should be automated
 my $HOME = $ENV{HOME};
 my $working_name= (split(/\//,$run_dir))[-1];
-my $HOME1="/gscmnt/gc2524/dinglab";
+my $HOME1=$log_dir;
 #store job files here
-if (! -d $HOME1."/tmpsomatic4") {
-    `mkdir $HOME1"/tmpsomatic4"`;
+if (! -d $HOME1."/tmpsomatic") {
+    `mkdir $HOME1"/tmpsomatic"`;
 }
-my $job_files_dir = $HOME1."/tmpsomatic4";
+my $job_files_dir = $HOME1."/tmpsomatic";
 #store SGE output and error files here
-if (! -d $HOME1."/LSF_DIR_SOMATIC4") {
-    `mkdir $HOME1"/LSF_DIR_SOMATIC4"`;
+if (! -d $HOME1."/LSF_DIR_SOMATIC") {
+    `mkdir $HOME1"/LSF_DIR_SOMATIC"`;
 }
-my $lsf_file_dir = $HOME1."/LSF_DIR_SOMATIC4";
+my $lsf_file_dir = $HOME1."/LSF_DIR_SOMATIC";
 #GENOMEVIP_SCRIPTS=/gscmnt/gc2525/dinglab/rmashl/Software/bin/genomevip
 # obtain script path
-my $script_dir="/gscuser/scao/scripts/git/somaticwrapper";
-#my $run_script_path = `dirname $0`;
-my $run_script_path=$script_dir; 
+#my $script_dir="/gscuser/scao/scripts/git/somaticwrapper";
+my $run_script_path =`echo \$PWD`;
 chomp $run_script_path;
+#my $run_script_path = `dirname $0`;
+my $script_dir=$run_script_path; 
+print $script_dir,"\n";
+#<STDIN>;
+#my $run_script_path=$script_dir; 
+#chomp $run_script_path;
 $run_script_path = "/usr/bin/perl ".$run_script_path."/";
 print $run_script_path,"\n";
 my $hold_RM_job = "norm";
@@ -304,9 +313,9 @@ sub bsub_strelka{
     print STREKA "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print STREKA "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print STREKA "#BSUB -J $current_job_file\n";
-    #print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    print STREKA "#BSUB -q long\n";
-    #print STREKA "#BSUB -q research-hpc\n";
+    print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print STREKA "#BSUB -q long\n";
+    print STREKA "#BSUB -q research-hpc\n";
 	#print STREKA "#BSUB -q long\n";
 	#print STREKA "scr_t0=\`date \+\%s\`\n";
     print STREKA "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
@@ -415,7 +424,10 @@ sub bsub_varscan{
     print VARSCAN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print VARSCAN "#BSUB -J $current_job_file\n";
 	print VARSCAN "#BSUB -w \"$hold_job_file\"","\n";
-    print VARSCAN "#BSUB -q long\n";
+    print VARSCAN "#BSUB -q ding-lab\n";
+    #print VARSCAN "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print VARSCANP "#BSUB -q long\n";
+    #print VARSCAN "#BSUB -q research-hpc\n";
 	print VARSCAN "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print VARSCAN "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
     print VARSCAN "myRUNDIR=".$sample_full_path."/varscan\n";
@@ -467,15 +479,15 @@ sub bsub_varscan{
 	print VARSCAN "echo \"$IN_bam_N\" > \${BAMLIST}\n"; 
 	print VARSCAN "echo \"$IN_bam_T\" >> \${BAMLIST}\n";  
 	print VARSCAN "ncols=\$(echo \"3*( \$(wc -l < \$BAMLIST) +1)\"|bc)\n";
-    print VARSCAN "if [ $status_rerun -eq 1 ]\n";
-	print VARSCAN "then\n";
-    print VARSCAN "rm \${LOG}\n";
-    print VARSCAN "fi\n";
+    #print VARSCAN "if [ $status_rerun -eq 1 ]\n";
+	#print VARSCAN "then\n";
+    #print VARSCAN "rm \${LOG}\n";
+    #print VARSCAN "fi\n";
     print VARSCAN ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
-    print VARSCAN '  if [ ! -s $LOG ]',"\n";
-    print VARSCAN "  then\n";	
+   # print VARSCAN '  if [ ! -s $LOG ]',"\n";
+    #print VARSCAN "  then\n";	
 	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
-   	print VARSCAN "  else\n";
+   	#print VARSCAN "  else\n";
     print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";# one possible blast error (see the end of this script). 
     print VARSCAN '      CHECK=$?',"\n";
     print VARSCAN '      while [ ${CHECK} -eq 0 ]',"\n";
@@ -484,7 +496,7 @@ sub bsub_varscan{
     print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";
     print VARSCAN '          CHECK=$?',"\n";
     print VARSCAN "      done\n";
-    print VARSCAN "  fi\n";
+    #print VARSCAN "  fi\n";
     print VARSCAN "touch \${localstatus}\n";
 	print VARSCAN "fi\n";
 	close VARSCAN;	
@@ -1232,10 +1244,10 @@ sub bsub_merge_vcf{
     print MERGE "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print MERGE "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print MERGE "#BSUB -J $current_job_file\n";
-    print MERGE "#BSUB -q long\n";
-   # print MERGE "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+   # print MERGE "#BSUB -q long\n";
+    print MERGE "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
     #print VARSCANP "#BSUB -q long\n";
-    #print MERGE "#BSUB -q research-hpc\n";
+    print MERGE "#BSUB -q research-hpc\n";
     print MERGE "#BSUB -w \"$hold_job_file\"","\n";
     #print MERGE "scr_t0=\`date \+\%s\`\n";
     print MERGE "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
@@ -1258,7 +1270,8 @@ sub bsub_merge_vcf{
     print MERGE "merged.vep.output = ./merged.VEP.vcf\n";
     print MERGE "merged.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
     print MERGE "merged.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print MERGE "merged.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
+    #print MERGE "merged.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
+    print MERGE "merged.vep.reffasta =$h37_REF\n";
     print MERGE "merged.vep.assembly = GRCh37\n";
     print MERGE "EOF\n";
 	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
@@ -1299,7 +1312,10 @@ sub bsub_vcf_2_maf{
     print MAF "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
     print MAF "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print MAF "#BSUB -J $current_job_file\n";
-    print MAF "#BSUB -q long\n";
+    #print MAF "#BSUB -q long\n";
+    print MAF "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print VARSCANP "#BSUB -q long\n";
+    print MAF "#BSUB -q research-hpc\n";
     print MAF "#BSUB -w \"$hold_job_file\"","\n";
     print MAF "F_VCF_1=".$sample_full_path."/merged.filtered.vcf\n";
 	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".vcf\n";
