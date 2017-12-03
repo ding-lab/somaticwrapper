@@ -148,6 +148,7 @@ my $pindel="/gscuser/qgao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
 my $picardexe="/gscuser/scao/tools/picard.jar";
 my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
+my $java="/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64/bin/java";
 my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 
 opendir(DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
@@ -166,6 +167,7 @@ if ($step_number < 11) {
             $sample_full_path = $run_dir."/".$sample_name;
             if (-d $sample_full_path) { # is a full path directory containing a sample
                 print $yellow, "\nSubmitting jobs for the sample ",$sample_name, "...",$normal, "\n";
+			#	sleep 1;
                 $current_job_file="";
                 if($step_number==0)
                 {  
@@ -454,7 +456,7 @@ sub bsub_varscan{
     print VARSCAN "del_cmd=\"rm -f\"\n";
     print VARSCAN "del_local=\"rm -f\"\n";
     print VARSCAN "statfile=complete.vs_som_snvindels\n";
-	print VARSCAN "localstatus=\${RUNDIR}\/status\/\${statfile}\n";
+	print VARSCAN "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
 	print VARSCAN "if [ ! -d \${myRUNDIR}\/status ]\n";
     print VARSCAN "then\n";
     print VARSCAN "mkdir \${myRUNDIR}\/status\n";
@@ -486,7 +488,7 @@ sub bsub_varscan{
     print VARSCAN ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
    # print VARSCAN '  if [ ! -s $LOG ]',"\n";
     #print VARSCAN "  then\n";	
-	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
+	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | $java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
    	#print VARSCAN "  else\n";
     print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";# one possible blast error (see the end of this script). 
     print VARSCAN '      CHECK=$?',"\n";
@@ -842,7 +844,11 @@ sub bsub_pindel{
 	print PINDEL "CONFIG=\${myRUNDIR}"."/".$sample_name.".config\n";
 	print PINDEL "statfile=complete.pindel\n";
     print PINDEL "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
-    print PINDEL "if [ ! -d \${myRUNDIR}\/status ]\n";
+    print PINDEL "if [ ! -d \${myRUNDIR}]\n";
+    print PINDEL "then\n";
+    print PINDEL "mkdir \${myRUNDIR}\n";
+    print PINDEL "fi\n";
+	print PINDEL "if [ ! -d \${myRUNDIR}\/status ]\n";
     print PINDEL "then\n";
     print PINDEL "mkdir \${myRUNDIR}\/status\n";
     print PINDEL "fi\n";
@@ -853,10 +859,10 @@ sub bsub_pindel{
     print PINDEL "fi\n";
     print PINDEL "if [ ! -f  \${localstatus} ]\n";
     print PINDEL "then\n";
-	print PINDEL "if [ ! -d \${myRUNDIR} ]\n";
-    print PINDEL "then\n";
-    print PINDEL "mkdir \${myRUNDIR}\n";
-    print PINDEL "fi\n";
+	#print PINDEL "if [ ! -d \${myRUNDIR} ]\n";
+    #print PINDEL "then\n";
+    #print PINDEL "mkdir \${myRUNDIR}\n";
+    #print PINDEL "fi\n";
 	print PINDEL "echo \"$IN_bam_T\t500\t$sample_name.T\" > \${CONFIG}\n";
     print PINDEL "echo \"$IN_bam_N\t500\t$sample_name.N\" >> \${CONFIG}\n";
 	print PINDEL "$pindel -T 4 -f $h37_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere\n";
