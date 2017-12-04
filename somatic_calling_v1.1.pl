@@ -148,7 +148,8 @@ my $pindel="/gscuser/qgao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
 my $picardexe="/gscuser/scao/tools/picard.jar";
 my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
-my $java="/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64/bin/java";
+my $java_dir="/gscuser/scao/tools/jre1.8.0_121";
+#my $java_dir="/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64";
 my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 
 opendir(DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
@@ -332,7 +333,7 @@ sub bsub_strelka{
 	print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
  	print STREKA "TASK_STATUS=".$sample_full_path."/strelka/strelka_out/task.complete"."\n";
 	print STREKA "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-	print STREKA "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
+	print STREKA "export JAVA_HOME=$java_dir\n";
 	print STREKA "export JAVA_OPTS=\"-Xmx10g\"\n";
 	print STREKA "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print STREKA "if [ ! -d \${myRUNDIR} ]\n";
@@ -426,7 +427,7 @@ sub bsub_varscan{
     print VARSCAN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     print VARSCAN "#BSUB -J $current_job_file\n";
 	print VARSCAN "#BSUB -w \"$hold_job_file\"","\n";
-    print VARSCAN "#BSUB -q ding-lab\n";
+    print VARSCAN "#BSUB -q long\n";
     #print VARSCAN "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
     #print VARSCANP "#BSUB -q long\n";
     #print VARSCAN "#BSUB -q research-hpc\n";
@@ -440,7 +441,7 @@ sub bsub_varscan{
    	print VARSCAN "GENOMEVIP_SCRIPTS=/gscmnt/gc2525/dinglab/rmashl/Software/bin/genomevip\n";
 	print VARSCAN "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
 	print VARSCAN "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print VARSCAN "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
+    print VARSCAN "export JAVA_HOME=$java_dir\n";
     print VARSCAN "export JAVA_OPTS=\"-Xmx10g\"\n";
     print VARSCAN "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print VARSCAN "if [ ! -d \${myRUNDIR} ]\n";
@@ -485,10 +486,10 @@ sub bsub_varscan{
 	#print VARSCAN "then\n";
     #print VARSCAN "rm \${LOG}\n";
     #print VARSCAN "fi\n";
-    print VARSCAN ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
+    #print VARSCAN ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
    # print VARSCAN '  if [ ! -s $LOG ]',"\n";
     #print VARSCAN "  then\n";	
-	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | $java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
+	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
    	#print VARSCAN "  else\n";
     print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";# one possible blast error (see the end of this script). 
     print VARSCAN '      CHECK=$?',"\n";
@@ -553,7 +554,7 @@ sub bsub_parse_strelka{
     print STREKAP "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
 	print STREKAP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
     print STREKAP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-    print STREKAP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
+    print STREKAP "export JAVA_HOME=$java_dir\n";
     print STREKAP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print STREKAP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print STREKAP "cat > \${myRUNDIR}/strelka_out/results/strelka_dbsnp_filter.snv.input <<EOF\n";
@@ -681,7 +682,7 @@ sub bsub_parse_varscan{
     print VARSCANP "RUNDIR=".$sample_full_path."\n";
     print VARSCANP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print VARSCANP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print VARSCANP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
+    print VARSCANP "export JAVA_HOME=$java_dir\n";
 #    print VARSCANP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
 	print VARSCANP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print VARSCANP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
@@ -910,7 +911,7 @@ sub bsub_vep{
     print VEP "RUNDIR=".$sample_full_path."\n";
     print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print VEP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print VEP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
+    print VEP "export JAVA_HOME=$java_dir\n";
     print VEP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print VEP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print VEP "cat > \${RUNDIR}/varscan/vs_vep.snv.input <<EOF\n";
@@ -1088,7 +1089,7 @@ sub bsub_parse_pindel {
 	print PP 'current_final=${pin_var_file/%raw/current_final.gvip.Somatic.vcf}'."\n";
 	print PP 'cat ./${pre_current_final/%vcf/gvip.vcf} > ./$current_final'."\n";
 #	print PP "fi\n";
-    print PP "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
+    print PP "export JAVA_HOME=$java_dir\n";
 	print PP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print PP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print PP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
@@ -1187,7 +1188,7 @@ sub bsub_mutect{
     print MUTECT "RUNDIR=".$sample_full_path."\n";
     print MUTECT "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
     print MUTECT "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print MUTECT "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.7.0_67-x64\n";
+    print MUTECT "export JAVA_HOME=$java_dir\n";
     print MUTECT "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MUTECT "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print MUTECT "if [ ! -d \${myRUNDIR} ]\n";
@@ -1263,7 +1264,7 @@ sub bsub_merge_vcf{
     print MERGE "RUNDIR=".$sample_full_path."\n";
     #print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
 	print MERGE "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print MERGE "export JAVA_HOME=/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64\n";
+    print MERGE "export JAVA_HOME=$java_dir\n";
     print MERGE "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print MERGE "STRELKA_VCF="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
