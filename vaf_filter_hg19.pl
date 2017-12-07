@@ -44,7 +44,7 @@ foreach my $l (`cat $f_m`)
 			#print $info,"\n"; 
 			#<STDIN>;
 	
-			$vaf_n=$temp[11];
+			$vaf_n=$temp[9];
 		 	$vaf_t=$temp[12];
 		 	$ref=$temp[3]; 
 		 	$var=$temp[4];
@@ -107,7 +107,7 @@ foreach my $l (`cat $f_m`)
 	
 		elsif($info=~/varscan/ || $info=~/varindel/)
 		{
-		   	$vaf_n=$temp[11];
+		   	$vaf_n=$temp[9];
         	$vaf_t=$temp[12];
 			@temp2=split(":",$vaf_n); 
 			#print $vaf_n,"\n";
@@ -133,8 +133,8 @@ foreach my $l (`cat $f_m`)
 		elsif($info=~/pindel/)
         {
 
-			$vaf_t=$temp[10];
-            $vaf_n=$temp[9];
+			$vaf_n=$temp[10];
+            $vaf_t=$temp[11];
 			if(!($vaf_t=~/\:/)) { next; } 
 			if(!($vaf_n=~/\:/)) { next; } 
 
@@ -153,8 +153,7 @@ foreach my $l (`cat $f_m`)
 
 		if($tdp_var/($tdp_var+$tdp_ref)>=$min_vaf_somatic && $ndp_var/($ndp_ref+$ndp_var)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 
 		{
-			#print $ltr,"\n";    
-		   print OUT1 $ltr,"\n";	
+		       print OUT1 $ltr,"\n";	
 		}
 		
 	}

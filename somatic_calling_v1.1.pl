@@ -1282,6 +1282,7 @@ sub bsub_merge_vcf{
     print MERGE "merged.vep.assembly = GRCh37\n";
     print MERGE "EOF\n";
 	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
+#	print MERGE "     ".$run_script_path."vaf_filter_hg19.pl \${RUNDIR}\n";
 	print MERGE "     ".$run_script_path."vaf_filter.pl \${RUNDIR}\n";
 	print MERGE "cd \${RUNDIR}\n";
 	print MERGE ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n"; 
