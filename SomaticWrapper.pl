@@ -73,8 +73,15 @@ Optional configuration file parameters
     submit_cmd - command to initiate execution of generated script.  Default value 'bash', can set as 'cat' to allow step-by-step execution for debugging
     output_vep - write final annotated merged file in VEP rather than VCF format
     annotate_intermediate - VEP-annotate intermediate output files
-    strelka_config - strelka.ini file, required for strelka run
-    varscan_config - varscan.ini file, required for varscan run
+    strelka_config - path to strelka.ini file, required for strelka run
+    varscan_config - path to varscan.ini file, required for varscan run
+    centromere_bed - path to BED file describing centromere regions to exclude for pindel analysis.  
+        Default: $sw_dir/image.setup/C_Centromeres/pindel-centromere-exclude.bed
+    gatk - path to GATK Jar file.  Default: /usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar
+    perl - path to PERL executable.  Default: /usr/bin/perl
+    strelka_dir - path to strelka installation dir.  Default: /usr/local/strelka
+    vep_cmd - path to ensembl vep executable.  Default: /usr/local/ensembl-vep/vep
+    pindel_dir - path to Pindel installation dir.  Default: /usr/local/pindel
 
 OUT
 
@@ -119,7 +126,7 @@ die("assembly undefined in $config_file\n") unless exists $paras{'assembly'};
 my $assembly = $paras{'assembly'};
 
 die("reference_fasta undefined in $config_file\n") unless exists $paras{'reference_fasta'};
-my $REF = $paras{'reference_fasta'};
+my $ref = $paras{'reference_fasta'};
 
 die("reference_dict undefined in $config_file\n") unless exists $paras{'reference_dict'};
 my $ref_dict = $paras{'reference_dict'};
@@ -164,21 +171,45 @@ if (exists $paras{'annotate_intermediate'} ) {
     $annotate_intermediate=$paras{'annotate_intermediate'};
 }
 
+# Add params below to optional params with defaults
 
 # Define where centromere definion file is for pindel processing.  See C_Centromeres for discussion
 # This should really live in the data directory
-# This should be defined in configuration file for pindel step
-my $f_centromere="$sw_dir/image.setup/C_Centromeres/pindel-centromere-exclude.bed";
+my $centromere_bed="$sw_dir/image.setup/C_Centromeres/pindel-centromere-exclude.bed";
+if (exists $paras{'centromere_bed'} ) {
+    $centromere_bed=$paras{'centromere_bed'};
+}
+
+my $gatk="/usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar";
+if (exists $paras{'gatk'} ) {
+    $gatk=$paras{'gatk'};
+}
+
+my $perl = "/usr/bin/perl";
+if (exists $paras{'perl'} ) {
+    $perl=$paras{'perl'};
+}
+
+#my $strelka_dir="/usr/local/strelka-2.7.1.centos5_x86_64/bin";
+# using older version of strelka
+my $strelka_dir="/usr/local/strelka";
+if (exists $paras{'strelka_dir'} ) {
+    $strelka_dir=$paras{'strelka_dir'};
+}
+
+my $vep_cmd="/usr/local/ensembl-vep/vep";
+if (exists $paras{'vep_cmd'} ) {
+    $vep_cmd=$paras{'vep_cmd'};
+}
+
+my $pindel_dir="/usr/local/pindel";
+if (exists $paras{'pindel_dir'} ) {
+    $pindel_dir=$paras{'pindel_dir'};
+}
 
 # Distinguising between location of modules of somatic wrapper and GenomeVIP
+# GenomeVIP is not distributed separately so hard code the path
 my $gvip_dir="$sw_dir/GenomeVIP";
-my $perl = "/usr/bin/perl";
-#my $STRELKA_DIR="/usr/local/strelka-2.7.1.centos5_x86_64/bin";
-# using older version of strelka
-my $STRELKA_DIR="/usr/local/strelka";
-my $vep_cmd="/usr/local/ensembl-vep/vep";
-my $pindel_dir="/usr/local/pindel";
-my $gatk="/usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar";
 
 #begin to process each sample
 my $sample_full_path = $run_dir."/".$sample_name;
@@ -187,7 +218,7 @@ my $sample_full_path = $run_dir."/".$sample_name;
 my $job_files_dir="$sample_full_path/runtime";
 system("mkdir -p $job_files_dir");
 
-print("Using reference $REF\n");
+print("Using reference $ref\n");
 print("SomaticWrapper dir: $sw_dir \n");
 print("Analysis dir: $sample_full_path\n");
 print("Run script dir: $job_files_dir\n");
@@ -198,26 +229,26 @@ if (-d $sample_full_path) { # is a full path directory containing sample analysi
     if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
         die("strelka_config undefined in $config_file\n") unless exists $paras{'strelka_config'};
     #    my $strelka_config = "/usr/local/somaticwrapper/config/strelka.ini";
-        run_strelka($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $STRELKA_DIR, $REF, $paras{'strelka_config'});
+        run_strelka($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $strelka_dir, $ref, $paras{'strelka_config'});
     } elsif (($step_number eq '2') || ($step_number eq 'run_varscan')) {
         die("varscan_config undefined in $config_file\n") unless exists $paras{'varscan_config'};
-        run_varscan($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $paras{'varscan_config'});
+        run_varscan($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $paras{'varscan_config'});
     } elsif (($step_number eq '3') || ($step_number eq 'parse_strelka')) {
-        parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $ref_dict, $perl, $gvip_dir, $dbsnp_db);
+        parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $ref_dict, $perl, $gvip_dir, $dbsnp_db);
     } elsif (($step_number eq '4') || ($step_number eq 'parse_varscan')) {
-        parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $dbsnp_db);
+        parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $dbsnp_db);
     } elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
-        run_pindel($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $pindel_dir, $f_centromere);
+        run_pindel($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $pindel_dir, $centromere_bed);
     } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
-        parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db);
+        parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db);
     } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
-        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db, $output_vep, $assembly, $vep_cache_dir);
+        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db, $output_vep, $assembly, $vep_cache_dir);
     } elsif (($step_number eq '9') || ($step_number eq 'vcf2maf')) {
         die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
-        vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $perl, $gvip_dir);
+        vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir);
     } elsif (($step_number eq '10') || ($step_number eq 'run_vep')) {
         print("annotate_intermediate = $annotate_intermediate\n");
-        run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $REF, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $use_vep_db, $output_vep, $annotate_intermediate);
+        run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $use_vep_db, $output_vep, $annotate_intermediate);
     } else {
         die("Unknown step number $step_number\n");
     }
