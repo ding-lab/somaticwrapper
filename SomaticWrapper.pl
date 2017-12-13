@@ -1,6 +1,8 @@
 ######### Song Cao and Matt Wyczalkowski ###########
 ## pipeline for somatic variant calling ##
 
+# -A SWDATA: default [/data/data]
+
 #!/usr/bin/perl
 use strict;
 use warnings;
@@ -31,10 +33,8 @@ require("src/vcf_2_maf.pl");
 (my $usage = <<OUT) =~ s/\t+//g;
 This script will process evaluate variants for WGS and WXS data
 Pipeline version: $version
-$yellow     Usage: perl $0 run_folder step_number config_file [config_file_2] $normal_color
+$yellow     Usage: perl $0 step_number config_file [config_file_2] $normal_color
 
-run_dir = full path of the folder holding analysis results
-            Note, per-sample analysis directory is run_dir/sample_name
 step_number run this pipeline step by step. (running the whole pipeline if step number is 0)
 config_file Input configuration file.  See below for format
 config_file_2 Optional secondary configuration file, any parameters here override configuration previous configuration
@@ -65,6 +65,8 @@ Required configuration file keys
 
 Optional configuration file parameters
     sw_dir - Somatic Wrapper installation directory.  Default is /usr/local/somaticwrapper
+    sw_data - Somatic Wrapper analysis results directory.  Default is /data/data
+            Per-sample analysis directory is sw_data/sample_name
     use_vep_db - whether to use online VEP database lookups (1 for true)
           db mode a) uses online database (so cache isn't installed) b) does not use tmp files
           It is meant to be used for testing and lightweight applications.  Use the cache for
@@ -85,11 +87,8 @@ Optional configuration file parameters
 
 OUT
 
-die $usage unless @ARGV == 3;
-my ( $run_dir, $step_number, $config_file, $config_file2 ) = @ARGV;
-if ($run_dir =~/(.+)\/$/) {  # ?
-    $run_dir = $1;
-}
+die $usage unless @ARGV >= 2;
+my ( $step_number, $config_file, $config_file2 ) = @ARGV;
 
 print("Reading configuration file $config_file\n");
 
@@ -207,12 +206,17 @@ if (exists $paras{'pindel_dir'} ) {
     $pindel_dir=$paras{'pindel_dir'};
 }
 
+my $sw_data="/data/data";
+if (exists $paras{'sw_data'} ) {
+    $pindel_dir=$paras{'sw_data'};
+}
+
 # Distinguising between location of modules of somatic wrapper and GenomeVIP
 # GenomeVIP is not distributed separately so hard code the path
 my $gvip_dir="$sw_dir/GenomeVIP";
 
 #begin to process each sample
-my $sample_full_path = $run_dir."/".$sample_name;
+my $sample_full_path = $sw_data."/".$sample_name;
 
 # automatically generated scripts in runtime
 my $job_files_dir="$sample_full_path/runtime";
