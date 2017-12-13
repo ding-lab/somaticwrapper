@@ -1,9 +1,62 @@
-FROM mwyczalkowski/breakpoint_surveyor:latest
-
-# Based on /home/mwyczalk_test/data/BPS.TCGA_Virus.Lite/docker/Dockerfile
+FROM ubuntu:xenial
 
 LABEL author="Matt Wyczalkowski" \
       maintainer="m.wyczalkowski@wustl.edu"
+
+RUN apt-get update && apt-get install -y \
+    autoconf \
+    bedtools \
+    build-essential \
+    bwa \
+    cmake \
+    cpanminus \
+    default-jre \
+    gawk \
+    git \
+    libbz2-dev \ 
+    liblzma-dev \
+    libncurses-dev \
+    python \
+    python-dev \
+    python-pip \
+    sshpass \
+    subversion \
+    vim \
+    wget \
+    zlib1g-dev \
+    && apt-get clean
+
+# Installing HTSLIB
+RUN cd /usr/local \
+    && git clone https://github.com/samtools/htslib.git \
+    && cd /usr/local/htslib \
+    && make \
+    && make lib-static \
+    && make install
+
+ENV LD_LIBRARY_PATH=/usr/local/htslib
+
+# Install samtools
+RUN cd /usr/local/ \
+    && git clone https://github.com/samtools/samtools.git \
+    && cd samtools \
+    && make \
+    && make install
+    
+# Install Pindel
+RUN cd /usr/local/ \
+    && git clone --recursive https://github.com/genome/pindel.git  \
+    && cd /usr/local/pindel/ \
+    && ./INSTALL /usr/local/htslib
+
+# Various Python packages
+RUN pip install \
+    pyvcf \
+    pysam \
+    numpy
+
+# Perl packags
+RUN cpanm XML::XPath
 
 # Strelka v 2.7.1
 #  -> incorporate the newest Strelka at some point 
@@ -24,21 +77,6 @@ RUN cd /usr/local \
     && ln -s /usr/local/samtools /usr/local/strelka_workflow-1.0.15/src/perl/opt \
     && rm /usr/local/strelka_workflow-1.0.15.tar.gz
 
-RUN apt-get update && apt-get install -y \
-    default-jre \
-    libncurses-dev \
-    sshpass \
-    vim \
-    subversion \
-    && apt-get clean
-
-RUN cd /usr/local \
-    && git clone -b docker https://mwyczalkowski:Elohim,598@github.com/ding-lab/somaticwrapper 
-
-
-RUN apt-get update && apt-get install -y \
-    cmake \
-    && apt-get clean
 
 # Install varscan 2.3.8 to match SomaticWrapper
 # Note that newer versions available here: https://github.com/dkoboldt/varscan
@@ -92,16 +130,19 @@ RUN cpanm DBD::mysql
 # See here for discussion of caches: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
 # Cache dir will be /data/D_Ensembl
 
-# TODO: move the apt-get stuff to top 
 RUN cd /usr/local \
     && cpanm DBI \
     && git clone https://github.com/Ensembl/ensembl-vep.git \
     && cd ensembl-vep \
     && perl INSTALL.pl /data/D_Ensembl -a a
 
+COPY vimrc /root/.vimrc
+
+RUN cd /usr/local \
+    && git clone -b docker https://mwyczalkowski:Elohim,598@github.com/ding-lab/somaticwrapper 
+
 WORKDIR /usr/local/somaticwrapper
 
-COPY vimrc /root/.vimrc
 
 # following invocation will create common data dir in ./
 # docker run -v $PWD/data:/data -it breakpoint_surveyor

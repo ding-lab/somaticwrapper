@@ -21,24 +21,6 @@ RUN apt-get update \
 
 RUN cpanm DBD::mysql
 
-RUN rm -rf /usr/local/BreakPointSurveyor \
-    && mkdir /usr/local/BreakPointSurveyor \
-    && chmod 777 /usr/local/BreakPointSurveyor
-
-# Patching SomaticWrapper.pl to take into account MGI-specific paths
-#   To make a patch:
-#       diff -u SomaticWrapper.pl SomaticWrapper-mgi.pl > SomaticWrapper-mgi.patch
-#   To apply a patch:
-#       patch SomaticWrapper.pl SomaticWrapper-mgi.patch
-
-# this doesn't work, because cannot use /usr/local/somaticwrapper.  Need to use
-#   /gscuser/mwyczalk/projects/SomaticWrapper/somaticwrapper/
-# COPY image-init/SomaticWrapper-mgi.patch /usr/local
-# RUN cd /usr/local/somaticwrapper \
-#    && patch SomaticWrapper.pl /usr/local/SomaticWrapper-mgi.patch 
-
-
-
 USER bps
 
 COPY image-init/mgi-bps.bashrc /home/bps
