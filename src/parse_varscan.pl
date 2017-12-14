@@ -1,6 +1,3 @@
-my $varscan_jar="/usr/local/VarScan.jar";
-my $snpsift_jar="/usr/local/snpEff/SnpSift.jar";
-
 # The following files were created in $sample_full_path/varscan_out
 #  bamfilelist.inp
 #  varscan.out.som.log
@@ -19,6 +16,8 @@ sub parse_varscan{
     my $perl = shift;
     my $gvip_dir = shift;
     my $db = shift;
+    my $snpsift_jar = shift;
+    my $varscan_jar = shift;
 
     $current_job_file = "j4_parse_varscan".$sample_name.".sh";
 

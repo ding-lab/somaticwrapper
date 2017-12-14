@@ -1,19 +1,21 @@
 # Create sample input configuration file for Strelka demo analysis
 
-DATA_BASE="/data"   
-SAMPLE_NAME="SWtest"
-SAMPLE_DIR="$DATA_BASE/data/$SAMPLE_NAME"
+# TODO: this needs to be updated to latest version of config file
 
-OUT="$SAMPLE_DIR/sw.config"  # /data/data/SWtest/sw.config
+DATA_BASE="/data/"   
+SAMPLE_NAME="SWtest"
+CONFIG_DIR="/data/StrelkaTest/$SAMPLE_NAME/config"
+
+OUT="$CONFIG_DIR/$SAMPLE_NAME.config"  
 
 cat << EOF > $OUT
 sample_name = SWtest
-reference_fasta = /data/A_Reference/demo20.fa  
-reference_dict = /data/A_Reference/demo20.dict
-tumor_bam = /data/data/SWtest/SWtest.T.bam
-normal_bam = /data/data/SWtest/SWtest.N.bam
+reference_fasta = /data/image.data/A_Reference/demo20.fa  
+reference_dict = /data/image.data/A_Reference/demo20.dict
+tumor_bam = /data/StrelkaTest/data/SWtest/SWtest.T.bam
+normal_bam = /data/StrelkaTest/data/SWtest/SWtest.N.bam
 assembly = GRCh37
-dbsnp_db = /data/B_Filter/dbsnp-demo.noCOSMIC.vcf.gz
+dbsnp_db = /data/image.data/B_Filter/dbsnp-demo.noCOSMIC.vcf.gz
 
 ## We will not use VEP cache for testing because it takes a while to install
 use_vep_db = 1

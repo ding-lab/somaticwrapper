@@ -1,5 +1,3 @@
-my $jar="/usr/local/snpEff/SnpSift.jar";
-
 # bam readcount not used because not using FP Filter
 #my $bam_readcount = "/usr/local/bin/bam-readcount";
 
@@ -22,6 +20,7 @@ sub parse_strelka {
     my $perl = shift;
     my $gvip_dir = shift;
     my $db = shift;
+    my $snpsift_jar = shift;
 
     $current_job_file = "j3_parse_strelka".$sample_name.".sh";
 
@@ -37,7 +36,7 @@ sub parse_strelka {
     print("Writing to $dbsnp_snv\n");
     open(OUT, ">$dbsnp_snv") or die $!;
     print OUT <<"EOF";
-streka.dbsnp.snv.annotator = $jar
+streka.dbsnp.snv.annotator = $snpsift_jar
 streka.dbsnp.snv.db = $db
 streka.dbsnp.snv.rawvcf = $filter_results/strelka.somatic.snv.strlk_pass.gvip.vcf
 streka.dbsnp.snv.mode = filter

@@ -9,7 +9,7 @@ OUT=$2
 
 
 
-OUTD="/data/B_Filter"
+OUTD="/data/image.data/B_Filter"
 mkdir -p $OUTD
 
 # See here for file types and sources of links

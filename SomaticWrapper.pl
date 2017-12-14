@@ -1,8 +1,6 @@
 ######### Song Cao and Matt Wyczalkowski ###########
 ## pipeline for somatic variant calling ##
 
-# -A SWDATA: default [/data/data]
-
 #!/usr/bin/perl
 use strict;
 use warnings;
@@ -77,13 +75,16 @@ Optional configuration file parameters
     annotate_intermediate - VEP-annotate intermediate output files
     strelka_config - path to strelka.ini file, required for strelka run
     varscan_config - path to varscan.ini file, required for varscan run
+    pindel_config - path to pindel.ini file, required for pindel parsing
     centromere_bed - path to BED file describing centromere regions to exclude for pindel analysis.  
-        Default: $sw_dir/image.setup/C_Centromeres/pindel-centromere-exclude.bed
+        Default: sw_dir/image.setup/C_Centromeres/pindel-centromere-exclude.bed
     gatk - path to GATK Jar file.  Default: /usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar
     perl - path to PERL executable.  Default: /usr/bin/perl
     strelka_dir - path to strelka installation dir.  Default: /usr/local/strelka
     vep_cmd - path to ensembl vep executable.  Default: /usr/local/ensembl-vep/vep
     pindel_dir - path to Pindel installation dir.  Default: /usr/local/pindel
+    snpsift_jar - default: /usr/local/snpEff/SnpSift.jar
+    varscan_jar - default: /usr/local/VarScan.jar
 
 OUT
 
@@ -135,81 +136,60 @@ my $sample_name = $paras{'sample_name'};
 
 # This is the default somatic wrapper installation directory
 my $sw_dir="/usr/local/somaticwrapper";
-if (exists $paras{'sw_dir'} ) {
-    $sw_dir=$paras{'sw_dir'};
-}
+if (exists $paras{'sw_dir'} ) { $sw_dir=$paras{'sw_dir'}; }
 
 my $use_vep_db=0;
-if (exists $paras{'use_vep_db'} ) {
-    $use_vep_db=$paras{'use_vep_db'};
-}
+if (exists $paras{'use_vep_db'} ) { $use_vep_db=$paras{'use_vep_db'}; }
 
 # parameter submit_cmd will typically be "bash" to execute entire script.  Set it to "cat" for debugging, "bsub" to submit to LSF 
+# TODO: this is better handled with -d flag
 my $bsub = "bash";
-if (exists $paras{'submit_cmd'} ) {
-    $bsub=$paras{'submit_cmd'};
-}
+if (exists $paras{'submit_cmd'} ) { $bsub=$paras{'submit_cmd'}; }
 
 my $dbsnp_db = "none";  # TODO: if dbsnp_db not defined, either give an error or skip dbSNP filtering
-if (exists $paras{'dbsnp_db'} ) {
-    $dbsnp_db=$paras{'dbsnp_db'};
-}
+if (exists $paras{'dbsnp_db'} ) { $dbsnp_db=$paras{'dbsnp_db'}; }
 
 my $vep_cache_dir = "/data/D_VEP";
-if (exists $paras{'vep_cache_dir'} ) {
-    $vep_cache_dir=$paras{'vep_cache_dir'};
-}
+if (exists $paras{'vep_cache_dir'} ) { $vep_cache_dir=$paras{'vep_cache_dir'}; }
 
 my $output_vep = 0;
-if (exists $paras{'output_vep'} ) {
-    $output_vep=$paras{'output_vep'};
-}
+if (exists $paras{'output_vep'} ) { $output_vep=$paras{'output_vep'}; }
 
 my $annotate_intermediate=0;
-if (exists $paras{'annotate_intermediate'} ) {
-    $annotate_intermediate=$paras{'annotate_intermediate'};
-}
+if (exists $paras{'annotate_intermediate'} ) { $annotate_intermediate=$paras{'annotate_intermediate'}; }
 
 # Add params below to optional params with defaults
 
 # Define where centromere definion file is for pindel processing.  See C_Centromeres for discussion
 # This should really live in the data directory
 my $centromere_bed="$sw_dir/image.setup/C_Centromeres/pindel-centromere-exclude.bed";
-if (exists $paras{'centromere_bed'} ) {
-    $centromere_bed=$paras{'centromere_bed'};
-}
+if (exists $paras{'centromere_bed'} ) { $centromere_bed=$paras{'centromere_bed'}; }
 
 my $gatk="/usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar";
-if (exists $paras{'gatk'} ) {
-    $gatk=$paras{'gatk'};
-}
+if (exists $paras{'gatk'} ) { $gatk=$paras{'gatk'}; }
 
 my $perl = "/usr/bin/perl";
-if (exists $paras{'perl'} ) {
-    $perl=$paras{'perl'};
-}
+if (exists $paras{'perl'} ) { $perl=$paras{'perl'}; }
 
-#my $strelka_dir="/usr/local/strelka-2.7.1.centos5_x86_64/bin";
 # using older version of strelka
+#my $strelka_dir="/usr/local/strelka-2.7.1.centos5_x86_64/bin";
 my $strelka_dir="/usr/local/strelka";
-if (exists $paras{'strelka_dir'} ) {
-    $strelka_dir=$paras{'strelka_dir'};
-}
+if (exists $paras{'strelka_dir'} ) { $strelka_dir=$paras{'strelka_dir'}; }
 
 my $vep_cmd="/usr/local/ensembl-vep/vep";
-if (exists $paras{'vep_cmd'} ) {
-    $vep_cmd=$paras{'vep_cmd'};
-}
+if (exists $paras{'vep_cmd'} ) { $vep_cmd=$paras{'vep_cmd'}; }
 
 my $pindel_dir="/usr/local/pindel";
-if (exists $paras{'pindel_dir'} ) {
-    $pindel_dir=$paras{'pindel_dir'};
-}
+if (exists $paras{'pindel_dir'} ) { $pindel_dir=$paras{'pindel_dir'}; }
 
 my $sw_data="/data/data";
-if (exists $paras{'sw_data'} ) {
-    $pindel_dir=$paras{'sw_data'};
-}
+if (exists $paras{'sw_data'} ) { $sw_data=$paras{'sw_data'}; }
+
+my $snpsift_jar="/usr/local/snpEff/SnpSift.jar";
+if (exists $paras{'snpsift_jar'} ) { $sw_data=$paras{'snpsift_jar'}; }
+
+my $varscan_jar="/usr/local/VarScan.jar";
+if (exists $paras{'varscan_jar'} ) { $sw_data=$paras{'varscan_jar'}; }
 
 # Distinguising between location of modules of somatic wrapper and GenomeVIP
 # GenomeVIP is not distributed separately so hard code the path
@@ -238,13 +218,14 @@ if (-d $sample_full_path) { # is a full path directory containing sample analysi
         die("varscan_config undefined in $config_file\n") unless exists $paras{'varscan_config'};
         run_varscan($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $paras{'varscan_config'});
     } elsif (($step_number eq '3') || ($step_number eq 'parse_strelka')) {
-        parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $ref_dict, $perl, $gvip_dir, $dbsnp_db);
+        parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $ref_dict, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar);
     } elsif (($step_number eq '4') || ($step_number eq 'parse_varscan')) {
-        parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $dbsnp_db);
+        parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $varscan_jar);
     } elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
         run_pindel($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $pindel_dir, $centromere_bed);
     } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
-        parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db);
+        die("pindel_config undefined in $config_file\n") unless exists $paras{'pindel_config'};
+        parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db, $snpsift_jar, $pindel_config);
     } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
         merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db, $output_vep, $assembly, $vep_cache_dir);
     } elsif (($step_number eq '9') || ($step_number eq 'vcf2maf')) {

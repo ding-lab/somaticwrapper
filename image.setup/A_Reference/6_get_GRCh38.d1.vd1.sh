@@ -3,7 +3,7 @@
 
 
 
-OUTD="/data/A_Reference"
+OUTD="/data/image.data/A_Reference"
 mkdir -p $OUTD
 
 echo Saving reference to $OUTD
