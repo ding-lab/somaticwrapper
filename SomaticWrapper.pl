@@ -186,10 +186,10 @@ my $sw_data="/data/data";
 if (exists $paras{'sw_data'} ) { $sw_data=$paras{'sw_data'}; }
 
 my $snpsift_jar="/usr/local/snpEff/SnpSift.jar";
-if (exists $paras{'snpsift_jar'} ) { $sw_data=$paras{'snpsift_jar'}; }
+if (exists $paras{'snpsift_jar'} ) { $snpsift_jar=$paras{'snpsift_jar'}; }
 
 my $varscan_jar="/usr/local/VarScan.jar";
-if (exists $paras{'varscan_jar'} ) { $sw_data=$paras{'varscan_jar'}; }
+if (exists $paras{'varscan_jar'} ) { $varscan_jar=$paras{'varscan_jar'}; }
 
 # Distinguising between location of modules of somatic wrapper and GenomeVIP
 # GenomeVIP is not distributed separately so hard code the path
@@ -225,7 +225,7 @@ if (-d $sample_full_path) { # is a full path directory containing sample analysi
         run_pindel($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $pindel_dir, $centromere_bed);
     } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
         die("pindel_config undefined in $config_file\n") unless exists $paras{'pindel_config'};
-        parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db, $snpsift_jar, $pindel_config);
+        parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db, $snpsift_jar, $paras{'pindel_config'});
     } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
         merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db, $output_vep, $assembly, $vep_cache_dir);
     } elsif (($step_number eq '9') || ($step_number eq 'vcf2maf')) {
