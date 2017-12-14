@@ -1,10 +1,6 @@
 # Dockerfile for MGI-specific modifications
 FROM mwyczalkowski/somatic-wrapper:latest
 
-
-# TODO
-# Start registering at MGI, not dockerhub
-
 #docker build .
 #docker tag <resulting_id> registry.gsc.wustl.edu/<username>/<image_name>
 #docker push registry.gsc.wustl.edu/<username>/<image_name>
@@ -14,16 +10,14 @@ FROM mwyczalkowski/somatic-wrapper:latest
 USER root
 
 # This is required to play well at MGI
-# MGI also does not respect USER directive, so change permissions so anyone can write
+# MGI also does not respect USER directive, so /usr/local/somoaticwrapper is immutable
 RUN apt-get update \
     && apt-get install -y libnss-sss\
     && apt-get clean
 
-RUN cpanm DBD::mysql
+USER sw
 
-USER bps
+COPY image-init/mgi-sw.bashrc /home/sw
+COPY image-init/mgi-sw_start.sh /home/sw
 
-COPY image-init/mgi-bps.bashrc /home/bps
-COPY image-init/mgi-bps_start.sh /home/bps
-
-CMD ["/bin/bash", "/home/bps/mgi-bps_start.sh"]
+CMD ["/bin/bash", "/home/sw/mgi-sw_start.sh"]

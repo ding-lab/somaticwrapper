@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     bwa \
     cmake \
     cpanminus \
+    curl \
     default-jre \
     gawk \
     git \
@@ -21,6 +22,7 @@ RUN apt-get update && apt-get install -y \
     python-pip \
     sshpass \
     subversion \
+    unzip \
     vim \
     wget \
     zlib1g-dev \
@@ -124,22 +126,21 @@ RUN apt-get update \
     } | debconf-set-selections \
     && apt-get install -y mysql-server libmysqlclient-dev \
     && apt-get clean
-RUN cpanm DBD::mysql
+RUN cpanm DBI DBD::mysql 
 
 # install VEP - we do not install cache into the image, it will be downloaded during setup
 # See here for discussion of caches: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
 # Cache dir will be /data/D_Ensembl
 
 RUN cd /usr/local \
-    && cpanm DBI \
-    && git clone https://github.com/Ensembl/ensembl-vep.git \
-    && cd ensembl-vep \
+    && git clone https://github.com/Ensembl/ensembl-vep.git  \
+    && cd /usr/local/ensembl-vep \
     && perl INSTALL.pl /data/D_Ensembl -a a
 
 COPY vimrc /root/.vimrc
 
 RUN cd /usr/local \
-    && git clone -b docker https://mwyczalkowski:Elohim,598@github.com/ding-lab/somaticwrapper 
+    &&  git clone -b docker https://mwyczalkowski:Elohim,598@github.com/ding-lab/somaticwrapper 
 
 WORKDIR /usr/local/somaticwrapper
 
