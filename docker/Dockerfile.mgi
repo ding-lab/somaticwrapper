@@ -15,9 +15,10 @@ RUN apt-get update \
     && apt-get install -y libnss-sss\
     && apt-get clean
 
+COPY mgi-init/mgi-sw.bashrc /home/sw/.bashrc
+#COPY mgi-init/mgi-sw_start.sh /home/sw/
+
 USER sw
 
-COPY image-init/mgi-sw.bashrc /home/sw
-COPY image-init/mgi-sw_start.sh /home/sw
-
 CMD ["/bin/bash", "/home/sw/mgi-sw_start.sh"]
+
