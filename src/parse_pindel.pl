@@ -1,7 +1,3 @@
-my $assembly="GRCh37";
-my $cachedir="/data/D_VEP";
-
-my $snpsift_jar="/usr/local/snpEff/SnpSift.jar";
 
 # Skipping VEP annotation
 
@@ -19,6 +15,8 @@ sub parse_pindel {
     my $vep_cmd = shift;
     my $pindel_dir = shift;
     my $db = shift;
+    my $snpsift_jar = shift;
+    my $pindel_config = shift;
 
     $current_job_file = "j7_parse_pindel".$sample_name.".sh";
 
@@ -35,25 +33,30 @@ sub parse_pindel {
 
 
 ## Pindel Filter - below is input into pindel_filter.v0.5
-#cat > \${RUNDIR}/pindel/pindel_filter.input <<EOF
+# lines below are added to data from $pindel_config
+    die "$pindel_config does not exist\n" unless (-f $pindel_config);
+
     my $out = "$filter_results/pindel_filter.input";
-    print("Writing to $out\n");
-    open(OUT, ">$out") or die $!;
+    print("Copying $pindel_config to $out and appending\n");
+    system("cp $pindel_config $out");
+
+    open(OUT, ">>$out") or die $!;
     print OUT <<"EOF";
 pindel.filter.pindel2vcf = $pindel_dir/pindel2vcf
 pindel.filter.variants_file = $pin_var_file
 pindel.filter.REF = $REF
 pindel.filter.date = 000000
-pindel.filter.heterozyg_min_var_allele_freq = 0.2
-pindel.filter.homozyg_min_var_allele_freq = 0.8
-pindel.filter.mode = somatic
-pindel.filter.apply_filter = true
-pindel.filter.somatic.min_coverages = 10
-pindel.filter.somatic.min_var_allele_freq = 0.10
-pindel.filter.somatic.require_balanced_reads = \"true\"
-pindel.filter.somatic.remove_complex_indels = \"true\"
-pindel.filter.somatic.max_num_homopolymer_repeat_units = 6
 EOF
+
+#pindel.filter.heterozyg_min_var_allele_freq = 0.2
+#pindel.filter.homozyg_min_var_allele_freq = 0.8
+#pindel.filter.mode = somatic
+#pindel.filter.apply_filter = true
+#pindel.filter.somatic.min_coverages = 10
+#pindel.filter.somatic.min_var_allele_freq = 0.10
+#pindel.filter.somatic.require_balanced_reads = \"true\"
+#pindel.filter.somatic.remove_complex_indels = \"true\"
+#pindel.filter.somatic.max_num_homopolymer_repeat_units = 6
 
 ## dbSnP Filter
 #cat > \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input <<EOF

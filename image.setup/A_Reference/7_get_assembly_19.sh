@@ -2,7 +2,7 @@
 # UR:http://www.broadinstitute.org/ftp/pub/seq/references/Homo_sapiens_assembly19.fasta	AS:GRCh37
 # Chrom 1 is labeled as '1'
 
-OUTD="/data/A_Reference"
+OUTD="/data/image.data/A_Reference"
 mkdir -p $OUTD
 
 echo Saving reference to $OUTD

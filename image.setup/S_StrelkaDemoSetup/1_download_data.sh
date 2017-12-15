@@ -8,7 +8,7 @@
 # Requied
 # apt-get install subversion
 
-OUTD="/data/S_StrelkaTestData"
+OUTD="/data/image.data/S_StrelkaTestData"
 mkdir -p $OUTD
 
 SRC="https://github.com/Illumina/strelka"

@@ -7,7 +7,7 @@
 # There are no snps in dbsnp VCF, but there is a large number of snps in region 20:1000900-1004000,
 # so will create test dbSnP database by subtracting 1000000 from each position 
 
-DATD="/data/B_Filter"
+DATD="/data/image.data/B_Filter"
 OUTD="../S_StrelkaDemoSetup/data"
 mkdir -p $OUTD
 

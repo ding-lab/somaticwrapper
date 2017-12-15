@@ -3,7 +3,7 @@
 # remove DBSNP variants which exist in the COSMIC database
 # Creates dbsnp.noCOSMIC.vcf
 
-DATD="/data/B_Filter"
+DATD="/data/image.data/B_Filter"
 mkdir -p $DATD
 JAR="/usr/local/snpEff/SnpSift.jar"
 

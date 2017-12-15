@@ -16,7 +16,7 @@ VER=$2
 
 DAT="./COSMIC_credentials.dat"
 
-OUTD="/data/B_Filter"
+OUTD="/data/image.data/B_Filter"
 mkdir -p $OUTD
 
 if [ ! -f $DAT ]; then

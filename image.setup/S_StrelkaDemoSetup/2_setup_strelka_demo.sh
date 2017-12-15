@@ -9,22 +9,20 @@
 # is done for both the BAM files and the reference. 
 
 # SomaticWrapper directory structure
-# /data/A_Reference - reference data
-# /data/A_Reference/demo20.fa - test reference
+# /data/image.data/A_Reference - reference data
+# /data/image.data/A_Reference/demo20.fa - test reference
 # /data/data/SWtest - corresponds to individual sample SWtest for analysis (SAMPLE_DIR) 
 # /data/data/SWtest.N.bam, SWtest.T.bam - tumor and normal BAMs (may be links)
 
-DATA_BASE="/data"   
+DATA_BASE="/data/image.data"   
 DATD="$DATA_BASE/S_StrelkaTestData" # Where test data lives (BAM and reference)
 REF_DIR="$DATA_BASE/A_Reference"       # Reference data lives in a different place to keep from confusing SomaticWrapper
-
-STRELKA_DIR="/home/mwyczalk_test/src/strelka"
 
 # Sample Name is used by Somatic Wrapper in the naming of the data files
 SAMPLE_NAME="SWtest"
 
-# Create directory structure expected by Somatic Wrapper
-SAMPLE_DIR="$DATA_BASE/data/$SAMPLE_NAME"
+# Create directory structure expected by Somatic Wrapper.  sw_data is /data/StrelkaTest
+SAMPLE_DIR="/data/StrelkaTest/$SAMPLE_NAME"
 mkdir -p $SAMPLE_DIR
 mkdir -p $REF_DIR
 

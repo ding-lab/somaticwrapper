@@ -3,7 +3,7 @@
 # So, we will download the newer GRCh37 from here: ftp://ftp.ncbi.nlm.nih.gov/genomes/archive/old_genbank/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh37.p13/seqs_for_alignment_pipelines/
 
 
-OUTD="/data/A_Reference"
+OUTD="/data/image.data/A_Reference"
 mkdir -p $OUTD
 
 echo Saving reference to $OUTD
