@@ -140,7 +140,7 @@ RUN cd /usr/local \
 COPY vimrc /root/.vimrc
 
 RUN cd /usr/local \
-    &&  git clone -b docker https://mwyczalkowski:Elohim,598@github.com/ding-lab/somaticwrapper 
+    &&  git clone -b docker https://github.com/ding-lab/somaticwrapper 
 
 WORKDIR /usr/local/somaticwrapper
 
