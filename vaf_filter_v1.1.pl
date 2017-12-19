@@ -1,6 +1,9 @@
 #!/usr/bin/perl
 
 ## tumor >= 5% and normal <=1% 
+
+### pindel tumor >=10% since the vaf calculation underestimate the ref coverage ##
+
 ### add the filtering for indel length ##
 
 use strict;
@@ -12,6 +15,7 @@ my $f_m=$run_dir."/merged.vcf";
 my $f_filter_out=$run_dir."/merged.filtered.vcf";
 my $f_vaf_out=$run_dir."/merged.vaf";
 my $min_vaf_somatic=0.05;
+my $min_vaf_pindel=0.1;
 my $max_vaf_germline=0.02; 
 my $min_coverage=20; 
 
@@ -50,7 +54,7 @@ foreach my $l (`cat $f_m`)
 
          if(length($ref)>=20 || length($var)>=20)  { next; }
  
-		 if($info=~/strelka/) 
+		 if($info=~/strelka-varscan/) 
 		 {
 			#print $info,"\n"; 
 			#<STDIN>;
@@ -116,7 +120,7 @@ foreach my $l (`cat $f_m`)
 			} 	
 		}
 	
-		elsif($info=~/varscan/ || $info=~/varindel/)
+		elsif($info=~/varindel/)
 		{
 		   	$vaf_n=$temp[11];
         	$vaf_t=$temp[12];
@@ -137,6 +141,7 @@ foreach my $l (`cat $f_m`)
 	        print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$ndp_ref,"\t",$ndp_ref/($ndp_ref+$ndp_var),"\t",$ndp_var,"\t",$ndp_var/($ndp_var+$ndp_ref),"\t",$tdp_ref,"\t",$tdp_ref/($tdp_ref+$tdp_var),"\t",$tdp_var,"\t",$tdp_var/($tdp_var+$tdp_ref),"\n";  
 		if($tdp_var/($tdp_var+$tdp_ref) >=$min_vaf_somatic && $ndp_var/($ndp_var+$ndp_ref)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 	
 			{
+			$ltr=~s/SVTYPE=//g;
 			print OUT1 $ltr,"\n"; 
 			}
 		}
@@ -162,10 +167,11 @@ foreach my $l (`cat $f_m`)
 
 			print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$ndp_ref,"\t",$ndp_ref/($ndp_ref+$ndp_var),"\t",$ndp_var,"\t",$ndp_var/($ndp_var+$ndp_ref),"\t",$tdp_ref,"\t",$tdp_ref/($tdp_ref+$tdp_var),"\t",$tdp_var,"\t",$tdp_var/($tdp_var+$tdp_ref),"\n";
 
-		if($tdp_var/($tdp_var+$tdp_ref)>=$min_vaf_somatic && $ndp_var/($ndp_ref+$ndp_var)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 
+		if($tdp_var/($tdp_var+$tdp_ref)>=$min_vaf_pindel && $ndp_var/($ndp_ref+$ndp_var)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 
 		{
 			#print $ltr,"\n";    
-		   print OUT1 $ltr,"\n";	
+ $ltr=~s/SVTYPE=//g;		 
+  print OUT1 $ltr,"\n";	
 		}
 		
 	}

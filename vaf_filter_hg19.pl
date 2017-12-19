@@ -11,7 +11,7 @@ my $f_filter_out=$run_dir."/merged.filtered.vcf";
 my $f_vaf_out=$run_dir."/merged.vaf";
 my $min_vaf_somatic=0.05;
 my $max_vaf_germline=0.02; 
-my $min_coverage=10; 
+my $min_coverage=20; 
 
 open(OUT1,">$f_filter_out");
 open(OUT2,">$f_vaf_out"); 
@@ -38,6 +38,11 @@ foreach my $l (`cat $f_m`)
 		 my $ndp_var;
 		 my $tdp_ref;
 		 my $tdp_var; 
+
+         $ref=$temp[3];
+         $var=$temp[4]; 
+
+		 if(length($ref)>=20 || length($var)>=20)  { next; }
  
 		 if($info=~/strelka/) 
 		 {
