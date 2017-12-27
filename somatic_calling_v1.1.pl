@@ -312,15 +312,15 @@ sub bsub_strelka{
 
     open(STREKA, ">$job_files_dir/$current_job_file") or die $!;
     print STREKA "#!/bin/bash\n";
-    print STREKA "#BSUB -n 1\n";
-    print STREKA "#BSUB -R \"rusage[mem=30000]\"","\n";
-    print STREKA "#BSUB -M 30000000\n";
-    print STREKA "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print STREKA "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print STREKA "#BSUB -J $current_job_file\n";
-    print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print STREKA "#BSUB -n 1\n";
+    #print STREKA "#BSUB -R \"rusage[mem=30000]\"","\n";
+    #print STREKA "#BSUB -M 30000000\n";
+    #print STREKA "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
+    #print STREKA "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
+    #print STREKA "#BSUB -J $current_job_file\n";
+    #print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
     #print STREKA "#BSUB -q long\n";
-    print STREKA "#BSUB -q research-hpc\n";
+    #print STREKA "#BSUB -q research-hpc\n";
 	#print STREKA "#BSUB -q long\n";
 	#print STREKA "scr_t0=\`date \+\%s\`\n";
     print STREKA "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
@@ -377,8 +377,12 @@ sub bsub_strelka{
 	print STREKA "touch \${TASK_STATUS}\n";
 	print STREKA "fi\n";
     close STREKA;
-    $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    system ( $bsub_com );
+
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err sh $sh_file\n";     print $bsub_com;
+    system ($bsub_com);
+
+    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
+    #system ( $bsub_com );
 }
 
 sub bsub_varscan{
@@ -422,14 +426,14 @@ sub bsub_varscan{
     }
     open(VARSCAN, ">$job_files_dir/$current_job_file") or die $!;
     print VARSCAN "#!/bin/bash\n";
-    print VARSCAN "#BSUB -n 1\n";
-    print VARSCAN "#BSUB -R \"rusage[mem=30000]\"","\n";
-    print VARSCAN "#BSUB -M 30000000\n";
-    print VARSCAN "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    print VARSCAN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    print VARSCAN "#BSUB -J $current_job_file\n";
-	print VARSCAN "#BSUB -w \"$hold_job_file\"","\n";
-    print VARSCAN "#BSUB -q long\n";
+   # print VARSCAN "#BSUB -n 1\n";
+   # print VARSCAN "#BSUB -R \"rusage[mem=30000]\"","\n";
+   # print VARSCAN "#BSUB -M 30000000\n";
+   # print VARSCAN "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
+   # print VARSCAN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
+   # print VARSCAN "#BSUB -J $current_job_file\n";
+  #	print VARSCAN "#BSUB -w \"$hold_job_file\"","\n";
+   #   print VARSCAN "#BSUB -q long\n";
     #print VARSCAN "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
     #print VARSCANP "#BSUB -q long\n";
     #print VARSCAN "#BSUB -q research-hpc\n";
@@ -505,8 +509,13 @@ sub bsub_varscan{
     print VARSCAN "touch \${localstatus}\n";
 	print VARSCAN "fi\n";
 	close VARSCAN;	
-    $bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    system ( $bsub_com );
+
+    my $sh_file=$job_files_dir."/".$current_job_file;
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err sh $sh_file\n";     print $bsub_com;
+    system ($bsub_com);
+
+    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
+    #system ( $bsub_com );
 
 }
 
