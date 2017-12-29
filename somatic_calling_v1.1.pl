@@ -487,7 +487,8 @@ sub bsub_varscan{
 	print VARSCAN "fi\n";
 	print VARSCAN "echo \"$IN_bam_N\" > \${BAMLIST}\n"; 
 	print VARSCAN "echo \"$IN_bam_T\" >> \${BAMLIST}\n";  
-	print VARSCAN "ncols=\$(echo \"3*( \$(wc -l < \$BAMLIST) +1)\"|bc)\n";
+	print VARSCAN "ncols=9\n"; 
+	#print VARSCAN "ncols=\$(echo \"3*( \$(wc -l < \$BAMLIST) +1)\"|bc)\n";
     #print VARSCAN "if [ $status_rerun -eq 1 ]\n";
 	#print VARSCAN "then\n";
     #print VARSCAN "rm \${LOG}\n";
