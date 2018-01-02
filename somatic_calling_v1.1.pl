@@ -13,6 +13,7 @@
 ### 11/13/17 ###
 ## add option for log directory##
 #!/usr/bin/perl
+##!/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl
 use strict;
 use warnings;
 #use POSIX;
@@ -131,7 +132,10 @@ print $script_dir,"\n";
 #<STDIN>;
 #my $run_script_path=$script_dir; 
 #chomp $run_script_path;
-$run_script_path = "/usr/bin/perl ".$run_script_path."/";
+
+#$run_script_path = "/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl ".$run_script_path."/";
+$run_script_path = "/gsc/bin/perl ".$run_script_path."/";
+
 print $run_script_path,"\n";
 my $hold_RM_job = "norm";
 my $current_job_file = "";#cannot be empty
@@ -377,8 +381,10 @@ sub bsub_strelka{
 	print STREKA "touch \${TASK_STATUS}\n";
 	print STREKA "fi\n";
     close STREKA;
+       my $sh_file=$job_files_dir."/".$current_job_file;
 
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err sh $sh_file\n";     print $bsub_com;
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err sh $sh_file\n";     
+	print $bsub_com;
     system ($bsub_com);
 
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
@@ -1302,7 +1308,8 @@ sub bsub_merge_vcf{
 	print MERGE "fi\n";
 
 	print MERGE "cd \${RUNDIR}\n";
-	print MERGE ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n"; 
+	print MERGE ". $script_dir/set_envvars\n"; 
+	#print MERGE ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
 	print MERGE "     ".$run_script_path."vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";	
 	close MERGE;
     $bsub_com = "bsub < $job_files_dir/$current_job_file\n";

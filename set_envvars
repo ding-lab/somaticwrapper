@@ -1,0 +1,4 @@
+export PERL_PATH=/gsc
+export PATH=$PERL_PATH/bin:$PATH
+export PERL_BIN=$PERL_PATH/bin/perl
+export PERL5LIB=$PERL_PATH/lib/perl5/5.8.7/:$PERL5LIB
