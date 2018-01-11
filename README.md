@@ -1,6 +1,6 @@
 # somaticwrapper version 1.1 ##
 
-Detect somatic variants from tumor and normal exome data
+Detect somatic variants from tumor and normal WXS or WGS data
 
 ### Song Cao ###
 
@@ -8,7 +8,7 @@ SomaticWrapper pipeline is a fully automated and modular software package design
 
 Pipeline version: 1.1
 
-Usage: perl $0  --srg --step --sre --rdir --ref --refname --log --q 
+Usage: perl $0  --srg --step --sre --rdir --ref --refname --log --q --wgs 
 
 <rdir> = full path of the folder holding files for this sequence run (user must provide)
 <log> = full path of the folder for saving log file; usually upper folder of rdir
@@ -18,6 +18,7 @@ Usage: perl $0  --srg --step --sre --rdir --ref --refname --log --q
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
+<wgs> ==  1 for yes and 0 for no 
 
 with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
 
