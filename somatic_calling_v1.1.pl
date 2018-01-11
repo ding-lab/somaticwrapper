@@ -33,7 +33,9 @@ my $normal = "\e[0m";
 (my $usage = <<OUT) =~ s/\t+//g;
 Somatic variant calling pipeline 
 Pipeline version: $version
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --refname --log --q $normal
+$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --refname --log --q --wgs 
+
+$normal
 
 <rdir> = full path of the folder holding files for this sequence run (user must provide)
 <log> = full path of the folder for saving log file; usually upper folder of rdir
@@ -43,18 +45,21 @@ $yellow     Usage: perl $0  --srg --step --sre --rdir --ref --refname --log --q 
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
+<wgs> ==  1 for yes and 0 for no 
+
 with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
 without chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite.fa
 mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
 hg19: /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta 
+
 $red 	     [0]  Run all steps
 $green       [1]  Run streka
 $green 		 [2]  Run Varscan
 $yellow 	 [3]  Parse streka result
 $yellow 	 [4]  Parse VarScan result
-$green 		 [5]  Run Pindel
+$purple      [5]  Run Pindel
 $purple 	 [6]  Parse Pindel
-$gray 	     [7]  Merge vcf files  
+$cyan 	     [7]  Merge vcf files  
 $cyan		 [8] Generate maf file 
 $cyan 		 [9] Generate merged maf file
 $normal
@@ -68,6 +73,7 @@ my $status_rerun=0;
 #__HELP (BOOLEAN, DEFAULTS TO NO-HELP)
 my $help = 0;
 my $q_name="";
+my $s_wgs="";
 #__FILE NAME (STRING, NO DEFAULT)
 my $run_dir="";
 my $log_dir="";
@@ -82,7 +88,8 @@ my $status = &GetOptions (
       "rdir=s" => \$run_dir,
 	  "ref=s"  => \$h37_REF,
 	  "log=s"  => \$log_dir,
-      "refname=s"  => \$ref_name,	
+      "refname=s"  => \$ref_name,
+      "wgs=i"  => \$s_wgs,	    	
 	  "q=s" => \$q_name,
    	  "help" => \$help, 
 	);
@@ -100,9 +107,15 @@ print "step num=",$step_number,"\n";
 print "status rerun=",$status_rerun,"\n";
 print "status readgroup=",$status_rg,"\n";
 print "queue name=",$q_name,"\n";
+
 if($q_name eq "") 
 {
 	$q_name="long";
+}
+
+if($s_wgs eq "") 
+{
+	$s_wgs=0; 
 }
 
 #<STDIN>;
@@ -408,7 +421,13 @@ sub bsub_strelka{
 	#print STREKA "touch \$localstatus\n";
     print STREKA ". $script_dir/set_envvars\n";
 #   	print STREKA ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
+   # print STREKA 	
+    print STREKA "if [ $s_wgs -eq 1 ]\n";
+    print STREKA "  then\n";
+    print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config $script_dir/strelka.ini.wgs --output-dir \$STRELKA_OUT\n";
+  	print STREKA "else\n";	
 	print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config $script_dir/strelka.ini --output-dir \$STRELKA_OUT\n";
+	print STREKA "fi\n";
 	print STREKA "cd \$STRELKA_OUT\n";
 	print STREKA "make -j 16\n";
 	print STREKA "touch \${TASK_STATUS}\n";
@@ -1453,7 +1472,7 @@ sub bsub_vcf_2_maf{
 	print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
 	print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
 	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --filter-vcf $f_exac\n";
- 	print MAF "     ".$run_script_path."splice_site_check.pl $sample_full_path\n"; 
+ 	#print MAF "     ".$run_script_path."splice_site_check.pl $sample_full_path\n"; 
     close MAF;
   	my $sh_file=$job_files_dir."/".$current_job_file;
 

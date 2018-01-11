@@ -20,8 +20,10 @@ my $head_w=0;
 foreach my $d (`ls $run_dir`)
 {
   	my $dtr=$d; 
-	chomp($dtr); 
-	my $f_maf=$run_dir."/".$dtr."/".$dtr.".checked.maf"; 
+	chomp($dtr);
+ 
+#	my $f_maf=$run_dir."/".$dtr."/".$dtr.".checked.maf"; 
+my $f_maf=$run_dir."/".$dtr."/".$dtr.".maf"; 
 	if(-e $f_maf) 
 	{
 		my $count=0;

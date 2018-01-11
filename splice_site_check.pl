@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-
+### check splice_site if it is correctly annotated ### 
 use strict;
 use warnings;
 die unless @ARGV == 1;
