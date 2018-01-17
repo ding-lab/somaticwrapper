@@ -8,7 +8,7 @@ SomaticWrapper pipeline is a fully automated and modular software package design
 
 Pipeline version: 1.1
 
-Usage: perl $0  --srg --step --sre --rdir --ref --refname --log --q --wgs 
+Usage: perl somatic_calling_v1.1.pl --srg --step --sre --rdir --ref --refname --log --q --wgs 
 
 <rdir> = full path of the folder holding files for this sequence run (user must provide)
 <log> = full path of the folder for saving log file; usually upper folder of rdir
