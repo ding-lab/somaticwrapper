@@ -3,7 +3,7 @@
 # * varscan.out.som_indel.vcf
 # * varscan.out.som_snv.vcf
 
-
+# TODO: allow varscan, samtools to be defined in configuration file
 
 sub run_varscan{
     my $IN_bam_T = shift;
@@ -14,6 +14,10 @@ sub run_varscan{
     my $bsub = shift;
     my $REF = shift;
     my $varscan_config = shift;
+
+    my $varscan="/usr/local/VarScan.v2.3.8.jar";
+    my $samtools="/usr/local/bin/samtools";
+
 
     $current_job_file = "j2_varscan_".$sample_name.".sh";
     if (! -e $IN_bam_T) {#make sure there is a input fasta file 
@@ -57,9 +61,6 @@ sub run_varscan{
     print("Writing to $outfn\n");
     open(OUT, ">$outfn") or die $!;
 
-    my $jar="/usr/local/VarScan.v2.3.8.jar";
-    my $samtools="/usr/local/bin/samtools";
-
 
     my $run_name="varscan.out.som";
     my $log=$workdir."/".$run_name.".log";
@@ -78,7 +79,7 @@ JAVA_OPTS="-Xms256m -Xmx512m"
 
 SAMTOOLS_CMD="$samtools mpileup -q 1 -Q 13 -B -f $REF -b $bam_list "
 
-JAVA_CMD="java \$JAVA_OPTS -jar $jar somatic - $run_name $varscan_args --output-snp $snvout --output-indel $indelout"
+JAVA_CMD="java \$JAVA_OPTS -jar $varscan somatic - $run_name $varscan_args --output-snp $snvout --output-indel $indelout"
 
 \$SAMTOOLS_CMD | \$JAVA_CMD # &> $log
 
