@@ -29,7 +29,7 @@ require("src/merge_vcf.pl");
 require("src/vcf_2_maf.pl");
 
 (my $usage = <<OUT) =~ s/\t+//g;
-This script will process evaluate variants for WGS and WXS data
+This script will evaluate variants for WGS and WXS data
 Pipeline version: $version
 $yellow     Usage: perl $0 step_number config_file [config_file_2] $normal_color
 
@@ -48,7 +48,7 @@ $gray        [9 or vcf2maf] generate maf file
 $gray        [10 or run_vep]  Run VEP annotation
 $normal_color
 
-Input File configuration
+Config File details
 
 Format:
     key = value
@@ -237,5 +237,8 @@ if (-d $sample_full_path) { # is a full path directory containing sample analysi
     } else {
         die("Unknown step number $step_number\n");
     }
+} else {
+    # Not finding data path is an error condition
+    die ("Directory $sample_full_path does not exist\n");
 }
 
