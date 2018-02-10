@@ -55,10 +55,10 @@ hg19: /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta
 $red 	     [0]  Run all steps
 $green       [1]  Run streka
 $green 		 [2]  Run Varscan
-$yellow 	 [3]  Parse streka result
-$yellow 	 [4]  Parse VarScan result
-$purple      [5]  Run Pindel
-$purple 	 [6]  Parse Pindel
+$green       [3]  Run Pindel
+$yellow 	 [4]  Parse streka result
+$yellow 	 [5]  Parse VarScan result
+$yellow      [6]  Parse Pindel
 $cyan 	     [7]  Merge vcf files  
 $cyan		 [8] Generate maf file 
 $cyan 		 [9] Generate merged maf file
@@ -200,12 +200,13 @@ if ($step_number < 9) {
                 {  
 				   &bsub_strelka();
 				   &bsub_varscan();
+					&bsub_pindel();
 				   &bsub_parse_strelka();
 				   &bsub_parse_varscan();
-				   &bsub_pindel();
+				   #&bsub_pindel();
 				   &bsub_parse_pindel();
-				   &bsub_vep();
-				   &bsub_mutect();
+				  # &bsub_vep();
+				  # &bsub_mutect();
 				   &bsub_merge_vcf();
 				   &bsub_vcf_2_maf();
 				}
@@ -215,12 +216,15 @@ if ($step_number < 9) {
                     &bsub_varscan(1);
                 } 
 				elsif ($step_number == 3) {
-                    &bsub_parse_strelka(1);
+					&bsub_pindel(1);
+                    #&bsub_parse_strelka(1);
                 } 
 				elsif ($step_number == 4) {
-                    &bsub_parse_varscan(1);
+                    #&bsub_parse_varscan(1);
+					&bsub_parse_strelka(1);
                 }elsif ($step_number == 5) {
-                    &bsub_pindel(1);
+                  #  &bsub_parse_strelka(1);
+					&bsub_parse_varscan(1);
                 }elsif ($step_number == 6) {
                     &bsub_parse_pindel(1);
  #               }
@@ -601,7 +605,7 @@ sub bsub_parse_strelka{
     }
 
 
-    $current_job_file = "j3_parse_strelka".$sample_name.".sh";
+    $current_job_file = "j4_parse_strelka".$sample_name.".sh";
 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
@@ -740,7 +744,7 @@ sub bsub_parse_varscan{
     }
 
 
-  	$current_job_file = "j4_parse_varscan".$sample_name.".sh";
+  	$current_job_file = "j5_parse_varscan".$sample_name.".sh";
 
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
@@ -920,7 +924,7 @@ sub bsub_pindel{
         $hold_job_file = $current_job_file;
     }
 
-	$current_job_file = "j5_pindel".$sample_name.".sh";  
+	$current_job_file = "j3_pindel".$sample_name.".sh";  
 	my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
