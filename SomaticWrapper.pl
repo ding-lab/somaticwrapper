@@ -67,8 +67,9 @@ Optional configuration file parameters
             Per-sample analysis directory is sw_data/sample_name
     use_vep_db - whether to use online VEP database lookups (1 for true)
           db mode a) uses online database (so cache isn't installed) b) does not use tmp files
-          It is meant to be used for testing and lightweight applications.  Use the cache for
-          better performance.  See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
+          It is meant to be used for testing and lightweight applications.  Use the cache (default)
+          for better performance.
+          See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
     vep_cache_dir - VEP cache directory, if not doing online VEP db lookups.  Default is "/data/D_VEP"
     submit_cmd - command to initiate execution of generated script.  Default value 'bash', can set as 'cat' to allow step-by-step execution for debugging
     output_vep - write final annotated merged file in VEP rather than VCF format
