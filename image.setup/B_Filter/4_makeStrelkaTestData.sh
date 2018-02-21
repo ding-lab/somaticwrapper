@@ -15,17 +15,24 @@ DBSNP="human_9606_b150_GRCh37p13.All.5col.vcf.gz"
 COSMIC="CosmicCodingMuts.grch37.v82.vcf.gz"
 
 OFFSET=1000000
-OUT="$OUTD/dbSnP.vcf.gz"
-tabix $DATD/$DBSNP 20:1000900-1004000 | awk -v offset=$OFFSET 'BEGIN{FS="\t"; OFS="\t"}{print $1,$2-offset,$3,$4,$5,$6,$7,$8}' | bgzip > $OUT
-tabix -p vcf $OUT
-echo Written to $OUT
+DBSNP_S="$OUTD/dbSnP.vcf.gz"
+tabix $DATD/$DBSNP 20:1000900-1004000 | awk -v offset=$OFFSET 'BEGIN{FS="\t"; OFS="\t"}{print $1,$2-offset,$3,$4,$5,$6,$7,$8}' | bgzip > $DBSNP_S
+tabix -p vcf $DBSNP_S
+echo Written to $DBSNP_S
 
 #For Cosmic, the above region does not have anything, but the region below has a cluster of variants
 #tabix CosmicCodingMuts.grch37.v82.vcf.gz 20:1099445-1100000 
 #(subtract 1098545 from above to map to 900-4000)
 
 OFFSET=1098545
-OUT="$OUTD/COSMIC.vcf.gz"
-tabix $DATD/$COSMIC 20:1099445-1100000 | awk -v offset=$OFFSET 'BEGIN{FS="\t"; OFS="\t"}{print $1,$2-offset,$3,$4,$5,$6,$7,$8}' | bgzip > $OUT
-tabix -p vcf $OUT
-echo Written to $OUT
+COSMIC_S="$OUTD/COSMIC.vcf.gz"
+tabix $DATD/$COSMIC 20:1099445-1100000 | awk -v offset=$OFFSET 'BEGIN{FS="\t"; OFS="\t"}{print $1,$2-offset,$3,$4,$5,$6,$7,$8}' | bgzip > $COSMIC_S
+tabix -p vcf $COSMIC_S
+echo Written to $COSMIC_S
+
+# TODO: confirm script below works
+
+OUT="$OUTD/dbsnp-StrelkaDemo.noCOSMIC.vcf.gz"
+bash ./make_variant_filter.sh $DBSNP_S $COSMIC_S $OUT
+
+

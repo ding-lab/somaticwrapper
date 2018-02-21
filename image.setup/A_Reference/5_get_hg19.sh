@@ -1,7 +1,7 @@
 # Download the hg19/GRCh37 human reference
 # Not clear this is necessary
 
-OUTD="/data/image.data/A_Reference"
+OUTD="/image/A_Reference"
 mkdir -p $OUTD
 
 echo Saving reference to $OUTD

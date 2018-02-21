@@ -1,7 +1,6 @@
 # Download the GRCh38 human reference
 
-
-OUTD="/data/image.data/A_Reference"
+OUTD="/image/A_Reference"
 mkdir -p $OUTD
 
 echo Saving reference to $OUTD

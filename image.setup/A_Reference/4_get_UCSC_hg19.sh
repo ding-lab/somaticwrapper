@@ -3,7 +3,7 @@
 # This reference used for 01BR001 test case
 # We'll download the fai and dict files so there's no need to prepare the reference ourselves
 
-OUTD="/data/image.data/A_Reference"
+OUTD="/image/A_Reference"
 mkdir -p $OUTD
 
 echo Saving reference to $OUTD
