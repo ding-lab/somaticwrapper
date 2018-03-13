@@ -9,6 +9,8 @@
 # @version 0.3 (rjm): generalize filter hierarchy filename handling and simply code structure
 # @version 0.2 (rjm): added coverage, germline, trio, minimal pool filtering; revised approach; added failed pass. Adjusted filename and parameters names; allow for commented lines
 # @version 0.1 (bn):  original somatic filter, written for (tumor,normal) column order
+# updated by song cao to fix the bug about the somatic part#
+
 #--------------------------------------
 use strict;
 use warnings;
@@ -22,7 +24,9 @@ use POSIX qw( WIFEXITED );
 use File::Temp qw/ tempfile /;
 
 
-my $zero=0.001;
+#my $zero=0.001;
+## song changes 0.001 to 0.01 ##
+my $zero=0.01;
 
 my $thisdir;
 $thisdir=`dirname $ARGV[0]`;
@@ -119,12 +123,16 @@ if ($paras{'apply_filter'} eq "true"  &&  $paras{'mode'} ne "pooled") {
 		$filter1_fail_fh->print($_."\n");
 		next;
 	    }
-	    if( ($t[34] + $t[36] + $t[34] + $t[36])/($t[32] + $t[33] + $t[34] + $t[36] + $t[34] + $t[36] ) <  $paras{'min_var_allele_freq'} ||  ($t[41] + $t[43] + $t[41] + $t[43])/($t[39] + $t[40] + $t[41] + $t[43] + $t[41] + $t[43]) > $zero) {
+### song changed ## 
+       if( ($t[34] + $t[36] + $t[34] + $t[36])/($t[32] + $t[33] + $t[34] + $t[36] + $t[34] + $t[36] ) > $zero ||  ($t[41] + $t[43] + $t[41] + $t[43])/($t[39] + $t[40] + $t[41] + $t[43] + $t[41] + $t[43]) < $paras{'min_var_allele_freq'}) {
+
+#	    if( ($t[34] + $t[36] + $t[34] + $t[36])/($t[32] + $t[33] + $t[34] + $t[36] + $t[34] + $t[36] ) <  $paras{'min_var_allele_freq'} ||  ($t[41] + $t[43] + $t[41] + $t[43])/($t[39] + $t[40] + $t[41] + $t[43] + $t[41] + $t[43]) > $zero) {
 		$filter1_fail_fh->print($_."\n");
 		next;
 	    }
 	    if($paras{'require_balanced_reads'} =~ /true/) {  
-		if ( $t[34] == 0 ||  $t[36] == 0 || $t[41] > 0 || $t[43] > 0 ) {
+		if ( $t[41] == 0 || $t[43] == 0 ) {
+		#if ( $t[34] == 0 ||  $t[36] == 0 || $t[41] > 0 || $t[43] > 0 ) {
 		    $filter1_fail_fh->print($_."\n");
 		    next;
 		}
@@ -132,7 +140,7 @@ if ($paras{'apply_filter'} eq "true"  &&  $paras{'mode'} ne "pooled") {
 	    if($paras{'remove_complex_indels'} =~ /true/) {  
 		if ( $t[1] eq "I" || $t[1] eq "D") {
 		    if ( $t[1] eq "I" || ($t[1] eq "D" && $t[4] == 0) ) {
-			# print "Indel filter: passed\n";
+			print "Indel filter: passed\n";
 			$filter1_pass_fh->print($_."\n");
 		    } else {
 			$filter1_fail_fh->print($_."\n");

@@ -27,7 +27,7 @@ sub merge_vcf {
     my $pindel_vcf = "$sample_full_path/pindel/filter_out/pindel.out.current_final.gvip.dbsnp_pass.vcf";
     my $varscan_indel = "$sample_full_path/varscan/filter_out/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf";
     my $merger_out = "$filter_results/merged.vcf";
-
+#	my $merge_filter="$filter_results/merged.vcf";	
 
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");

@@ -68,9 +68,9 @@ varscan.dbsnp.indel.passfile  = $indeloutbase.gvip.Somatic.hc.dbsnp_pass.vcf
 varscan.dbsnp.indel.dbsnpfile = $indeloutbase.gvip.Somatic.hc.dbsnp_present.vcf
 EOF
 
-    my $somatic_snv_params="--min-tumor-freq 0.10 --max-normal-freq 0.05 --p-value 0.07";
-    my $somatic_indel_params="--min-tumor-freq 0.10 --max-normal-freq 0.05 --p-value 0.07";
-    my $somatic_filter_params="--min-coverage 30 --min-reads2 4 --min-strands2 1 --min-avg-qual 20 --min-var-freq 0.10 --p-value 0.05";
+    my $somatic_snv_params="--min-tumor-freq 0.05 --max-normal-freq 0.05 --p-value 0.05";
+    my $somatic_indel_params="--min-tumor-freq 0.05 --max-normal-freq 0.05 --p-value 0.05";
+    my $somatic_filter_params="--min-coverage 20 --min-reads2 4 --min-strands2 1 --min-avg-qual 20 --min-var-freq 0.05 --p-value 0.05";
 
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");

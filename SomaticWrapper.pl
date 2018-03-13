@@ -27,7 +27,7 @@ require("src/parse_pindel.pl");
 require("src/run_vep.pl");
 require("src/merge_vcf.pl");
 require("src/vcf_2_maf.pl");
-
+require("src/vaf_filter.pl");
 (my $usage = <<OUT) =~ s/\t+//g;
 This script will evaluate variants for WGS and WXS data
 Pipeline version: $version
@@ -228,15 +228,17 @@ if (-d $sample_full_path) { # is a full path directory containing sample analysi
         parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db, $snpsift_jar, $paras{'pindel_config'});
     } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
         merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db, $output_vep, $assembly, $vep_cache_dir);
-    } elsif (($step_number eq '9') || ($step_number eq 'vcf2maf')) {
+		
+    } else (($step_number eq '9') || ($step_number eq 'filter_vcf')) {
         die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
         vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir);
-    } elsif (($step_number eq '10') || ($step_number eq 'run_vep')) {
-        print("annotate_intermediate = $annotate_intermediate\n");
-        run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $use_vep_db, $output_vep, $annotate_intermediate);
-    } else {
-        die("Unknown step number $step_number\n");
-    }
+    } 
+#elsif (($step_number eq '10') || ($step_number eq 'run_vep')) {
+#        print("annotate_intermediate = $annotate_intermediate\n");
+#        run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $use_vep_db, $output_vep, $annotate_intermediate);
+#    } else {
+ #       die("Unknown step number $step_number\n");
+ #   }
 } else {
     # Not finding data path is an error condition
     die ("Directory $sample_full_path does not exist\n");
