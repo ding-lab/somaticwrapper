@@ -1,20 +1,20 @@
 ######### Song Cao and Matt Wyczalkowski ###########
 ## pipeline for somatic variant calling ##
 
+# TODO: implement full command line argument parsing instead of configuration file
+# see: https://perlmaven.com/how-to-process-command-line-arguments-in-perl
+
+# TODO: how are paths handled in CGC?  Do we need so pass output paths individually?
+
+# sample_name -> run_name
+
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Getopt::Long qw(GetOptions);
+
 #use POSIX;
 my $version = 3.0;
-#color code
-my $red = "\e[31m";
-my $gray = "\e[37m";
-my $yellow = "\e[33m";
-my $green = "\e[32m";
-my $purple = "\e[35m";
-my $cyan = "\e[36m";
-my $normal_color = "\e[0m";
-#usage information
 
 # submodule information
 # https://stackoverflow.com/questions/1712016/how-do-i-include-functions-from-another-file-in-my-perl-script
@@ -31,173 +31,126 @@ require("src/vcf_2_maf.pl");
 (my $usage = <<OUT) =~ s/\t+//g;
 This script will evaluate variants for WGS and WXS data
 Pipeline version: $version
-$yellow     Usage: perl $0 step_number config_file [config_file_2] $normal_color
+Usage: perl $0 [options] run_name step_number 
 
-step_number run this pipeline step by step. (running the whole pipeline if step number is 0)
-config_file Input configuration file.  See below for format
-config_file_2 Optional secondary configuration file, any parameters here override configuration previous configuration
+run_name is unique identifier of this analysis (previously called sample_name)
+step_number executes given step of pipeline:
+* [1 or run_strelka]  Run streka
+* [2 or run_varscan]  Run Varscan
+* [3 or parse_strelka]  Parse streka result
+* [4 or parse_varscan]  Parse VarScan result
+* [5 or run_pindel]  Run Pindel
+* [7 or parse_pindel]  Parse Pindel
+* [8 or merge_vcf]  Merge vcf files using local VEP cache
+* [10 or run_vep]  Run VEP annotation
 
-$green       [1 or run_strelka]  Run streka
-$red         [2 or run_varscan]  Run Varscan
-$yellow      [3 or parse_strelka]  Parse streka result
-$purple      [4 or parse_varscan]  Parse VarScan result
-$cyan        [5 or run_pindel]  Run Pindel
-$gray        [7 or parse_pindel]  Parse Pindel
-$gray        [8 or merge_vcf]  Merge vcf files using local VEP cache
-$gray        [9 or vcf2maf] generate maf file 
-$gray        [10 or run_vep]  Run VEP annotation
-$normal_color
-
-Config File details
-
-Format:
-    key = value
-
-Required configuration file keys
-    tumor_bam
-    normal_bam
-    reference_fasta
-    reference_dict
-    sample_name
-    assembly - GRCh37 or GRCh38
-
-Optional configuration file parameters
-    sw_dir - Somatic Wrapper installation directory.  Default is /usr/local/somaticwrapper
-    sw_data - Somatic Wrapper analysis results directory.  Default is /data/data
-            Per-sample analysis directory is sw_data/sample_name
-    use_vep_db - whether to use online VEP database lookups (1 for true)
+Optional configuration file parameters [defaults]
+    --tumor_bam s:  path to tumor BAM.  Required for all runs
+    --normal_bam s: path to normal BAM.  Required for all runs
+    --reference_fasta s: path to reference
+    --assembly s: either "GRCh37" or "GRCh38", used for VEP [GRCh37]
+    --reference_dict s: path to reference dict file.  Default is reference_fasta with ".dict" appended
+    --sw_dir s: Somatic Wrapper installation directory [/usr/local/somaticwrapper]
+    --sw_data s: Somatic Wrapper analysis results directory [/data/data]
+            Per-sample analysis directory is sw_data/run_name
+    --use_vep_db : if defined, use online VEP database lookups ("db mode") [false]
           db mode a) uses online database (so cache isn't installed) b) does not use tmp files
           It is meant to be used for testing and lightweight applications.  Use the cache (default)
           for better performance.
           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
-    vep_cache_dir - VEP cache directory, if not doing online VEP db lookups.  Default is "/data/D_VEP"
-    submit_cmd - command to initiate execution of generated script.  Default value 'bash', can set as 'cat' to allow step-by-step execution for debugging
-    output_vep - write final annotated merged file in VEP rather than VCF format
-    annotate_intermediate - VEP-annotate intermediate output files
-    strelka_config - path to strelka.ini file, required for strelka run
-    varscan_config - path to varscan.ini file, required for varscan run
-    pindel_config - path to pindel.ini file, required for pindel parsing
-    centromere_bed - path to BED file describing centromere regions to exclude for pindel analysis.  
-        Default: sw_dir/image.setup/C_Centromeres/pindel-centromere-exclude.bed
-    gatk - path to GATK Jar file.  Default: /usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar
-    perl - path to PERL executable.  Default: /usr/bin/perl
-    strelka_dir - path to strelka installation dir.  Default: /usr/local/strelka
-    vep_cmd - path to ensembl vep executable.  Default: /usr/local/ensembl-vep/vep
-    pindel_dir - path to Pindel installation dir.  Default: /usr/local/pindel
-    snpsift_jar - default: /usr/local/snpEff/SnpSift.jar
-    varscan_jar - default: /usr/local/VarScan.jar
-
+    --vep_cache_dir s: VEP cache directory, if not doing online VEP db lookups.  [/data/D_VEP]
+    --output_vep : if defined, write final annotated merged file in VEP rather than VCF format [false]
+    --annotate_intermediate : if defined, annotate intermediate files with VEP [false]
+    --strelka_config s: path to strelka.ini file, required for strelka run
+    --varscan_config s: path to varscan.ini file, required for varscan run
+    --pindel_config s: path to pindel.ini file, required for pindel parsing
+    --centromere_bed s: path to BED file describing centromere regions to exclude for pindel analysis.  See C_Centromeres for discussion
+    --gatk_jar s: path to GATK Jar file.  [/usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar]
+    --perl s: path to PERL executable.  [/usr/bin/perl]
+    --strelka_dir s: path to strelka installation dir.  [/usr/local/strelka]
+    --vep_cmd s: path to ensembl vep executable.  [/usr/local/ensembl-vep/vep]
+    --pindel_dir s: path to Pindel installation dir.  [/usr/local/pindel]
+    --snpsift_jar s: [/usr/local/snpEff/SnpSift.jar]
+    --varscan_jar s: [usr/local/VarScan.jar]
+    --dbsnp_db s: database for dbSNP filtering [none]
 OUT
 
-die $usage unless @ARGV >= 2;
-my ( $step_number, $config_file, $config_file2 ) = @ARGV;
+# OLD:
+# my $centromere_bed="$sw_dir/image.setup/C_Centromeres/pindel-centromere-exclude.bed";
 
-print("Reading configuration file $config_file\n");
-
-# get paras from config file
-# for a "key = value" pair of "xxx.yyy.zzz = foo", generates entry $params{'zzz'}='foo'
-open(CONFIG, $config_file) or die "Could not open file '$config_file' $!";
-my (%paras);
-map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<CONFIG>);
-close(CONFIG);
-
-# Goal of an optional secondary configuration file is to allow for local configuration changes which are not tracked by git.
-# An example is to have a different sw_dir on MGI, but don't want MGI-specific changes propagated to main branch
-# check if parameter is defined, and if file exists
-if (defined $config_file2) {
-    if (-e $config_file2) {
-        print("Reading secondary configuration file $config_file2\n");
-        open(CONFIG2, $config_file2);
-        map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<CONFIG2>);
-        close(CONFIG2);
-    } else {
-        print("Optional configuration file $config_file2 does not exist.  Continuing. \n");
-    }
-}
-
-map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
-
-die("tumor_bam undefined in $config_file\n") unless exists $paras{'tumor_bam'};
-my $tumor_bam = $paras{'tumor_bam'};
-
-die("normal_bam undefined in $config_file\n") unless exists $paras{'normal_bam'};
-my $normal_bam = $paras{'normal_bam'};
-
-die("assembly undefined in $config_file\n") unless exists $paras{'assembly'};
-my $assembly = $paras{'assembly'};
-
-die("reference_fasta undefined in $config_file\n") unless exists $paras{'reference_fasta'};
-my $ref = $paras{'reference_fasta'};
-
-die("reference_dict undefined in $config_file\n") unless exists $paras{'reference_dict'};
-my $ref_dict = $paras{'reference_dict'};
-
-die("sample_name undefined in $config_file\n") unless exists $paras{'sample_name'};
-my $sample_name = $paras{'sample_name'};
-
-# This is the default somatic wrapper installation directory
-my $sw_dir="/usr/local/somaticwrapper";
-if (exists $paras{'sw_dir'} ) { $sw_dir=$paras{'sw_dir'}; }
-
-my $use_vep_db=0;
-if (exists $paras{'use_vep_db'} ) { $use_vep_db=$paras{'use_vep_db'}; }
-
-# parameter submit_cmd will typically be "bash" to execute entire script.  Set it to "cat" for debugging, "bsub" to submit to LSF 
-# TODO: this is better handled with -d flag
-my $bsub = "bash";
-if (exists $paras{'submit_cmd'} ) { $bsub=$paras{'submit_cmd'}; }
-
-my $dbsnp_db = "none";  # TODO: if dbsnp_db not defined, either give an error or skip dbSNP filtering
-if (exists $paras{'dbsnp_db'} ) { $dbsnp_db=$paras{'dbsnp_db'}; }
-
+# Argument parsing reference: http://perldoc.perl.org/Getopt/Long.html
+# https://perlmaven.com/how-to-process-command-line-arguments-in-perl
+my $tumor_bam;
+my $normal_bam;
+my $assembly="GRCh37";
+my $reference_fasta;
+my $reference_dict;  # default mapping occurs after reference_fasta known
+my $sw_dir = "/usr/local/somaticwrapper";
+my $sw_data = "/data/data";
+my $use_vep_db; 
 my $vep_cache_dir = "/data/D_VEP";
-if (exists $paras{'vep_cache_dir'} ) { $vep_cache_dir=$paras{'vep_cache_dir'}; }
-
-my $output_vep = 0;
-if (exists $paras{'output_vep'} ) { $output_vep=$paras{'output_vep'}; }
-
-my $annotate_intermediate=0;
-if (exists $paras{'annotate_intermediate'} ) { $annotate_intermediate=$paras{'annotate_intermediate'}; }
-
-# Add params below to optional params with defaults
-
-# Define where centromere definion file is for pindel processing.  See C_Centromeres for discussion
-# This should really live in the data directory
-my $centromere_bed="$sw_dir/image.setup/C_Centromeres/pindel-centromere-exclude.bed";
-if (exists $paras{'centromere_bed'} ) { $centromere_bed=$paras{'centromere_bed'}; }
-
-my $gatk="/usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar";
-if (exists $paras{'gatk'} ) { $gatk=$paras{'gatk'}; }
-
+my $output_vep;
+my $annotate_intermediate;
+my $strelka_config; 
+my $varscan_config; 
+my $pindel_config; 
+my $centromere_bed; 
+my $gatk_jar = "/usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar";
 my $perl = "/usr/bin/perl";
-if (exists $paras{'perl'} ) { $perl=$paras{'perl'}; }
+my $strelka_dir = "/usr/local/strelka";
+my $vep_cmd = "/usr/local/ensembl-vep/vep";
+my $pindel_dir = "/usr/local/pindel";
+my $snpsift_jar = "/usr/local/snpEff/SnpSift.jar";
+my $varscan_jar = "usr/local/VarScan.jar";
+my $dbsnp_db = "none";
 
-# using older version of strelka
-#my $strelka_dir="/usr/local/strelka-2.7.1.centos5_x86_64/bin";
-my $strelka_dir="/usr/local/strelka";
-if (exists $paras{'strelka_dir'} ) { $strelka_dir=$paras{'strelka_dir'}; }
+GetOptions(
+    'tumor_bam=s' => \$tumor_bam,
+    'normal_bam=s' => \$normal_bam,
+    'reference_fasta=s' => \$reference_fasta,
+    'assembly=s' => \$assembly,
+    'reference_dict=s' => \$reference_dict,
+    'sw_dir=s' => \$sw_dir,
+    'sw_data=s' => \$sw_data,
+    'use_vep_db' => \$use_vep_db,
+    'vep_cache_dir=s' => \$vep_cache_dir,
+    'output_vep' => \$output_vep,
+    'annotate_intermediate' => \$annotate_intermediate,
+    'strelka_config=s' => \$strelka_config,
+    'varscan_config=s' => \$varscan_config,
+    'pindel_config=s' => \$pindel_config,
+    'centromere_bed=s' => \$centromere_bed,
+    'gatk_jar=s' => \$gatk_jar,
+    'perl=s' => \$perl,
+    'strelka_dir=s' => \$strelka_dir,
+    'vep_cmd=s' => \$vep_cmd,
+    'pindel_dir=s' => \$pindel_dir,
+    'snpsift_jar=s' => \$snpsift_jar,
+    'varscan_jar=s' => \$varscan_jar
+    'dbsnp_db=s' => \$dbsnp_db
+) or die "Error parsing command line args.\n$usage\n";
 
-my $vep_cmd="/usr/local/ensembl-vep/vep";
-if (exists $paras{'vep_cmd'} ) { $vep_cmd=$paras{'vep_cmd'}; }
+die $usage unless @ARGV >= 2;
+my ( $run_name, $step_number ) = @ARGV;
 
-my $pindel_dir="/usr/local/pindel";
-if (exists $paras{'pindel_dir'} ) { $pindel_dir=$paras{'pindel_dir'}; }
+if ( not $reference_dict ) $reference_dict = "$reference_fasta.dict";
 
-my $sw_data="/data/data";
-if (exists $paras{'sw_data'} ) { $sw_data=$paras{'sw_data'}; }
 
-my $snpsift_jar="/usr/local/snpEff/SnpSift.jar";
-if (exists $paras{'snpsift_jar'} ) { $snpsift_jar=$paras{'snpsift_jar'}; }
 
-my $varscan_jar="/usr/local/VarScan.jar";
-if (exists $paras{'varscan_jar'} ) { $varscan_jar=$paras{'varscan_jar'}; }
+
+die("tumor_bam undefined in $config_file\n") unless $tumor_bam;
+die("normal_bam undefined in $config_file\n") unless $normal_bam;
+die("assembly undefined in $config_file\n") unless $assembly;
+die("reference_fasta undefined in $config_file\n") unless $reference_fasta;
+die("reference_dict undefined in $config_file\n") unless $reference_dict;
+die("run_name undefined in $config_file\n") unless $run_name;
 
 # Distinguising between location of modules of somatic wrapper and GenomeVIP
 # GenomeVIP is not distributed separately so hard code the path
 my $gvip_dir="$sw_dir/GenomeVIP";
 
 #begin to process each sample
-my $sample_full_path = $sw_data."/".$sample_name;
+my $sample_full_path = $sw_data."/".$run_name;
 
 # automatically generated scripts in runtime
 my $job_files_dir="$sample_full_path/runtime";
@@ -208,38 +161,32 @@ print("SomaticWrapper dir: $sw_dir \n");
 print("Analysis dir: $sample_full_path\n");
 print("Run script dir: $job_files_dir\n");
 
-if (-d $sample_full_path) { # is a full path directory containing sample analysis
-    print $yellow, "\nSubmitting jobs for the sample ",$sample_name, "...",$normal_color, "\n";
+print "\nSubmitting jobs for the sample ",$run_name, "..." "\n";
 
-    if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
-        die("strelka_config undefined in $config_file\n") unless exists $paras{'strelka_config'};
-    #    my $strelka_config = "/usr/local/somaticwrapper/config/strelka.ini";
-        run_strelka($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $strelka_dir, $ref, $paras{'strelka_config'});
-    } elsif (($step_number eq '2') || ($step_number eq 'run_varscan')) {
-        die("varscan_config undefined in $config_file\n") unless exists $paras{'varscan_config'};
-        run_varscan($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $paras{'varscan_config'});
-    } elsif (($step_number eq '3') || ($step_number eq 'parse_strelka')) {
-        parse_strelka($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $ref_dict, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar);
-    } elsif (($step_number eq '4') || ($step_number eq 'parse_varscan')) {
-        parse_varscan($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $varscan_jar);
-    } elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
-        run_pindel($tumor_bam, $normal_bam, $sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $pindel_dir, $centromere_bed);
-    } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
-        die("pindel_config undefined in $config_file\n") unless exists $paras{'pindel_config'};
-        parse_pindel($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db, $snpsift_jar, $paras{'pindel_config'});
-    } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
-        merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db, $output_vep, $assembly, $vep_cache_dir);
-    } elsif (($step_number eq '9') || ($step_number eq 'vcf2maf')) {
-        die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
-        vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir);
-    } elsif (($step_number eq '10') || ($step_number eq 'run_vep')) {
-        print("annotate_intermediate = $annotate_intermediate\n");
-        run_vep($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $use_vep_db, $output_vep, $annotate_intermediate);
-    } else {
-        die("Unknown step number $step_number\n");
-    }
+if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
+    die("strelka_config undefined in $config_file\n") unless exists $paras{'strelka_config'};
+#    my $strelka_config = "/usr/local/somaticwrapper/config/strelka.ini";
+    run_strelka($tumor_bam, $normal_bam, $run_name, $sample_full_path, $job_files_dir, $bsub, $strelka_dir, $ref, $paras{'strelka_config'});
+} elsif (($step_number eq '2') || ($step_number eq 'run_varscan')) {
+    die("varscan_config undefined in $config_file\n") unless exists $paras{'varscan_config'};
+    run_varscan($tumor_bam, $normal_bam, $run_name, $sample_full_path, $job_files_dir, $bsub, $ref, $paras{'varscan_config'});
+} elsif (($step_number eq '3') || ($step_number eq 'parse_strelka')) {
+    parse_strelka($run_name, $sample_full_path, $job_files_dir, $bsub, $ref, $ref_dict, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar);
+} elsif (($step_number eq '4') || ($step_number eq 'parse_varscan')) {
+    parse_varscan($run_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $varscan_jar);
+} elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
+    run_pindel($tumor_bam, $normal_bam, $run_name, $sample_full_path, $job_files_dir, $bsub, $ref, $pindel_dir, $centromere_bed);
+} elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
+    die("pindel_config undefined in $config_file\n") unless exists $paras{'pindel_config'};
+    parse_pindel($run_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db, $snpsift_jar, $paras{'pindel_config'});
+} elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
+    merge_vcf($run_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $gatk_jar, $use_vep_db, $output_vep, $assembly, $vep_cache_dir);
+} elsif (($step_number eq '9') || ($step_number eq 'vcf2maf')) {
+    die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
+    vcf_2_maf($run_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir);
+} elsif (($step_number eq '10') || ($step_number eq 'run_vep')) {
+    print("annotate_intermediate = $annotate_intermediate\n");
+    run_vep($run_name, $sample_full_path, $job_files_dir, $bsub, $ref, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $use_vep_db, $output_vep, $annotate_intermediate);
 } else {
-    # Not finding data path is an error condition
-    die ("Directory $sample_full_path does not exist\n");
+    die("Unknown step number $step_number\n");
 }
-
