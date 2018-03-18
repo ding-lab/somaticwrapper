@@ -19,6 +19,17 @@ about installation and usage of SomaticWrapper
 ![Somatic Wrapper Strelka Details](docs/SomaticWrapper.v2.Strelka.png)
 ![Somatic Wrapper Varscan Details](docs/SomaticWrapper.v2.Varscan.png)
 
+## Branches
+
+`docker` branch has work on version of SomaticWrapper which runs in dockerized container at 
+MGI or DC2 (uses SomaticWrapper.Workflow for help)
+
+`cwl` branch makes changes to make SomaticWrapper operate in CWL environment. Specific changes:
+  * all arguments are passed on command line, rather than configuraiton file
+  * Output directory is passed as an argument explicitly, so that directry structure is not
+    dependent on run name
+  * inputs and outputs are more explicitly defined
+
 ## Authors
 
 * Song Cao
