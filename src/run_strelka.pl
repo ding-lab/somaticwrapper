@@ -15,7 +15,7 @@ sub run_strelka {
     my $IN_bam_T = shift;
     my $IN_bam_N = shift;
     my $sample_name = shift;
-    my $sample_full_path = shift;
+    my $results_dir = shift;
     my $job_files_dir = shift;
     my $bsub = shift;
     my $STRELKA_DIR = shift;
@@ -23,31 +23,23 @@ sub run_strelka {
     my $strelka_config = shift;
 
     $current_job_file = "j1_streka_".$sample_name.".sh"; 
-    if (! -e $IN_bam_T) {#make sure there is a input fasta file 
-        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        print "Warning: Died because there is no input bam file for bwa:\n";
-        print "File $IN_bam_T does not exist!\n";
-        die "Please check command line argument!", $normal, "\n\n";
+    if (! -e $IN_bam_T) {
+        die "Error: Tumor BAM $IN_bam_T does not exist\n";
 
     }
-    if (! -s $IN_bam_T) {#make sure input fasta file is not empty
-        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        die "Warning: Died because $IN_bam_T is empty!", $normal, "\n\n";
+    if (! -s $IN_bam_T) {
+        die "Error: Tumor BAM $IN_bam_T is empty\n";
     }
-    if (! -e $IN_bam_N) {#make sure there is a input fasta file 
-        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        print "Warning: Died because there is no input bam file for bwa:\n";
-        print "File $IN_bam_N does not exist!\n";
-        die "Please check command line argument!", $normal, "\n\n";
+    if (! -e $IN_bam_N) {
+        die "Error: Normal BAM $IN_bam_N does not exist\n";
 
     }
     if (! -s $IN_bam_N) {#make sure input fasta file is not empty
-        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
+        die "Error: Normal BAM $IN_bam_N is empty\n";
     }
 
 #    my $strelka_config = "/usr/local/somaticwrapper/config/strelka.ini";
-    my $strelka_out=$sample_full_path."/strelka/strelka_out";
+    my $strelka_out=$results_dir."/strelka/strelka_out";
     my $strelka_bin="$STRELKA_DIR/bin/configureStrelkaWorkflow.pl";
 
 
