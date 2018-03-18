@@ -19,6 +19,10 @@ about installation and usage of SomaticWrapper
 ![Somatic Wrapper Strelka Details](docs/SomaticWrapper.v2.Strelka.png)
 ![Somatic Wrapper Varscan Details](docs/SomaticWrapper.v2.Varscan.png)
 
+## Branches
+
+Docker branch is designed to maintain compatibility with MGI/DC2 workflows in SomaticWrapper.Workflow
+
 ## Authors
 
 * Song Cao
