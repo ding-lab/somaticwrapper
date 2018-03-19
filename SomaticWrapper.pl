@@ -230,8 +230,7 @@ if (-d $sample_full_path) { # is a full path directory containing sample analysi
         merge_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $gatk, $use_vep_db, $output_vep, $assembly, $vep_cache_dir);
 		
     } else (($step_number eq '9') || ($step_number eq 'filter_vcf')) {
-        die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
-        vcf_2_maf($sample_name, $sample_full_path, $job_files_dir, $bsub, $ref, $perl, $gvip_dir);
+        filter_vcf($sample_name, $sample_full_path, $job_files_dir, $bsub, $perl);
     } 
 #elsif (($step_number eq '10') || ($step_number eq 'run_vep')) {
 #        print("annotate_intermediate = $annotate_intermediate\n");

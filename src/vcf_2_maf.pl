@@ -39,7 +39,7 @@ sub vcf_2_maf{
 
     print OUT <<"EOF";
 #!/bin/bash
-$perl $sw_dir/vcf2maf.pl --input-vcf $F_VCF_2 --output-maf $F_maf --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $REF $exac_filter
+$perl $sw_dir/vaf_filter.pl --input-vcf $F_VCF_2 --output-maf $F_maf --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $REF $exac_filter
 
 EOF
 
