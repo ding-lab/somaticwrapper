@@ -139,10 +139,6 @@ RUN cd /usr/local \
 
 COPY vimrc /root/.vimrc
 
-# Copy StrelkaDemo test data - Small dataset for testing purposes
-# this is copied to ./ so that docker build can see it
-ADD DemoTestData/image DemoTestData/import /usr/local/StrelkaDemo/
-
 RUN cd /usr/local \
     &&   git clone -b cwl https://github.com/ding-lab/somaticwrapper 
 
