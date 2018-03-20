@@ -11,37 +11,18 @@ sub run_varscan{
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
-    my $bsub = shift;
     my $REF = shift;
     my $varscan_config = shift;
 
+    my $bsub = "bash";
     my $varscan="/usr/local/VarScan.v2.3.8.jar";
     my $samtools="/usr/local/bin/samtools";
 
-
     $current_job_file = "j2_varscan_".$sample_name.".sh";
-    if (! -e $IN_bam_T) {#make sure there is a input fasta file 
-        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        print "Warning: Died because there is no input bam file for bwa:\n";
-        print "File $IN_bam_T does not exist!\n";
-        die "Please check command line argument!", $normal, "\n\n";
-
-    }
-    if (! -s $IN_bam_T) {#make sure input fasta file is not empty
-        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        die "Warning: Died because $IN_bam_T is empty!", $normal, "\n\n";
-    }
-    if (! -e $IN_bam_N) {#make sure there is a input fasta file 
-        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        print "Warning: Died because there is no input bam file for bwa:\n";
-        print "File $IN_bam_N does not exist!\n";
-        die "Please check command line argument!", $normal, "\n\n";
-
-    }
-    if (! -s $IN_bam_N) {#make sure input fasta file is not empty
-        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
-    }
+    die "Error: Tumor BAM $IN_bam_T does not exist\n" if (! -e $IN_bam_T);
+    die "Error: Tumor BAM $IN_bam_T is empty\n" if (! -s $IN_bam_T);
+    die "Error: Normal BAM $IN_bam_N does not exist\n" if (! -e $IN_bam_N);
+    die "Error: Normal BAM $IN_bam_N is empty\n" if (! -s $IN_bam_N);
 
     my $workdir="$sample_full_path/varscan/varscan_out";
     system("mkdir -p $workdir");

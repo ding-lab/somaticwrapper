@@ -7,12 +7,12 @@ sub vcf_2_maf{
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
-    my $bsub = shift;
     my $REF = shift;
     my $perl = shift;
     my $gvip_dir = shift;
     my $f_exac = shift;
 
+    my $bsub = "bash";
     $current_job_file = "j9_vcf_2_maf.".$sample_name.".sh";
 
     my $merged_results = "$sample_full_path/merged";

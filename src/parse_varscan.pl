@@ -11,7 +11,6 @@ sub parse_varscan{
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
-    my $bsub = shift;
     my $REF = shift;
     my $perl = shift;
     my $gvip_dir = shift;
@@ -21,6 +20,7 @@ sub parse_varscan{
 
     $current_job_file = "j4_parse_varscan".$sample_name.".sh";
 
+    my $bsub = "bash";
     my $varscan_results = "$sample_full_path/varscan/varscan_out";
     my $filter_results = "$sample_full_path/varscan/filter_out";
     system("mkdir -p $filter_results");

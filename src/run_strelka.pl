@@ -17,26 +17,16 @@ sub run_strelka {
     my $sample_name = shift;
     my $results_dir = shift;
     my $job_files_dir = shift;
-    my $bsub = shift;
     my $STRELKA_DIR = shift;
     my $REF = shift;
     my $strelka_config = shift;
 
+    my $bsub = "bash";
     $current_job_file = "j1_streka_".$sample_name.".sh"; 
-    if (! -e $IN_bam_T) {
-        die "Error: Tumor BAM $IN_bam_T does not exist\n";
-
-    }
-    if (! -s $IN_bam_T) {
-        die "Error: Tumor BAM $IN_bam_T is empty\n";
-    }
-    if (! -e $IN_bam_N) {
-        die "Error: Normal BAM $IN_bam_N does not exist\n";
-
-    }
-    if (! -s $IN_bam_N) {#make sure input fasta file is not empty
-        die "Error: Normal BAM $IN_bam_N is empty\n";
-    }
+    die "Error: Tumor BAM $IN_bam_T does not exist\n" if (! -e $IN_bam_T);
+    die "Error: Tumor BAM $IN_bam_T is empty\n" if (! -s $IN_bam_T);
+    die "Error: Normal BAM $IN_bam_N does not exist\n" if (! -e $IN_bam_N);
+    die "Error: Normal BAM $IN_bam_N is empty\n" if (! -s $IN_bam_N);
 
 #    my $strelka_config = "/usr/local/somaticwrapper/config/strelka.ini";
     my $strelka_out=$results_dir."/strelka/strelka_out";

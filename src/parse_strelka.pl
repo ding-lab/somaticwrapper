@@ -14,7 +14,6 @@ sub parse_strelka {
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
-    my $bsub = shift;
     my $REF = shift;
     my $ref_dict = shift;  # this ends up being not used
     my $perl = shift;
@@ -27,6 +26,7 @@ sub parse_strelka {
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
 #    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
+    my $bsub = "bash";
     my $strelka_results = "$sample_full_path/strelka/strelka_out/results";
     my $filter_results = "$sample_full_path/strelka/filter_out";
     system("mkdir -p $filter_results");

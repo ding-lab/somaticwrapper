@@ -8,7 +8,6 @@ sub parse_pindel {
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
-    my $bsub = shift;
     my $REF = shift;
     my $perl = shift;
     my $gvip_dir = shift;
@@ -20,6 +19,7 @@ sub parse_pindel {
 
     $current_job_file = "j7_parse_pindel".$sample_name.".sh";
 
+    my $bsub = "bash";
     my $pindel_results = "$sample_full_path/pindel/pindel_out";
     my $filter_results = "$sample_full_path/pindel/filter_out";
     system("mkdir -p $filter_results");

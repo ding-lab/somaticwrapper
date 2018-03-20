@@ -4,11 +4,11 @@ sub run_pindel{
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
-    my $bsub = shift;
     my $REF = shift;
     my $pindel_dir = shift;
     my $f_centromere = shift;
 
+    my $bsub = "bash";
     $current_job_file = "j5_pindel".$sample_name.".sh";  
 
     my $pindel_out = "$sample_full_path/pindel/pindel_out";

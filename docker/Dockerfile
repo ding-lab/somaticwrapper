@@ -140,11 +140,7 @@ RUN cd /usr/local \
 COPY vimrc /root/.vimrc
 
 RUN cd /usr/local \
-    &&  git clone -b docker https://github.com/ding-lab/somaticwrapper 
-
-# Also install GermlineWrapper, branch d2
-RUN cd /usr/local \
-    &&  git clone -b d2 https://github.com/ding-lab/germlinewrapper 
+    &&  git clone -b cwl https://github.com/ding-lab/somaticwrapper 
 
 WORKDIR /usr/local/somaticwrapper
 

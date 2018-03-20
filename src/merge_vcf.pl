@@ -4,7 +4,6 @@ sub merge_vcf {
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
-    my $bsub = shift;
     my $REF = shift;
     my $perl = shift;
     my $gvip_dir = shift;
@@ -18,6 +17,7 @@ sub merge_vcf {
     my $assembly = shift;
     my $cache_dir = shift;
 
+    my $bsub = "bash";
     $current_job_file = "j8_merge_vcf.".$sample_name.".sh";
     my $filter_results = "$sample_full_path/merged";
     system("mkdir -p $filter_results");

@@ -1,2 +1,7 @@
-docker build -t mwyczalkowski/somatic-wrapper:latest .
-docker build -f Dockerfile.mgi -t mwyczalkowski/somatic-wrapper:mgi .
+# Be sure to do the following first:
+# docker login cgc-images.sbgenomics.com
+
+#IMAGE="mwyczalkowski/somatic-wrapper:cwl"
+IMAGE="cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:cwl"
+
+docker build -t $IMAGE .

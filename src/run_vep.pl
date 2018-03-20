@@ -33,7 +33,6 @@ sub run_vep {
     my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
-    my $bsub = shift;
     my $REF = shift;
     my $gvip_dir = shift;
     my $vep_cmd = shift;
@@ -45,6 +44,7 @@ sub run_vep {
 
     $current_job_file = "j6_vep".$sample_name.".sh";
 
+    my $bsub = "bash";
     my $varscan_results = "$sample_full_path/varscan/filter_out";
     my $strelka_results = "$sample_full_path/strelka/filter_out";
     my $pindel_results = "$sample_full_path/pindel/filter_out";

@@ -130,21 +130,21 @@ GetOptions(
     'vep_cmd=s' => \$vep_cmd,
     'pindel_dir=s' => \$pindel_dir,
     'snpsift_jar=s' => \$snpsift_jar,
-    'varscan_jar=s' => \$varscan_jar
+    'varscan_jar=s' => \$varscan_jar,
     'dbsnp_db=s' => \$dbsnp_db
 ) or die "Error parsing command line args.\n$usage\n";
 
 die $usage unless @ARGV >= 2;
 my ( $run_name, $step_number ) = @ARGV;
 
-if ( not $reference_dict ) $reference_dict = "$reference_fasta.dict";
+if ( not $reference_dict ) { $reference_dict = "$reference_fasta.dict";}
 
-die("tumor_bam undefined in $config_file\n") unless $tumor_bam;
-die("normal_bam undefined in $config_file\n") unless $normal_bam;
-die("assembly undefined in $config_file\n") unless $assembly;
-die("reference_fasta undefined in $config_file\n") unless $reference_fasta;
-die("reference_dict undefined in $config_file\n") unless $reference_dict;
-die("run_name undefined in $config_file\n") unless $run_name;
+die("tumor_bam undefined \n") unless $tumor_bam;
+die("normal_bam undefined \n") unless $normal_bam;
+die("assembly undefined \n") unless $assembly;
+die("reference_fasta undefined \n") unless $reference_fasta;
+die("reference_dict undefined \n") unless $reference_dict;
+die("run_name undefined \n") unless $run_name;
 
 # Distinguising between location of modules of somatic wrapper and GenomeVIP
 # GenomeVIP is not distributed separately so hard code the path
@@ -154,37 +154,37 @@ my $gvip_dir="$sw_dir/GenomeVIP";
 my $job_files_dir="$results_dir/runtime";  # OUTPUT PORT
 system("mkdir -p $job_files_dir");
 
-print("Using reference $ref\n");
+print("Using reference $reference_fasta\n");
 print("SomaticWrapper dir: $sw_dir \n");
 print("Analysis dir: $results_dir\n");
 print("Run script dir: $job_files_dir\n");
 
-print "\nSubmitting jobs for the sample ",$run_name, "..." "\n";
+print "\nSubmitting jobs for the sample ",$run_name, "...\n";
 
 if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
-    die("strelka_config undefined in $config_file\n") unless exists $paras{'strelka_config'};
+    die("strelka_config undefined \n") unless $strelka_config;
 #    my $strelka_config = "/usr/local/somaticwrapper/config/strelka.ini";
-    run_strelka($tumor_bam, $normal_bam, $run_name, $results_dir, $job_files_dir, $bsub, $strelka_dir, $ref, $paras{'strelka_config'});
+    run_strelka($tumor_bam, $normal_bam, $run_name, $results_dir, $job_files_dir, $strelka_dir, $reference_fasta, $strelka_config);
 } elsif (($step_number eq '2') || ($step_number eq 'run_varscan')) {
-    die("varscan_config undefined in $config_file\n") unless exists $paras{'varscan_config'};
-    run_varscan($tumor_bam, $normal_bam, $run_name, $results_dir, $job_files_dir, $bsub, $ref, $paras{'varscan_config'});
+    die("varscan_config undefined \n") unless $varscan_config;
+    run_varscan($tumor_bam, $normal_bam, $run_name, $results_dir, $job_files_dir, $reference_fasta, $varscan_config);
 } elsif (($step_number eq '3') || ($step_number eq 'parse_strelka')) {
-    parse_strelka($run_name, $results_dir, $job_files_dir, $bsub, $ref, $ref_dict, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar);
+    parse_strelka($run_name, $results_dir, $job_files_dir, $reference_fasta, $reference_dict, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar);
 } elsif (($step_number eq '4') || ($step_number eq 'parse_varscan')) {
-    parse_varscan($run_name, $results_dir, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $varscan_jar);
+    parse_varscan($run_name, $results_dir, $job_files_dir, $reference_fasta, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $varscan_jar);
 } elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
-    run_pindel($tumor_bam, $normal_bam, $run_name, $results_dir, $job_files_dir, $bsub, $ref, $pindel_dir, $centromere_bed);
+    run_pindel($tumor_bam, $normal_bam, $run_name, $results_dir, $job_files_dir, $reference_fasta, $pindel_dir, $centromere_bed);
 } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
-    die("pindel_config undefined in $config_file\n") unless exists $paras{'pindel_config'};
-    parse_pindel($run_name, $results_dir, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db, $snpsift_jar, $paras{'pindel_config'});
+    die("pindel_config undefined \n") unless $pindel_config;
+    parse_pindel($run_name, $results_dir, $job_files_dir, $reference_fasta, $perl, $gvip_dir, $vep_cmd, $pindel_dir, $dbsnp_db, $snpsift_jar, $pindel_config);
 } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
-    merge_vcf($run_name, $results_dir, $job_files_dir, $bsub, $ref, $perl, $gvip_dir, $vep_cmd, $gatk_jar, $use_vep_db, $output_vep, $assembly, $vep_cache_dir);
+    merge_vcf($run_name, $results_dir, $job_files_dir, $reference_fasta, $perl, $gvip_dir, $vep_cmd, $gatk_jar, $use_vep_db, $output_vep, $assembly, $vep_cache_dir);
 } elsif (($step_number eq '9') || ($step_number eq 'vcf2maf')) {
     die("vcf_2_maf() disabled while ExAC CRCh38 issues resolved.\n");
-    vcf_2_maf($run_name, $results_dir, $job_files_dir, $bsub, $ref, $perl, $gvip_dir);
+    vcf_2_maf($run_name, $results_dir, $job_files_dir, $reference_fasta, $perl, $gvip_dir);
 } elsif (($step_number eq '10') || ($step_number eq 'run_vep')) {
     print("annotate_intermediate = $annotate_intermediate\n");
-    run_vep($run_name, $results_dir, $job_files_dir, $bsub, $ref, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $use_vep_db, $output_vep, $annotate_intermediate);
+    run_vep($run_name, $results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $use_vep_db, $output_vep, $annotate_intermediate);
 } else {
     die("Unknown step number $step_number\n");
 }
