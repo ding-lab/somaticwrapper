@@ -139,14 +139,20 @@ RUN cd /usr/local \
 
 COPY vimrc /root/.vimrc
 
+# Copy StrelkaDemo test data - Small dataset for testing purposes
+# this is copied to ./ so that docker build can see it
+ADD DemoTestData/image DemoTestData/import /usr/local/StrelkaDemo/
+
 RUN cd /usr/local \
-    &&  git clone -b cwl https://github.com/ding-lab/somaticwrapper 
+    &&   git clone -b cwl https://github.com/ding-lab/somaticwrapper 
 
 WORKDIR /usr/local/somaticwrapper
+
+ENV PERL5LIB=/usr/local/somaticwrapper
 
 
 # following invocation will create common data dir in ./
 # docker run -v $PWD/data:/data -it breakpoint_surveyor
-VOLUME ["/data"]
+#VOLUME ["/data"]
 
 CMD ["/bin/bash"]

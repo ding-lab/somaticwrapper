@@ -4,4 +4,4 @@
 #IMAGE="mwyczalkowski/somatic-wrapper:cwl"
 IMAGE="cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:cwl"
 
-docker build -t $IMAGE .
+docker build -t $IMAGE -f Dockerfile .
