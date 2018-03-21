@@ -8,7 +8,6 @@
 # TODO: move the trivial genomevip_label step to run_varscan
 
 sub parse_varscan{
-    my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
     my $REF = shift;
@@ -18,7 +17,7 @@ sub parse_varscan{
     my $snpsift_jar = shift;
     my $varscan_jar = shift;
 
-    $current_job_file = "j4_parse_varscan".$sample_name.".sh";
+    $current_job_file = "j4_parse_varscan.sh";
 
     my $bsub = "bash";
     my $varscan_results = "$sample_full_path/varscan/varscan_out";

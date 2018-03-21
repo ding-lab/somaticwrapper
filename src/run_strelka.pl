@@ -14,7 +14,6 @@
 sub run_strelka {
     my $IN_bam_T = shift;
     my $IN_bam_N = shift;
-    my $sample_name = shift;
     my $results_dir = shift;
     my $job_files_dir = shift;
     my $STRELKA_DIR = shift;
@@ -22,7 +21,7 @@ sub run_strelka {
     my $strelka_config = shift;
 
     my $bsub = "bash";
-    $current_job_file = "j1_streka_".$sample_name.".sh"; 
+    $current_job_file = "j1_streka.sh"; 
     die "Error: Tumor BAM $IN_bam_T does not exist\n" if (! -e $IN_bam_T);
     die "Error: Tumor BAM $IN_bam_T is empty\n" if (! -s $IN_bam_T);
     die "Error: Normal BAM $IN_bam_N does not exist\n" if (! -e $IN_bam_N);

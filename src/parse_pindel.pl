@@ -5,7 +5,6 @@
 # This is based on pindel.out.current_final.gvip.Somatic.vcf 
 
 sub parse_pindel {
-    my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
     my $REF = shift;
@@ -17,7 +16,7 @@ sub parse_pindel {
     my $snpsift_jar = shift;
     my $pindel_config = shift;
 
-    $current_job_file = "j7_parse_pindel".$sample_name.".sh";
+    $current_job_file = "j7_parse_pindel.sh";
 
     my $bsub = "bash";
     my $pindel_results = "$sample_full_path/pindel/pindel_out";

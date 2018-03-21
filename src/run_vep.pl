@@ -30,7 +30,6 @@ EOF
 }
 
 sub run_vep {
-    my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
     my $REF = shift;
@@ -42,7 +41,7 @@ sub run_vep {
     my $output_vep = shift;  # output annotated vep rather than vcf format after merge step
     my $annotate_intermediate = shift;  # annotate intermediate files (testing)
 
-    $current_job_file = "j6_vep".$sample_name.".sh";
+    $current_job_file = "j6_vep.sh";
 
     my $bsub = "bash";
     my $varscan_results = "$sample_full_path/varscan/filter_out";

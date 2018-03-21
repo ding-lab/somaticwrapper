@@ -11,7 +11,6 @@
 
 
 sub parse_strelka {
-    my $sample_name = shift;
     my $sample_full_path = shift;
     my $job_files_dir = shift;
     my $REF = shift;
@@ -21,10 +20,7 @@ sub parse_strelka {
     my $db = shift;
     my $snpsift_jar = shift;
 
-    $current_job_file = "j3_parse_strelka".$sample_name.".sh";
-
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-#    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+    $current_job_file = "j3_parse_strelka.sh";
 
     my $bsub = "bash";
     my $strelka_results = "$sample_full_path/strelka/strelka_out/results";
