@@ -132,15 +132,7 @@ GetOptions(
     'strelka_snv_raw=s' => \$strelka_snv_raw
 ) or die "Error parsing command line args.\n$usage\n";
 
-print "Unprocessed by Getopt::Long\n" if $ARGV[0];
-foreach (@ARGV) {
-  print "$_\n";
-}
-
-die "Quitting for testing\n";
-
-
-die $usage unless @ARGV >= 2;
+die $usage unless @ARGV >= 1;
 my ( $step_number ) = @ARGV;
 
 if ( not $reference_dict ) { $reference_dict = "$reference_fasta.dict";}
