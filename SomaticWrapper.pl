@@ -137,11 +137,7 @@ my ( $step_number ) = @ARGV;
 
 if ( not $reference_dict ) { $reference_dict = "$reference_fasta.dict";}
 
-die("tumor_bam undefined \n") unless $tumor_bam;
-die("normal_bam undefined \n") unless $normal_bam;
-die("assembly undefined \n") unless $assembly;
 die("reference_fasta undefined \n") unless $reference_fasta;
-die("reference_dict undefined \n") unless $reference_dict;
 
 # Distinguising between location of modules of somatic wrapper and GenomeVIP
 # GenomeVIP is not distributed separately so hard code the path
@@ -157,9 +153,13 @@ print("Analysis dir: $results_dir\n");
 print("Run script dir: $job_files_dir\n");
 
 if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
+    die("tumor_bam undefined \n") unless $tumor_bam;
+    die("normal_bam undefined \n") unless $normal_bam;
     die("strelka_config undefined \n") unless $strelka_config;
     run_strelka($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $strelka_dir, $reference_fasta, $strelka_config);
 } elsif (($step_number eq '2') || ($step_number eq 'run_varscan')) {
+    die("tumor_bam undefined \n") unless $tumor_bam;
+    die("normal_bam undefined \n") unless $normal_bam;
     die("varscan_config undefined \n") unless $varscan_config;
     run_varscan($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $varscan_config);
 } elsif (($step_number eq '3') || ($step_number eq 'parse_strelka')) {
@@ -168,6 +168,8 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
 } elsif (($step_number eq '4') || ($step_number eq 'parse_varscan')) {
     parse_varscan($results_dir, $job_files_dir, $reference_fasta, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $varscan_jar);
 } elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
+    die("tumor_bam undefined \n") unless $tumor_bam;
+    die("normal_bam undefined \n") unless $normal_bam;
     run_pindel($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $pindel_dir, $centromere_bed);
 } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
     die("pindel_config undefined \n") unless $pindel_config;
@@ -175,6 +177,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
 } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
     merge_vcf($results_dir, $job_files_dir, $reference_fasta, $perl, $gvip_dir, $vep_cmd, $gatk_jar, $use_vep_db, $output_vep, $assembly, $vep_cache_dir);
 } elsif (($step_number eq '10') || ($step_number eq 'run_vep')) {
+    die("assembly undefined \n") unless $assembly;
     print("annotate_intermediate = $annotate_intermediate\n");
     run_vep($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $use_vep_db, $output_vep, $annotate_intermediate);
 } else {
