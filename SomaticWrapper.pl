@@ -150,7 +150,7 @@ my $gvip_dir="$sw_dir/GenomeVIP";
 my $job_files_dir="$results_dir/runtime";  # OUTPUT PORT
 system("mkdir -p $job_files_dir");
 
-print("Using reference $reference_fasta\n");
+#print("Using reference $reference_fasta\n");
 print("SomaticWrapper dir: $sw_dir \n");
 print("Analysis dir: $results_dir\n");
 print("Run script dir: $job_files_dir\n");
