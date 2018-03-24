@@ -3,8 +3,6 @@
 # * varscan.out.som_indel.vcf
 # * varscan.out.som_snv.vcf
 
-# TODO: allow varscan, samtools to be defined in configuration file
-
 sub run_varscan{
     my $IN_bam_T = shift;
     my $IN_bam_N = shift;
@@ -12,9 +10,9 @@ sub run_varscan{
     my $job_files_dir = shift;
     my $REF = shift;
     my $varscan_config = shift;
+    my $varscan_jar = shift;
 
     my $bsub = "bash";
-    my $varscan="/usr/local/VarScan.v2.3.8.jar";
     my $samtools="/usr/local/bin/samtools";
 
     $current_job_file = "j2_varscan.sh";
@@ -59,7 +57,7 @@ JAVA_OPTS="-Xms256m -Xmx512m"
 
 SAMTOOLS_CMD="$samtools mpileup -q 1 -Q 13 -B -f $REF -b $bam_list "
 
-JAVA_CMD="java \$JAVA_OPTS -jar $varscan somatic - $run_name $varscan_args --output-snp $snvout --output-indel $indelout"
+JAVA_CMD="java \$JAVA_OPTS -jar $varscan_jar somatic - $run_name $varscan_args --output-snp $snvout --output-indel $indelout"
 
 \$SAMTOOLS_CMD | \$JAVA_CMD # &> $log
 

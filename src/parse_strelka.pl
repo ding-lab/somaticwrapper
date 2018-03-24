@@ -19,11 +19,9 @@
 sub parse_strelka {
     my $sample_full_path = shift;
     my $job_files_dir = shift;
-    my $REF = shift;
-    my $ref_dict = shift;  # this ends up being not used
     my $perl = shift;
     my $gvip_dir = shift;
-    my $db = shift;
+    my $dbsnp_db = shift;
     my $snpsift_jar = shift;
     my $input_snv = shift;  # New to CWL: pass this filename explicitly (passed.somatic.snvs.vcf)
 
@@ -40,7 +38,7 @@ sub parse_strelka {
     open(OUT, ">$dbsnp_snv") or die $!;
     print OUT <<"EOF";
 streka.dbsnp.snv.annotator = $snpsift_jar
-streka.dbsnp.snv.db = $db
+streka.dbsnp.snv.db = $dbsnp_db
 streka.dbsnp.snv.rawvcf = $input_snv
 streka.dbsnp.snv.mode = filter
 streka.dbsnp.snv.passfile  = $filter_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf
