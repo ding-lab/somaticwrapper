@@ -141,9 +141,6 @@ GetOptions(
 die $usage unless @ARGV >= 1;
 my ( $step_number ) = @ARGV;
 
-if ( not $reference_dict ) { $reference_dict = "$reference_fasta.dict";}
-
-die("reference_fasta undefined \n") unless $reference_fasta;
 
 # Distinguising between location of modules of somatic wrapper and GenomeVIP
 # GenomeVIP is not distributed separately so hard code the path
@@ -158,16 +155,20 @@ print("SomaticWrapper dir: $sw_dir \n");
 print("Analysis dir: $results_dir\n");
 print("Run script dir: $job_files_dir\n");
 
+# Not clear when this would be needed...
+#if ( not $reference_dict ) { $reference_dict = "$reference_fasta.dict";}
 
 if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("tumor_bam undefined \n") unless $tumor_bam;
     die("normal_bam undefined \n") unless $normal_bam;
     die("strelka_config undefined \n") unless $strelka_config;
+    die("reference_fasta undefined \n") unless $reference_fasta;
     run_strelka($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $strelka_dir, $reference_fasta, $strelka_config);
 } elsif (($step_number eq '2') || ($step_number eq 'run_varscan')) {
     die("tumor_bam undefined \n") unless $tumor_bam;
     die("normal_bam undefined \n") unless $normal_bam;
     die("varscan_config undefined \n") unless $varscan_config;
+    die("reference_fasta undefined \n") unless $reference_fasta;
     run_varscan($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $varscan_config, $varscan_jar);
 } elsif (($step_number eq '3') || ($step_number eq 'parse_strelka')) {
     die("Strelka SNV Raw input file not specified \n") unless $strelka_snv_raw;
@@ -179,6 +180,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
 } elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
     die("tumor_bam undefined \n") unless $tumor_bam;
     die("normal_bam undefined \n") unless $normal_bam;
+    die("reference_fasta undefined \n") unless $reference_fasta;
     run_pindel($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $pindel_dir, $centromere_bed);
 } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
     die("pindel_config undefined \n") unless $pindel_config;
