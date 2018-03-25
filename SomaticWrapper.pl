@@ -89,14 +89,14 @@ OUT
 # https://perlmaven.com/how-to-process-command-line-arguments-in-perl
 my $tumor_bam;
 my $normal_bam;
-my $assembly="GRCh37";
+my $assembly;
 my $reference_fasta;
 my $reference_dict;  # default mapping occurs after reference_fasta known
 my $sw_dir = "/usr/local/somaticwrapper";
 my $results_dir = ".";  
-my $use_vep_db; 
+my $use_vep_db = 0; 
 my $vep_cache_dir = "/data/D_VEP";
-my $output_vep;
+my $output_vep = 0;
 my $strelka_config; 
 my $varscan_config; 
 my $pindel_config; 
@@ -219,6 +219,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("assembly undefined \n") unless $assembly;
     die("input_vcf undefined \n") unless $input_vcf;
     die("output_vcf undefined \n") unless $output_vcf;
+    die("reference_fasta undefined \n") unless $reference_fasta;
 
     annotate_vcf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $use_vep_db, $output_vep, $input_vcf, $output_vcf)
 } else {
