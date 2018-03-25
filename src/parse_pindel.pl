@@ -1,8 +1,8 @@
 
 # Skipping VEP annotation
 
-# principal output used in merging: pindel.out.current_final.dbsnp_pass.vcf
-# This is based on pindel.out.current_final.Somatic.vcf 
+# principal output used in merging: pindel/filter_out/pindel.out.current_final.dbsnp_pass.vcf
+# -> pindel_dbsnp output
 
 # CWL changes:
 # * genomevip_labeling removed
