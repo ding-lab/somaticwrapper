@@ -29,6 +29,7 @@ sub parse_pindel {
     my $filter_results = "$sample_full_path/pindel/filter_out";
     system("mkdir -p $filter_results");
 
+    die "Error: dbSnP database file $dbsnp_db does not exist\n" if (! -e $dbsnp_db);
 
     # pindel_filter is pathological in that all output data is written to the same directory as input data, and
     # the documentation does not describe a way to change that.  Since input data is passed, and we need

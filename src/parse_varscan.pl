@@ -38,6 +38,7 @@ sub parse_varscan{
     my $varscan_snv_raw = shift;  # snvoutgvip
 
     $current_job_file = "j4_parse_varscan.sh";
+    die "Error: dbSnP database file $dbsnp_db does not exist\n" if (! -e $dbsnp_db);
 
     my $bsub = "bash";
     my $filter_results = "$sample_full_path/varscan/filter_out";
