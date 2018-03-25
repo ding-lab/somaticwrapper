@@ -1,7 +1,17 @@
-# db mode 1) uses online database (so cache isn't installed) 2) does not use tmp files
+# Annotate VCF is a CWL successor to run_vep.  It converts a given VCF to VEP
+# format (or just annotates vcf).  It operates on just one input file, however,
+# and writes to a given output file.
+
+# use_vep_db: if 1, run step in db mode.
+# this 1) uses online database (so cache isn't installed) 2) does not use tmp files
 # It is meant to be used for testing and lightweight applications.  Use the cache for
 # better performance.  See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
 
+# assembly is the assembly argument passed to vep
+# output_vep is a boolean.  Output annotated VEP rather than VCF format.
+# 
+
+# helper function
 sub write_vep_input {
     my $config_fn = shift;
     my $module = shift;  # e.g. varscan.vep or strelka.vep
@@ -32,7 +42,7 @@ $module.output_vep = $output_vep
 EOF
 }
 
-sub run_vep {
+sub annotate_vcf {
     my $sample_full_path = shift;
     my $job_files_dir = shift;
     my $REF = shift;
@@ -41,97 +51,24 @@ sub run_vep {
     my $assembly = shift;
     my $cache_dir = shift;
     my $use_vep_db = shift;  # 1 for testing/demo, 0 for production
-    my $output_vep = shift;  # output annotated vep rather than vcf format after merge step
-    my $annotate_intermediate = shift;  # annotate intermediate files (testing)
+    my $output_vep = shift;  # if 1, output annotated vep after merge step.  If 0, output vcf format 
+    my $input_vcf = shift;  # for CWL work, we are passed an input VCF
+    my $output_vcf = shift;  # for CWL work, we are passed an output annotated vcf
 
     $current_job_file = "j6_vep.sh";
 
     my $bsub = "bash";
-    my $varscan_results = "$sample_full_path/varscan/filter_out";
-    my $strelka_results = "$sample_full_path/strelka/filter_out";
-    my $pindel_results = "$sample_full_path/pindel/filter_out";
-    my $merge_results = "$sample_full_path/merged";
     my $filter_results = "$sample_full_path/vep";
     system("mkdir -p $filter_results");
 
-    if ($annotate_intermediate) {
-        write_vep_input(
-            "$filter_results/vs_vep.snv.input",                                                     # Config fn
-            "varscan.vep",                                                                          # Module
-            "$varscan_results/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf",   # VCF (input)
-            "$filter_results/varscan.out.som_snv.current_final.gvip.Somatic.VEP.vcf",               # output
-            $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
-
-        write_vep_input(
-            "$filter_results/vs_vep.indel.input",
-            "varscan.vep",
-            "$varscan_results/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf",
-            "$filter_results/varscan.out.som_indel.current_final.gvip.Somatic.VEP.vcf",
-            $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
-
-        write_vep_input(
-            "$filter_results/vs_vep.snv.initial.input",
-            "varscan.vep",
-            "$varscan_results/varscan.out.som_snv.gvip.vcf",
-            "$filter_results/varscan.out.som_snv.gvip.VEP.vcf",
-            $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
-
-        write_vep_input(
-            "$filter_results/vs_vep.indel.initial.input",
-            "varscan.vep",
-            "$varscan_results/varscan.out.som_indel.gvip.vcf",
-            "$filter_results/varscan.out.som_indel.gvip.VEP.vcf",
-            $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
-
-        write_vep_input(  
-            "$filter_results/strelka_vep.snv.input",
-            "strelka.vep",
-            "$strelka_results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf",
-            "$filter_results/strelka.somatic_snv.current_final.gvip.Somatic.VEP.vcf",
-            $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
-
-    ### This is not being calculated in parse_strelka 
-    #    $config_fn = "$filter_results/strelka_vep.indel.input";
-    #    $vcf = "$strelka_results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf";  ###
-    #    $output = "$filter_results/strelka.somatic_indel.current_final.gvip.Somatic.VEP.vcf";
-    #    $module = "strelka.vep";
-    #    write_vep_input($config_fn, $module, $vcf, $output, $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
-
-        write_vep_input(
-            "$filter_results/strelka_vep.snv.initial.input",
-            "strelka.vep",
-            "$strelka_results/strelka.somatic.snv.strlk_pass.gvip.vcf",
-            "$filter_results/strelka.somatic.snv.strlk_pass.gvip.VEP.vcf",
-            $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
-
-        write_vep_input(
-            "$filter_results/strelka_vep.indel.initial.input",
-            "strelka.vep",
-            "$strelka_results/strelka.somatic.indel.strlk_pass.gvip.vcf",
-            "$filter_results/strelka.somatic.indel.strlk_pass.gvip.VEP.vcf",
-            $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
-
-        write_vep_input(
-            "$filter_results/pindel.initial.input",
-            "pindel.vep",
-            "$pindel_results/pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.gvip.vcf",
-            "$filter_results/pindel.initial.vcf",
-            $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
-
-        write_vep_input(
-            "$filter_results/pindel.final.input",
-            "pindel.vep",
-            "$pindel_results/pindel.out.current_final.gvip.dbsnp_pass.vcf",
-            "$filter_results/pindel.final.vcf",
-            $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
-    }
+    my $config_fn = "$filter_results/vep.merged.input";
 
 # Adding final output to vep annotation
     write_vep_input(
-        "$filter_results/vep.merged.input",
-        "merged.vep",
-        "$merge_results/merged.vcf",
-        "$filter_results/merged.VEP.vcf",
+        $config_fn,          # Config fn
+        "merged.vep",                               # Module
+        $input_vcf,                # VCF (input)
+        $output_vcf,           # output
         $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
 
     my $out = "$job_files_dir/$current_job_file";
@@ -142,27 +79,9 @@ sub run_vep {
 
 export JAVA_OPTS=\"-Xms256m -Xmx512m\"
 
-$perl $gvip_dir/vep_annotator.pl $filter_results/vep.merged.input  
+$perl $gvip_dir/vep_annotator.pl $config_fn
 
 EOF
-
-    if ($annotate_intermediate) {
-
-        print OUT <<"EOF";
-$perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.snv.input 
-$perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.indel.input 
-$perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.snv.initial.input 
-$perl $gvip_dir/vep_annotator.pl $filter_results/vs_vep.indel.initial.input 
-
-$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.snv.input 
-#$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.indel.input 
-$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.snv.initial.input 
-$perl $gvip_dir/vep_annotator.pl $filter_results/strelka_vep.indel.initial.input 
-
-$perl $gvip_dir/vep_annotator.pl $filter_results/pindel.initial.input 
-$perl $gvip_dir/vep_annotator.pl $filter_results/pindel.final.input
-EOF
-    }
 
     close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
