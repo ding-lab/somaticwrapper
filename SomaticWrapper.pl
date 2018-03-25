@@ -51,13 +51,13 @@ Configuration file parameters [defaults]
     --reference_dict s: path to reference dict file.  Default is reference_fasta with ".dict" appended
     --sw_dir s: Somatic Wrapper installation directory [/usr/local/somaticwrapper]
     --results_dir s: Per-sample analysis results written here [.]
-    --use_vep_db : if defined, use online VEP database lookups ("db mode") [false]
+    --use_vep_db : if 1, use online VEP database lookups ("db mode") [0]
           db mode a) uses online database (so cache isn't installed) b) does not use tmp files
           It is meant to be used for testing and lightweight applications.  Use the cache (default)
           for better performance.
           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
     --vep_cache_dir s: VEP cache directory, if not doing online VEP db lookups.  [/data/D_VEP]
-    --output_vep : if defined, write final annotated merged file in VEP rather than VCF format [false]
+    --output_vep : if 1, write final annotated merged file in VEP rather than VCF format [0]
     --strelka_config s: path to strelka.ini file, required for strelka run
     --varscan_config s: path to varscan.ini file, required for varscan run
     --pindel_config s: path to pindel.ini file, required for pindel parsing
@@ -120,8 +120,6 @@ my $pindel_vcf;
 my $input_vcf;
 my $output_vcf = "output.vcf";
 
-
-
 GetOptions(
     'tumor_bam=s' => \$tumor_bam,
     'normal_bam=s' => \$normal_bam,
@@ -130,9 +128,9 @@ GetOptions(
     'reference_dict=s' => \$reference_dict,
     'sw_dir=s' => \$sw_dir,
     'results_dir=s' => \$results_dir,
-    'use_vep_db' => \$use_vep_db,
+    'use_vep_db=s' => \$use_vep_db,
     'vep_cache_dir=s' => \$vep_cache_dir,
-    'output_vep' => \$output_vep,
+    'output_vep=s' => \$output_vep,
     'strelka_config=s' => \$strelka_config,
     'varscan_config=s' => \$varscan_config,
     'pindel_config=s' => \$pindel_config,
@@ -159,7 +157,6 @@ GetOptions(
 
 die $usage unless @ARGV >= 1;
 my ( $step_number ) = @ARGV;
-
 
 # Distinguising between location of modules of somatic wrapper and GenomeVIP
 # GenomeVIP is not distributed separately so hard code the path
