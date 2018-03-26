@@ -49,6 +49,9 @@ EOF
 
     print($bsub_com."\n");
     system ( $bsub_com );
+
+    my $expected_out="strelka/strelka_out/results/passed.somatic.snvs.vcf";
+    die "Error: Did not find expected output file $expected_out\n" if (! -e $expected_out);
 }
 
 1;
