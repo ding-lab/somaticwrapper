@@ -1330,7 +1330,8 @@ print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --anal
     print MUTECT "rm \${TBAM_rg_bai}\n";
 	print MUTECT "else\n";
 	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
-    print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
+    #print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
+	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect --analysis_type MuTect --reference_sequence $h37_REF -B:dbsnp,VCF dbsnp_132_b37.leftAligned.vcf -B:cosmic,VCF hg19_cosmic_v54_120711.vcf --input_file:normal /data/patient/GatkSomaticIndelDetector/picard_s-fibros_converted_sorted.bam --input_file:tumor /data/patient/GatkSomaticIndelDetector/picard_s-296_converted_sorted.bam --out /data/patient/example_MuTect.call_stats.txt --coverage_file /data/patient/example_MuTect.coverage.wig.txt --fraction_contamination 0\n";
     print MUTECT "fi\n";
 	print MUTECT "     ".$run_script_path."genomevip_label.pl mutect \${rawvcf} \${rawvcfgvip}\n";
 #    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip}  -o  \${rawvcfsnv}   -selectType SNP -selectType MNP\n";
@@ -1426,8 +1427,8 @@ sub bsub_merge_vcf{
 
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";                                                      
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>60000] rusage[mem=60000]\" -M 60000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
+    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>60000] rusage[mem=60000]\" -M 60000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";                                                      
     }
     print $bsub_com;
 
