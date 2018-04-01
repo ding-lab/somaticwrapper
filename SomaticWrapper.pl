@@ -40,7 +40,7 @@ step_number executes given step of pipeline:
 * [4 or parse_varscan]  Parse VarScan result
 * [5 or run_pindel]  Run Pindel
 * [7 or parse_pindel]  Parse Pindel
-* [8 or merge_vcf]  Merge vcf files using local VEP cache
+* [8 or merge_vcf]  Merge vcf files 
 * [10 or annotate_vcf]  Run VEP annotation on a given file
 
 Configuration file parameters [defaults]
