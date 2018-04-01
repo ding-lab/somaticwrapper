@@ -9,6 +9,10 @@
 # After running Pindel, pull out all reads from pindel raw output with the label ChrID
 #   http://gmt.genome.wustl.edu/packages/pindel/user-manual.html
 
+# runs pindel with arguments -T 4 -m 6 -w 1
+# f_centromere is optional bed file passed to pindel to exclude regions
+#   if it is defined, must exist
+
 sub run_pindel{
     my $IN_bam_T = shift;
     my $IN_bam_N = shift;
@@ -17,6 +21,20 @@ sub run_pindel{
     my $REF = shift;
     my $pindel_dir = shift;
     my $f_centromere = shift;
+
+    my $centromere_arg = "";
+    die "Error: Tumor BAM $IN_bam_T does not exist\n" if (! -e $IN_bam_T);
+    die "Error: Tumor BAM $IN_bam_T is empty\n" if (! -s $IN_bam_T);
+    die "Error: Normal BAM $IN_bam_N does not exist\n" if (! -e $IN_bam_N);
+    die "Error: Normal BAM $IN_bam_N is empty\n" if (! -s $IN_bam_N);
+    if ($f_centromere) {
+        die "Error: Centromere BED file $f_centromere does not exist\n" if (! -e $f_centromere);
+        $centromere_arg = "-J $f_centromere";
+        print STDERR "Using centromere BED $f_centromere\n";
+    } else {
+        print STDERR "No centromere BED\n";
+    }
+
 
     my $bsub = "bash";
     $current_job_file = "j5_pindel.sh";  
@@ -33,15 +51,8 @@ $IN_bam_T\t500\tpindel.T
 $IN_bam_N\t500\tpindel.N
 EOF
 
+
     my $pindel_args = " -T 4 -m 6 -w 1 ";
-
-    my $out = "$job_files_dir/$current_job_file";
-    print("Writing to $out\n");
-    open(OUT, ">$out") or die $!;
-    print OUT <<"EOF";
-#!/bin/bash
-
-$pindel_dir/pindel -f $REF -i $config_fn -o $pindel_out/pindel $pindel_args -J $f_centromere
 
 # This step from parse_pindel
 # old, weird
@@ -50,9 +61,16 @@ $pindel_dir/pindel -f $REF -i $config_fn -o $pindel_out/pindel $pindel_args -J $
 #list=\$(xargs -a  $outlist)
 #cat \$list | grep ChrID > $pin_var_file
 
-    cd $pindel_out 
-    grep ChrID pindel_D pindel_SI pindel_INV pindel_TD > $step_output_fn;
-    
+    my $out = "$job_files_dir/$current_job_file";
+    print("Writing to $out\n");
+    open(OUT, ">$out") or die $!;
+    print OUT <<"EOF";
+#!/bin/bash
+
+$pindel_dir/pindel -f $REF -i $config_fn -o $pindel_out/pindel $pindel_args $centromere_arg
+
+cd $pindel_out 
+grep ChrID pindel_D pindel_SI pindel_INV pindel_TD > $step_output_fn
 
 EOF
 
