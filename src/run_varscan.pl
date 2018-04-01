@@ -67,7 +67,8 @@ EOF
 
     print("Executing:\n $bsub_com \n");
 
-    system ( $bsub_com );
+    my $return_code = system ( $bsub_com );
+    die("Exiting ($return_code).\n") if $return_code != 0;
 
 }
 

@@ -92,7 +92,7 @@ my $reference_fasta;
 my $reference_dict;  # default mapping occurs after reference_fasta known
 my $sw_dir = "/usr/local/somaticwrapper";
 my $results_dir = ".";  
-my $vep_cache_dir = "/data/D_VEP";
+my $vep_cache_dir;
 my $output_vep = 0;
 my $strelka_config; 
 my $varscan_config; 

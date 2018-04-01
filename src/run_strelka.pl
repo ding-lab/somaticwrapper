@@ -48,7 +48,8 @@ EOF
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
 
     print($bsub_com."\n");
-    system ( $bsub_com );
+    my $return_code = system ( $bsub_com );
+    die("Exiting ($return_code).\n") if $return_code != 0;
 
     my $expected_out="strelka/strelka_out/results/passed.somatic.snvs.vcf";
     die "Error: Did not find expected output file $expected_out\n" if (! -e $expected_out);

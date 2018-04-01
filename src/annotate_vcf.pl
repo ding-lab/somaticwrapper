@@ -104,7 +104,8 @@ EOF
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     print("Executing:\n $bsub_com \n");
 
-    system ( $bsub_com ); 
+    my $return_code = system ( $bsub_com );
+    die("Exiting ($return_code).\n") if $return_code != 0;
 }
 
 1;
