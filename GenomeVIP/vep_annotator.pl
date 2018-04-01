@@ -36,17 +36,18 @@ if( exists($paras{'output_vep'}) && ($paras{'output_vep'}) ) { $vcf_flag = "--sy
 my $cmd="";
 
 if ($paras{'usedb'}) {
-    print("VEP DB Query mode\n");
-    print("Reading: $paras{'vcf'}\n");
-    print("Writing: $paras{'output'}\n");
+    print STDERR ("VEP DB Query mode\n");
+    print STDERR ("Reading: $paras{'vcf'}\n");
+    print STDERR ("Writing: $paras{'output'}\n");
  
     $cmd = "perl $paras{'vep_cmd'} $opts --database --port 3337 --buffer_size 10000  --assembly $paras{'assembly'} --fork 4 --format vcf $vcf_flag -i $paras{'vcf'} -o $paras{'output'} --force_overwrite  --fasta $paras{'reffasta'}";
 
     print($cmd . "\n");
-    system($cmd) or die ("Error executing: $cmd \n $! \n");
+    my $errcode = system($cmd); 
+    die ("Error executing: $cmd \n $! \n") if ($errcode);
 
 } else {
-    print("VEP Cache mode\n");
+    print STDERR ("VEP Cache mode\n");
 
     # split off original header
     my (undef, $tmp_orig_calls)  = tempfile();
@@ -58,11 +59,14 @@ if ($paras{'usedb'}) {
     if (-s $tmp_orig_calls) {
         $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --assembly $paras{'assembly'} --fork 4 --format vcf $vcf_flag -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
         print($cmd . "\n");
-        system($cmd) or die ("Error executing: $cmd \n $! \n");
+        my $errcode = system($cmd); 
+        die ("Error executing: $cmd \n $! \n") if ($errcode);
     } else {
-        print("VCF is empty\n");
+        print STDERR ("VCF is empty\n");
         system("touch $tmp_vep_out");
     }
+
+print STDERR "merging headers and stuff \n";
 
     # re-merge headers and move
     my (undef, $tmp_merge) = tempfile();
