@@ -51,12 +51,10 @@ Configuration file parameters [defaults]
     --reference_dict s: path to reference dict file.  Default is reference_fasta with ".dict" appended
     --sw_dir s: Somatic Wrapper installation directory [/usr/local/somaticwrapper]
     --results_dir s: Per-sample analysis results written here [.]
-    --use_vep_db : if 1, use online VEP database lookups ("db mode") [0]
-          db mode a) uses online database (so cache isn't installed) b) does not use tmp files
-          It is meant to be used for testing and lightweight applications.  Use the cache (default)
-          for better performance.
+    --vep_cache_dir s: define location of VEP cache directory. If not defined, will perform online VEP DB lookups.  
+          Online VEP database lookups ("use_vep_db") a) uses online database (so cache isn't installed) b) does not use tmp files
+          It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
-    --vep_cache_dir s: VEP cache directory, if not doing online VEP db lookups.  [/data/D_VEP]
     --output_vep : if 1, write final annotated merged file in VEP rather than VCF format [0]
     --strelka_config s: path to strelka.ini file, required for strelka run
     --varscan_config s: path to varscan.ini file, required for varscan run
@@ -94,7 +92,6 @@ my $reference_fasta;
 my $reference_dict;  # default mapping occurs after reference_fasta known
 my $sw_dir = "/usr/local/somaticwrapper";
 my $results_dir = ".";  
-my $use_vep_db = 0; 
 my $vep_cache_dir = "/data/D_VEP";
 my $output_vep = 0;
 my $strelka_config; 
@@ -128,7 +125,6 @@ GetOptions(
     'reference_dict=s' => \$reference_dict,
     'sw_dir=s' => \$sw_dir,
     'results_dir=s' => \$results_dir,
-    'use_vep_db=s' => \$use_vep_db,
     'vep_cache_dir=s' => \$vep_cache_dir,
     'output_vep=s' => \$output_vep,
     'strelka_config=s' => \$strelka_config,
@@ -218,7 +214,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("output_vcf undefined \n") unless $output_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
 
-    annotate_vcf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $use_vep_db, $output_vep, $input_vcf, $output_vcf)
+    annotate_vcf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $output_vep, $input_vcf, $output_vcf)
 } else {
     die("Unknown step number $step_number\n");
 }
