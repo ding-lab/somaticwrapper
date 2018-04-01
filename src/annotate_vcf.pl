@@ -9,6 +9,9 @@
 
 # assembly is the assembly argument passed to vep
 # output_vep is a boolean.  Output annotated VEP rather than VCF format.
+# cache_dir should be defined if use_vep_db is 0
+#   Cache installation is done in somaticwrapper/image.setup/D_VEP
+#   See https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
 # 
 
 # helper function
