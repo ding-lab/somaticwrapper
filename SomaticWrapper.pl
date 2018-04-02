@@ -1,14 +1,6 @@
 ######### Song Cao and Matt Wyczalkowski ###########
 ## pipeline for somatic variant calling ##
 
-# TODO: implement full command line argument parsing instead of configuration file
-# see: https://perlmaven.com/how-to-process-command-line-arguments-in-perl
-
-# TODO: how are paths handled in CGC?  Do we need so pass output paths individually?
-
-# OUTPUT PORT: 
-#   results/runtime/* - job scripts
-
 #!/usr/bin/perl
 use strict;
 use warnings;
@@ -56,6 +48,7 @@ Configuration file parameters [defaults]
           It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
     --output_vep : if 1, write final annotated merged file in VEP rather than VCF format [0]
+    --no_delete_temp : if 1, do not delete temp files in run_pindel
     --strelka_config s: path to strelka.ini file, required for strelka run
     --varscan_config s: path to varscan.ini file, required for varscan run
     --pindel_config s: path to pindel.ini file, required for pindel parsing
@@ -94,6 +87,7 @@ my $sw_dir = "/usr/local/somaticwrapper";
 my $results_dir = ".";  
 my $vep_cache_dir;
 my $output_vep = 0;
+my $no_delete_temp = 0;
 my $strelka_config; 
 my $varscan_config; 
 my $pindel_config; 
@@ -127,6 +121,7 @@ GetOptions(
     'results_dir=s' => \$results_dir,
     'vep_cache_dir=s' => \$vep_cache_dir,
     'output_vep=s' => \$output_vep,
+    'no_delete_temp=s' => \$no_delete_temp,
     'strelka_config=s' => \$strelka_config,
     'varscan_config=s' => \$varscan_config,
     'pindel_config=s' => \$pindel_config,
@@ -193,7 +188,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("tumor_bam undefined \n") unless $tumor_bam;
     die("normal_bam undefined \n") unless $normal_bam;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    run_pindel($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $pindel_dir, $centromere_bed);
+    run_pindel($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $pindel_dir, $centromere_bed, $no_delete_temp);
 } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
     die("pindel_config undefined \n") unless $pindel_config;
     die("pindel raw input file not specified \n") unless $pindel_raw;

@@ -4,7 +4,7 @@
 # the `grep ChrID` step which was in the parse_pindel step (see SomaticWrapper.v2.Combined.pdf) has
 # been moved to the run_pindel step
 # The output of this step is then 
-# * output port: pindel/pindel_out/pindel_raw.dat
+# * output port: pindel/pindel_out/pindel-raw.dat
 
 # After running Pindel, pull out all reads from pindel raw output with the label ChrID
 #   http://gmt.genome.wustl.edu/packages/pindel/user-manual.html
@@ -12,8 +12,9 @@
 # runs pindel with arguments -T 4 -m 6 -w 1
 # f_centromere is optional bed file passed to pindel to exclude regions
 #   if it is defined, must exist
+# will delete temporary files (pindel_D, etc) unless no_delete_temp is 1
 
-sub run_pindel{
+sub run_pindel {
     my $IN_bam_T = shift;
     my $IN_bam_N = shift;
     my $sample_full_path = shift;
@@ -21,6 +22,7 @@ sub run_pindel{
     my $REF = shift;
     my $pindel_dir = shift;
     my $f_centromere = shift;
+    my $no_delete_temp = shift;
 
     my $centromere_arg = "";
     die "Error: Tumor BAM $IN_bam_T does not exist\n" if (! -e $IN_bam_T);
@@ -38,7 +40,7 @@ sub run_pindel{
 
     my $bsub = "bash";
     $current_job_file = "j5_pindel.sh";  
-    my $step_output_fn = "pindel_raw.dat";
+    my $step_output_fn = "pindel-raw.dat";
 
     my $pindel_out = "$sample_full_path/pindel/pindel_out";
     system("mkdir -p $pindel_out");
@@ -54,8 +56,7 @@ EOF
 
     my $pindel_args = " -T 4 -m 6 -w 1 ";
 
-# This step from parse_pindel
-# old, weird
+# This step the original invocation from parse_pindel
 #echo Collecting results in $pindel_results
 #find $pindel_results -name \'*_D\' -o -name \'*_SI\' -o -name \'*_INV\' -o -name \'*_TD\'  > $outlist
 #list=\$(xargs -a  $outlist)
@@ -71,6 +72,18 @@ $pindel_dir/pindel -f $REF -i $config_fn -o $pindel_out/pindel $pindel_args $cen
 
 cd $pindel_out 
 grep ChrID pindel_D pindel_SI pindel_INV pindel_TD > $step_output_fn
+
+if [[ $no_delete_temp == 1 ]]; then
+
+>&2 echo Not deleting intermediate pindel files
+
+else
+
+>&2 echo Deleting intermediate pindel files
+rm -f pindel_*
+
+fi
+
 
 EOF
 
