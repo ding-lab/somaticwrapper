@@ -47,6 +47,7 @@ Configuration file parameters [defaults]
           Online VEP database lookups ("use_vep_db") a) uses online database (so cache isn't installed) b) does not use tmp files
           It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
+    --vep_cache_gz s: extract contents of .tar.gz vep cache tree into vep_cache_dir, or "./vep-cache" if vep_cache_dir not specified
     --output_vep : if 1, write final annotated merged file in VEP rather than VCF format [0]
     --no_delete_temp : if 1, do not delete temp files in run_pindel
     --strelka_config s: path to strelka.ini file, required for strelka run
@@ -73,9 +74,6 @@ Configuration file parameters [defaults]
     --output_vcf: filename of output vcf [output.vcf (or output.vep if --output_vep)]
 OUT
 
-# OLD:
-# my $centromere_bed="$sw_dir/image.setup/C_Centromeres/pindel-centromere-exclude.bed";
-
 # Argument parsing reference: http://perldoc.perl.org/Getopt/Long.html
 # https://perlmaven.com/how-to-process-command-line-arguments-in-perl
 my $tumor_bam;
@@ -86,6 +84,7 @@ my $reference_dict;  # default mapping occurs after reference_fasta known
 my $sw_dir = "/usr/local/somaticwrapper";
 my $results_dir = ".";  
 my $vep_cache_dir;
+my $vep_cache_gz;
 my $output_vep = 0;
 my $no_delete_temp = 0;
 my $strelka_config; 
@@ -120,6 +119,7 @@ GetOptions(
     'sw_dir=s' => \$sw_dir,
     'results_dir=s' => \$results_dir,
     'vep_cache_dir=s' => \$vep_cache_dir,
+    'vep_cache_gz=s' => \$vep_cache_gz,
     'output_vep=s' => \$output_vep,
     'no_delete_temp=s' => \$no_delete_temp,
     'strelka_config=s' => \$strelka_config,
@@ -208,8 +208,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("output_vcf undefined \n") unless $output_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
-
-    annotate_vcf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $output_vep, $input_vcf, $output_vcf)
+    annotate_vcf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $vep_cache_gz, $output_vep, $input_vcf, $output_vcf)
 } else {
     die("Unknown step number $step_number\n");
 }

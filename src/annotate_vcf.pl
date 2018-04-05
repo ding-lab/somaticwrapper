@@ -2,8 +2,12 @@
 # format (or just annotates vcf).  It operates on just one input file, however,
 # and writes to a given output file.
 
-# Logic of use_vep_db is defined by $cache_dir.  If $cache_dir is set to a value,
-#  then test to see if is a directory.  This implies use_vep_db = 0.
+# if $cache_dir is defined, use that as path to VEP Cache
+# if $cache_gz is defined, then copy that .tar.gz file to $cache_dir and extract it there
+#   (this is used for a cwl setup where arbitrary paths are not accessible)
+
+# Logic of use_vep_db is defined by $cache_dir.  If $cache_dir is set to a value, then use_vep_db = 0.
+#   * also test to see if is a directory.  
 # if use_vep_db is 1, run step in db mode.
 #   this 1) uses online database (so cache isn't installed) 2) does not use tmp files
 #   It is meant to be used for testing and lightweight applications.  Use the cache for
@@ -15,6 +19,8 @@
 #   Cache installation is done in somaticwrapper/image.setup/D_VEP
 #   See https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
 # 
+# if $cache_gz is defined, it is assumed this is a .tar.gz version of VEP cache.
+#   extract its contents into $cache_dir (./vep-cache if not specified)
 
 # helper function
 sub write_vep_input {
@@ -55,6 +61,7 @@ sub annotate_vcf {
     my $vep_cmd = shift;
     my $assembly = shift;
     my $cache_dir = shift;  # if defined, implies use_vep_db = 0
+    my $cache_gz = shift;   
     my $output_vep = shift;  # if 1, output annotated vep after merge step.  If 0, output vcf format 
     my $input_vcf = shift;  # for CWL work, we are passed an input VCF
     my $output_vcf = shift;  # for CWL work, we are passed an output annotated vcf
@@ -68,6 +75,23 @@ sub annotate_vcf {
     my $config_fn = "$filter_results/vep.merged.input";
 
     my $use_vep_db = 1;
+
+    # if cache_gz is defined, extract its contents to $cache_dir
+    # if $cache_dir is not defined, defaults to ./vep-cache
+    if ( $cache_gz ) {
+        if (! $cache_dir) {
+            $cache_dir = "./vep-cache";
+        }
+        if (! -d $cache_dir) {
+            mkdir $cache_dir or die "$!\n";
+        }
+        print STDERR "Extracting VEP Cache tarball $cache_gz into $cache_dir";
+        my $rc = system ("tar -zxf $cache_gz --directory $cache_dir");
+        die("Exiting ($rc).\n") if $rc != 0;
+    }
+
+    die ("Quitting for testing\n");
+
     if ( $cache_dir ) {
         die "Error: Cache dir $cache_dir does not exist\n" if (! -d $cache_dir);
         $use_vep_db = 0;
