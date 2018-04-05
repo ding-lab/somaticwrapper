@@ -90,8 +90,6 @@ sub annotate_vcf {
         die("Exiting ($rc).\n") if $rc != 0;
     }
 
-    die ("Quitting for testing\n");
-
     if ( $cache_dir ) {
         die "Error: Cache dir $cache_dir does not exist\n" if (! -d $cache_dir);
         $use_vep_db = 0;
