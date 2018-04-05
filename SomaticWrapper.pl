@@ -40,6 +40,7 @@ Configuration file parameters [defaults]
     --normal_bam s: path to normal BAM.  Required for all runs
     --reference_fasta s: path to reference
     --assembly s: either "GRCh37" or "GRCh38", used for VEP [GRCh37]
+    --vep_cache_version s: Cache version, e.g. '90', used for VEP [GRCh37]
     --reference_dict s: path to reference dict file.  Default is reference_fasta with ".dict" appended
     --sw_dir s: Somatic Wrapper installation directory [/usr/local/somaticwrapper]
     --results_dir s: Per-sample analysis results written here [.]
@@ -79,6 +80,7 @@ OUT
 my $tumor_bam;
 my $normal_bam;
 my $assembly;
+my $vep_cache_version;
 my $reference_fasta;
 my $reference_dict;  # default mapping occurs after reference_fasta known
 my $sw_dir = "/usr/local/somaticwrapper";
@@ -115,6 +117,7 @@ GetOptions(
     'normal_bam=s' => \$normal_bam,
     'reference_fasta=s' => \$reference_fasta,
     'assembly=s' => \$assembly,
+    'vep_cache_version=s' => \$vep_cache_version,
     'reference_dict=s' => \$reference_dict,
     'sw_dir=s' => \$sw_dir,
     'results_dir=s' => \$results_dir,
@@ -208,7 +211,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("output_vcf undefined \n") unless $output_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    annotate_vcf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_dir, $vep_cache_gz, $output_vep, $input_vcf, $output_vcf)
+    annotate_vcf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $output_vep, $input_vcf, $output_vcf)
 } else {
     die("Unknown step number $step_number\n");
 }

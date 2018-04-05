@@ -21,6 +21,7 @@
 # 
 # if $cache_gz is defined, it is assumed this is a .tar.gz version of VEP cache.
 #   extract its contents into $cache_dir (./vep-cache if not specified)
+#   It will subsequently be deleted
 
 # helper function
 sub write_vep_input {
@@ -32,6 +33,7 @@ sub write_vep_input {
     my $cache_dir = shift;   
     my $REF = shift;
     my $assembly = shift;
+    my $cache_version = shift;   
     my $use_vep_db = shift;  # 1 for testing/demo, 0 for production
     my $output_vep = shift;  # output annotated vep rather than vcf format after merge step.  add suffix 'vep' to output
 
@@ -48,6 +50,7 @@ $module.vep_cmd = $vep_cmd
 $module.cachedir = $cache_dir
 $module.reffasta = $REF
 $module.assembly = $assembly
+$module.cache_version = $cache_version
 $module.usedb = $use_vep_db  
 $module.output_vep = $output_vep  
 EOF
@@ -60,6 +63,7 @@ sub annotate_vcf {
     my $gvip_dir = shift;
     my $vep_cmd = shift;
     my $assembly = shift;
+    my $cache_version = shift; # 90
     my $cache_dir = shift;  # if defined, implies use_vep_db = 0
     my $cache_gz = shift;   
     my $output_vep = shift;  # if 1, output annotated vep after merge step.  If 0, output vcf format 
@@ -91,7 +95,8 @@ sub annotate_vcf {
     }
 
     if ( $cache_dir ) {
-        die "Error: Cache dir $cache_dir does not exist\n" if (! -d $cache_dir);
+        die "\nError: Cache dir $cache_dir does not exist\n" if (! -d $cache_dir);
+        die "\nError: Please specify --cache_version \n" if (! $cache_version);
         $use_vep_db = 0;
     }
 
@@ -101,7 +106,7 @@ sub annotate_vcf {
         "merged.vep",                               # Module
         $input_vcf,                # VCF (input)
         $output_vcf,           # output
-        $vep_cmd, $cache_dir, $REF, $assembly, $use_vep_db, $output_vep);
+        $vep_cmd, $cache_dir, $REF, $assembly, $cache_version, $use_vep_db, $output_vep);
 
     my $out = "$job_files_dir/$current_job_file";
     print("Writing to $out\n");
@@ -128,6 +133,13 @@ EOF
 
     my $return_code = system ( $bsub_com );
     die("Exiting ($return_code).\n") if $return_code != 0;
+
+    # Clean up by deleting contents of cache_dir - this tends to be big (>10Gb) and unnecessary to keep
+    if ( $cache_gz ) {
+        print STDERR "Deleting $cache_dir\n";
+        my $rc = system("rm -rf $cache_dir\n");
+        die("Exiting ($rc).\n") if $rc != 0;
+    }
 }
 
 1;

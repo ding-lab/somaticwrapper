@@ -57,7 +57,8 @@ if ($paras{'usedb'}) {
     # run vep if input VCF not empty
     my (undef, $tmp_vep_out) = tempfile();
     if (-s $tmp_orig_calls) {
-        $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --assembly $paras{'assembly'} --fork 4 --format vcf $vcf_flag -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
+        # cache_version is something like '90' - seems it needs to be specified
+        $cmd = "perl $paras{'vep_cmd'} $opts --cache_version $paras{'cache_version'}  --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --assembly $paras{'assembly'} --fork 4 --format vcf $vcf_flag -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
         print($cmd . "\n");
         my $errcode = system($cmd); 
         die ("Error executing: $cmd \n $! \n") if ($errcode);
