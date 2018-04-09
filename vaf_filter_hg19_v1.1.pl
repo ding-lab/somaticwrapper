@@ -43,7 +43,7 @@ foreach my $l (`cat $f_m`)
          $ref=$temp[3];
          $var=$temp[4]; 
 
-		 if(length($ref)>=20 || length($var)>=20)  { next; }
+		 if(length($ref)>=100 || length($var)>=100)  { next; }
  
 		 if($info=~/strelka-varscan/) 
 		 {
