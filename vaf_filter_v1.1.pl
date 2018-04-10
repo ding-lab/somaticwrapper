@@ -54,7 +54,8 @@ foreach my $l (`cat $f_m`)
 
          if(length($ref)>=20 || length($var)>=20)  { next; }
  
-		 if($info=~/strelka-varscan/) 
+		 #if($info=~/strelka-varscan/) 
+		if($info=~/set\=strelka-varscan/ || $info=~/set\=strelka-mutect/)
 		 {
 			#print $info,"\n"; 
 			#<STDIN>;
@@ -120,7 +121,7 @@ foreach my $l (`cat $f_m`)
 			} 	
 		}
 	
-		elsif($info=~/varindel/)
+		elsif($info=~/set\=varscan-mutect/ || $info=~/set\=varindel-mindel/)
 		{
 		   	$vaf_n=$temp[11];
         	$vaf_t=$temp[12];
@@ -146,7 +147,7 @@ foreach my $l (`cat $f_m`)
 			}
 		}
 
-		elsif($info=~/pindel/)
+        elsif($info=~/set\=pindel-varindel/ || $info=~/set\=pindel-mindel/)
         {
 
 			$vaf_t=$temp[10];

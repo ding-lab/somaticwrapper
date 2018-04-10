@@ -45,11 +45,8 @@ foreach my $l (`cat $f_m`)
 
 		 if(length($ref)>=100 || length($var)>=100)  { next; }
  
-		 if($info=~/strelka-varscan/) 
+		 if($info=~/set\=strelka-varscan/ || $info=~/set\=strelka-mutect/) 
 		 {
-			#print $info,"\n"; 
-			#<STDIN>;
-	
 			$vaf_n=$temp[9];
 		 	$vaf_t=$temp[12];
 		 	$ref=$temp[3]; 
@@ -63,7 +60,6 @@ foreach my $l (`cat $f_m`)
 			#<STDIN>;
 			#my @temp3=split(",",$temp2[0]);
 			#$rc{'A'}=$temp3[0];
-
 	 	 	$rc{'A'}=(split(",",$temp2[0]))[0]; 
 		 	$rc{'C'}=(split(",",$temp2[1]))[0];
 		 	$rc{'G'}=(split(",",$temp2[4]))[0];
@@ -78,6 +74,9 @@ foreach my $l (`cat $f_m`)
 			}
 
 			@temp2=split(":",$vaf_t);
+
+			#print "1:\n";
+            #print $ltr,"\n";
 
         	%rc2=();
 
@@ -111,12 +110,15 @@ foreach my $l (`cat $f_m`)
 			} 	
 		}
 	
-		elsif($info=~/varscan/ || $info=~/varindel/)
+		elsif($info=~/set\=varscan-mutect/ || $info=~/set\=varindel-mindel/)
 		{
 		   	$vaf_n=$temp[9];
         	$vaf_t=$temp[12];
 			@temp2=split(":",$vaf_n); 
 			#print $vaf_n,"\n";
+			#print "2:\n"; 
+			#print $ltr,"\n";
+			
 			my @ndp4=split(",",$temp2[3]);
 
 			if(scalar @ndp4<4) { @ndp4=split(",",$temp2[2]);  }  
@@ -137,7 +139,7 @@ foreach my $l (`cat $f_m`)
 			}
 		}
 
-		elsif($info=~/pindel/)
+		elsif($info=~/set\=pindel-varindel/ || $info=~/set\=pindel-mindel/)
         {
 
 			$vaf_n=$temp[10];
@@ -153,6 +155,7 @@ foreach my $l (`cat $f_m`)
             my @tdp2=split(",",$temp2[1]);
             $tdp_ref=$tdp2[0];
             $tdp_var=$tdp2[1];
+			#print $ltr,"\n";	
 			#print $ndp_ref,"\t",$ndp_var,"\t",$tdp_ref,"\t",$tdp_var,"\n";
 			#<STDIN>;
 

@@ -56,12 +56,14 @@ $red 	     [0]  Run all steps
 $green       [1]  Run streka
 $green 		 [2]  Run Varscan
 $green       [3]  Run Pindel
-$yellow 	 [4]  Parse streka result
-$yellow 	 [5]  Parse VarScan result
-$yellow      [6]  Parse Pindel
-$cyan 	     [7]  Merge vcf files  
-$cyan		 [8] Generate maf file 
-$cyan 		 [9] Generate merged maf file
+$green 		 [4]  Run mutect
+$yellow      [5]  Parse mutect result
+$yellow 	 [6]  Parse streka result
+$yellow 	 [7]  Parse VarScan result
+$yellow      [8]  Parse Pindel
+$cyan 	     [9]  Merge vcf files  
+$cyan		 [10] Generate maf file 
+$cyan 		 [11] Generate merged maf file
 $normal
 
 OUT
@@ -79,6 +81,7 @@ my $run_dir="";
 my $log_dir="";
 my $h37_REF="";
 my $ref_name="";
+my $chr_status=0;
 
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
@@ -170,13 +173,21 @@ my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $f_ref_annot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
 my $h37_REF_bai=$h37_REF.".fai";
-my $pindel="/gscuser/scao/tools/pindel/pindel";
-my $PINDEL_DIR="/gscuser/scao/tools/pindel";
+my $pindel="/gscuser/qgao/tools/pindel/pindel";
+my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
 my $picardexe="/gscuser/scao/tools/picard.jar";
 my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
 my $java_dir="/gscuser/scao/tools/jre1.8.0_121";
+my $gatkexe4="/gscuser/scao/tools/gatk-4.0.0.0/gatk";
 #my $java_dir="/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64";
 my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
+my $DB_SNP="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.snp142.GRCh37.mutect.vcf";
+my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicCodingMuts.vcf";
+my $gatkexe3="/gscmnt/gc2525/dinglab/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
+
+my $first_line=`head -n 1 $h37_REF`;
+
+if($first_line=~/^\>chr/) { $chr_status=1; }
 
 opendir(DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
 my @sample_dir_list = readdir DH;
@@ -186,7 +197,7 @@ close DH;
 #&check_input_dir($run_dir);
 # start data processsing
 
-if ($step_number < 9) {
+if ($step_number < 11) {
     #begin to process each sample
     for (my $i=0;$i<@sample_dir_list;$i++) {#use the for loop instead. the foreach loop has some problem to pass the global variable $sample_name to the sub functions
         $sample_name = $sample_dir_list[$i];
@@ -200,55 +211,42 @@ if ($step_number < 9) {
                 {  
 				   &bsub_strelka();
 				   &bsub_varscan();
-					&bsub_pindel();
+				   &bsub_pindel();
+				   &bsub_mutect();
+				   &bsub_parse_mutect(); 
 				   &bsub_parse_strelka();
 				   &bsub_parse_varscan();
-				   #&bsub_pindel();
 				   &bsub_parse_pindel();
-				  # &bsub_vep();
-				  # &bsub_mutect();
 				   &bsub_merge_vcf();
 				   &bsub_vcf_2_maf();
-				}
-                 elsif ($step_number == 1) {
+				} elsif ($step_number == 1) {
                     &bsub_strelka();
                 } elsif ($step_number == 2) {
                     &bsub_varscan(1);
-                } 
-				elsif ($step_number == 3) {
+                } elsif ($step_number == 3) {
 					&bsub_pindel(1);
-                    #&bsub_parse_strelka(1);
+                } elsif ($step_number == 4){
+                    &bsub_mutect(1);
+                } elsif ($step_number == 5){
+                    &bsub_parse_mutect(1);
                 } 
-				elsif ($step_number == 4) {
-                    #&bsub_parse_varscan(1);
+				elsif ($step_number == 6) {
 					&bsub_parse_strelka(1);
-                }elsif ($step_number == 5) {
-                  #  &bsub_parse_strelka(1);
-					&bsub_parse_varscan(1);
-                }elsif ($step_number == 6) {
-                    &bsub_parse_pindel(1);
- #               }
-#elsif ($step_number == 7) {
- #                   &bsub_vep(1);
-  #              }elsif ($step_number == 8) {
-   #                 &bsub_mutect(1);
                 }elsif ($step_number == 7) {
-                    &bsub_merge_vcf(1);
+					&bsub_parse_varscan(1);
                 }elsif ($step_number == 8) {
+                    &bsub_parse_pindel(1);
+                }elsif ($step_number == 9) {
+                    &bsub_merge_vcf(1);
+                }elsif ($step_number == 10) {
                     &bsub_vcf_2_maf(1);
-                }
-
-				# how to run pindel #
-				# /gscmnt/gc8001/info/model_data/8ad63791a648435b95a4be23ac3a18a5/buildb8e7ade8c3244bd483c274edeceeb8b7/alignments/cfa9c81317e346f5aa458e5e9220f41e.bam 500 TCGA-EX-A1H5-01A-31D-A34H-09 #
-#/gscmnt/gc8001/info/model_data/c777ae8a6fdb49b7bf400056d15a6788/build8057e74cc9f64a50a13c33763af10116/alignments/b127fcaaecc54abb833316fa3153e492.bam 500 TCGA-EX-A1H5-10A-01D-A200-09#	
-# bsub -q long -M 16000000 -n 4 -R 'span[hosts=1] rusage[mem=16000]' -oo /gscmnt/gc2532/dinglab/scao/pindel/CESC/pindel-logs/TCGA-C5-A0TN.chr9.log /gscuser/kye/gc2532/projects/PCGP_rerun/pindel -T 4 -f /gscmnt/gc2532/dinglab/projects/PCGP_rerun/GRCh37-lite.fa -i /gscmnt/gc2532/dinglab/scao/pindel/CESC/pindel-configs/TCGA-C5-A0TN.config -o /gscmnt/gc2532/dinglab/scao/pindel/CESC/pindel-outputs/TCGA-C5-A0TN/TCGA-C5-A0TN.chr9 -c 9 -m 6 -w 1 -J /gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed #
- 
+                } 
            }
         }
     }
 }
 
-if($step_number==9 || $step_number==0)
+if($step_number==11 || $step_number==0)
     {
 
 	print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
@@ -289,7 +287,7 @@ if($step_number==9 || $step_number==0)
 
 #######################################################################
 # send email to notify the finish of the analysis
-if (($step_number == 0) || ($step_number == 10)) {
+if (($step_number == 0) || ($step_number == 12)) {
     print $yellow, "Submitting the job for sending an email when the run finishes ",$sample_name, "...",$normal, "\n";
     $hold_job_file = $current_job_file;
     $current_job_file = "Email_run_".$$.".sh";
@@ -316,7 +314,9 @@ if (($step_number == 0) || ($step_number == 10)) {
     if($q_name eq "research-hpc")
     {
     $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";   }
+	else 
+	{ 
+	$bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";   }
     print $bsub_com;
     system ($bsub_com);
 
@@ -605,7 +605,7 @@ sub bsub_parse_strelka{
     }
 
 
-    $current_job_file = "j4_parse_strelka".$sample_name.".sh";
+    $current_job_file = "j6_parse_strelka".$sample_name.".sh";
 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
@@ -744,7 +744,7 @@ sub bsub_parse_varscan{
     }
 
 
-  	$current_job_file = "j5_parse_varscan".$sample_name.".sh";
+  	$current_job_file = "j7_parse_varscan".$sample_name.".sh";
 
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
@@ -1127,7 +1127,7 @@ sub bsub_parse_pindel {
         $hold_job_file = $current_job_file;
     }
 
-    $current_job_file = "j6_parse_pindel".$sample_name.".sh";
+    $current_job_file = "j8_parse_pindel".$sample_name.".sh";
 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
@@ -1239,7 +1239,9 @@ sub bsub_parse_pindel {
 
 sub bsub_mutect{
     #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
-    $current_job_file = "j8_mutect_".$sample_name.".sh";
+    my @chrlist=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","X","Y");
+
+  	$current_job_file = "j4_mutect_".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
@@ -1296,10 +1298,10 @@ sub bsub_mutect{
 	print MUTECT "fcov=".$sample_full_path."/mutect/mutect.coverage\n";
     print MUTECT "fstat=".$sample_full_path."/mutect/mutect.status\n";
     print MUTECT "myRUNDIR=".$sample_full_path."/mutect\n";
-    print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
-    print MUTECT "rawvcfgvip=".$sample_full_path."/mutect/mutect.raw.gvip.vcf\n";
-    print MUTECT "rawvcfsnv=".$sample_full_path."/mutect/mutect.raw.gvip.snv.vcf\n";
-    print MUTECT "rawvcfindel=".$sample_full_path."/mutect/mutect.raw.gvip.indel.vcf\n";
+    #print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
+    print MUTECT "filtervcf=".$sample_full_path."/mutect/mutect.filtered.vcf\n";
+    #print MUTECT "filtervcfsnv=".$sample_full_path."/mutect/mutect.filter.snv.vcf\n";
+    #print MUTECT "filtervcfindel=".$sample_full_path."/mutect/mutect.filter.indel.vcf\n";
     print MUTECT "RUNDIR=".$sample_full_path."\n";
     print MUTECT "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
     print MUTECT "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
@@ -1313,6 +1315,7 @@ sub bsub_mutect{
    # print MUTECT "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
    # print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
    # print MUTECT "else\n";
+ 	#java_dir=/gscuser/scao/tools/jre1.8.0_121
     print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
     #print MUTECT "fi\n";
     print MUTECT "if [ $status_rg -eq 0 ]\n";
@@ -1322,30 +1325,106 @@ sub bsub_mutect{
     print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${TBAM} O=\${TBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
     print MUTECT "samtools index \${TBAM_rg}\n";
 	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";
-print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --vcf \${rawvcf}\n";
+#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --vcf \${rawvcf}\n";
+    #print MUTECT "java  \${JAVA_OPTS} -jar $mutect --analysis_type MuTect --reference_sequence $h37_REF -B:dbsnp,VCF $DB_SNP -B:cosmic,VCF $DB_COSMIC --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out /data/patient/example_MuTect.call_stats.txt --vcf \${rawvcf}\n";
 #  	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor \${TBAM_rg} -I:normal \${NBAM_rg}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";
+   #print MUTECT "$gatkexe4 -T MuTect2 -R $h37_REF --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+   #print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
+
+	foreach my $chr (@chrlist)
+    {
+    	my $chr1=$chr;
+    	if($chr_status==1) { $chr1="chr".$chr; }
+		print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.$chr.vcf\n";
+		print MUTECT '  if [ ! -s $rawvcf ]',"\n";
+    	print MUTECT "  then\n";
+		print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3 -T MuTect2 -nct 4  -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+	    print MUTECT "  fi\n";
+	} 
+
 	print MUTECT "rm \${NBAM_rg}\n";
     print MUTECT "rm \${NBAM_rg_bai}\n";
 	print MUTECT "rm \${TBAM_rg}\n";
     print MUTECT "rm \${TBAM_rg_bai}\n";
 	print MUTECT "else\n";
-	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
-    #print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
-	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect --analysis_type MuTect --reference_sequence $h37_REF -B:dbsnp,VCF dbsnp_132_b37.leftAligned.vcf -B:cosmic,VCF hg19_cosmic_v54_120711.vcf --input_file:normal /data/patient/GatkSomaticIndelDetector/picard_s-fibros_converted_sorted.bam --input_file:tumor /data/patient/GatkSomaticIndelDetector/picard_s-296_converted_sorted.bam --out /data/patient/example_MuTect.call_stats.txt --coverage_file /data/patient/example_MuTect.coverage.wig.txt --fraction_contamination 0\n";
-    print MUTECT "fi\n";
-	print MUTECT "     ".$run_script_path."genomevip_label.pl mutect \${rawvcf} \${rawvcfgvip}\n";
-#    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip}  -o  \${rawvcfsnv}   -selectType SNP -selectType MNP\n";
-#    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip} -o \${rawvcfindel}  -selectType INDEL\n";
-    close MUTECT;
+#	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
+ #   print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
+	foreach my $chr (@chrlist)
+    {
+	my $chr1=$chr;
+    if($chr_status==1) { $chr1="chr".$chr; }
+	print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.$chr.vcf\n";	
+	print MUTECT '  if [ ! -s $rawvcf ]',"\n"; 
+    print MUTECT "  then\n";
+	print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3  -T MuTect2 -nct 4 -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+ 	print MUTECT "  fi\n"; 
+	}
+
+	print MUTECT "fi\n";
+
+   	foreach my $chr (@chrlist)
+    {
+	print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.$chr.vcf\n";
+	print MUTECT "filtervcf=".$sample_full_path."/mutect/mutect.raw.filtered.$chr.vcf\n";
+	print MUTECT "filtervcfsnv=".$sample_full_path."/mutect/mutect.filter.snv.$chr.vcf\n";
+    print MUTECT "filtervcfindel=".$sample_full_path."/mutect/mutect.filter.indel.$chr.vcf\n";	
+	print MUTECT "     ".$run_script_path."filter_mutect.pl \${rawvcf} \${filtervcf}\n";
+	print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
+    print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
+	}
+
+	#print MUTECT "     ".$run_script_path."merge_mutect.pl $sample_full_path\n";	
+  
+  close MUTECT;
+
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
- my $sh_file=$job_files_dir."/".$current_job_file;
+ 	my $sh_file=$job_files_dir."/".$current_job_file;
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";                                
+    $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }    
+	else 
+	{        
+	$bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";                                
     }
     print $bsub_com;
 
     system ( $bsub_com );
+}
+
+
+sub bsub_parse_mutect{
+
+    my ($step_by_step) = @_;
+    if ($step_by_step) {
+        $hold_job_file = "";
+    }else{
+        $hold_job_file = $current_job_file;
+    }
+
+    $current_job_file = "j5_parse_mutect.".$sample_name.".sh";
+
+    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
+    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+    open(PM, ">$job_files_dir/$current_job_file") or die $!;
+    print PM "#!/bin/bash\n";
+    print PM "     ".$run_script_path."merge_mutect.pl $sample_full_path\n";   
+  	close PM;
+    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
+    my $sh_file=$job_files_dir."/".$current_job_file;
+    if($q_name eq "research-hpc")
+    {
+    $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
+    else
+    {
+    $bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";
+    }
+    print $bsub_com;
+    system ( $bsub_com );
+
 }
 
 sub bsub_merge_vcf{
@@ -1357,7 +1436,7 @@ sub bsub_merge_vcf{
         $hold_job_file = $current_job_file;
     }
 
-    $current_job_file = "j7_merge_vcf.".$sample_name.".sh";
+    $current_job_file = "j9_merge_vcf.".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
@@ -1394,6 +1473,8 @@ sub bsub_merge_vcf{
 	print MERGE "VARSCAN_VCF="."\${RUNDIR}/varscan/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
 	print MERGE "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
 	print MERGE "VARSCAN_INDEL="."\${RUNDIR}/varscan/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
+	print MERGE	"MUTECT_VCF="."\${RUNDIR}/mutect/mutect.filter.snv.vcf\n";
+	print MERGE "MUTECT_INDEL="."\${RUNDIR}/mutect/mutect.filter.indel.vcf\n"; 
 	print MERGE "MERGER_OUT="."\${RUNDIR}/merged.vcf\n";
     print MERGE "cat > \${RUNDIR}/vep.merged.input <<EOF\n";
     print MERGE "merged.vep.vcf = ./merged.filtered.vcf\n"; 
@@ -1404,9 +1485,8 @@ sub bsub_merge_vcf{
     print MERGE "merged.vep.reffasta = $f_ref_annot\n";
     print MERGE "merged.vep.assembly = GRCh37\n";
     print MERGE "EOF\n";
-	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
-	#print MERGE "     ".$run_script_path."vaf_filter_hg19.pl \${RUNDIR}\n";
-    print MERGE "if [ $ref_name = $hg19 ]\n";
+	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:mindel \${MUTECT_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,mutect,pindel,varindel,mindel\n"; 
+  	print MERGE "if [ $ref_name = $hg19 ]\n";
     print MERGE "then\n";	
 	print MERGE "     ".$run_script_path."vaf_filter_hg19_v1.1.pl \${RUNDIR}\n";
 	print MERGE "else\n";
@@ -1415,7 +1495,6 @@ sub bsub_merge_vcf{
 
 	print MERGE "cd \${RUNDIR}\n";
 	print MERGE ". $script_dir/set_envvars\n"; 
-	#print MERGE ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
 	print MERGE "     ".$run_script_path."vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";	
 	close MERGE;
 	#$bsub_com = "sh $job_files_dir/$current_job_file\n";
@@ -1427,8 +1506,8 @@ sub bsub_merge_vcf{
 
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>60000] rusage[mem=60000]\" -M 60000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>60000] rusage[mem=60000]\" -M 60000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";                                                      
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
+    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";                                                      
     }
     print $bsub_com;
 
@@ -1445,7 +1524,7 @@ sub bsub_vcf_2_maf{
     }
 
 
-    $current_job_file = "j8_vcf_2_maf.".$sample_name.".sh";
+    $current_job_file = "j10_vcf_2_maf.".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
