@@ -29,6 +29,17 @@ MGI or DC2 (uses SomaticWrapper.Workflow for help)
   * Output directory is passed as an argument explicitly, so that directry structure is not
     dependent on run name
   * inputs and outputs are more explicitly defined
+  * All steps need to have input data passed as an argument
+    * in cases where a tool writes its output to the same directory as input data (`pindel_filter` and `varscan` do this)
+      in order to control where output goes, we create a link to the input data in the output directory
+  * One of the steps in `parse_pindel`, the `grep ChrID` step, was moved to `pindel_run`
+  * All references of `genomevip_label` were removed, simplifying internal data file structure
+
+### `run_vep`
+
+The script `run_vep` has been replaced by a more CWL-friendly version, `annotate_vep`.  The latter
+takes one VCF file as input and writes an annotated VCF (or VEP) file. As such, this "step" may be used
+to process any number of files by placing it in their workflow
 
 ## Authors
 
