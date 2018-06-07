@@ -52,7 +52,7 @@ Configuration file parameters [defaults]
     --output_vep : if 1, write final annotated merged file in VEP rather than VCF format [0]
     --no_delete_temp : if 1, do not delete temp files in run_pindel
     --strelka_config s: path to strelka.ini file, required for strelka run
-    --varscan_config s: path to varscan.ini file, required for varscan run
+    --varscan_config s: path to varscan.ini file, required for varscan run and parse
     --pindel_config s: path to pindel.ini file, required for pindel parsing
     --centromere_bed s: path to BED file describing centromere regions to exclude for pindel analysis.  See C_Centromeres for discussion
     --gatk_jar s: path to GATK Jar file.  [/usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar]
@@ -186,7 +186,8 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
 } elsif (($step_number eq '4') || ($step_number eq 'parse_varscan')) {
     die("Varscan Indel Raw input file not specified \n") unless $varscan_indel_raw;
     die("Varscan SNV Raw input file not specified \n") unless $varscan_snv_raw;
-    parse_varscan($results_dir, $job_files_dir, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $varscan_jar, $varscan_indel_raw, $varscan_snv_raw);
+    die("varscan_config undefined \n") unless $varscan_config;
+    parse_varscan($results_dir, $job_files_dir, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $varscan_jar, $varscan_indel_raw, $varscan_snv_raw, $varscan_config);
 } elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
     die("tumor_bam undefined \n") unless $tumor_bam;
     die("normal_bam undefined \n") unless $normal_bam;

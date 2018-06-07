@@ -3,6 +3,31 @@
 # * varscan.out.som_indel.vcf
 # * varscan.out.som_snv.vcf
 
+# Confirm that all required configuration parameters are defined.  Exit with an error if they are not
+sub test_config_parameters_varscan_run {
+    my %params = shift;
+    my $config_fn = shift;
+
+    my @required_keys = (
+        "varscan.mpileup",
+        "varscan.p-value",
+        "varscan.somatic-p-value",
+        "varscan.min-coverage-normal",
+        "varscan.min-coverage-tumor",
+        "varscan.min-var-freq",
+        "varscan.min-freq-for-hom",
+        "varscan.normal-purity",
+        "varscan.tumor-purity",
+        "varscan.strand-filter",
+        "varscan.min-avg-qual");
+
+    foreach my $key (@required_keys) {
+        if (! exists $params($key)) {
+            die ("Required key $key not found in configuration file $config_fn\n");
+        }
+    }
+}
+
 sub run_varscan{
     my $IN_bam_T = shift;
     my $IN_bam_N = shift;
@@ -45,9 +70,41 @@ sub run_varscan{
     my $snvout=$workdir."/".$run_name."_snv";
     my $indelout=$workdir."/".$run_name."_indel";
 
-    die "File not found: $varscan_config\n" if (! -e $varscan_config);
-    # ignore comments in varscan_config and convert newlines to spaces, so that all arguments are in one line
-    my $varscan_args=`grep -v "^#" $varscan_config | tr '\n' ' '`;
+#    die "File not found: $varscan_config\n" if (! -e $varscan_config);
+#    # ignore comments in varscan_config and convert newlines to spaces, so that all arguments are in one line
+#    my $varscan_args=`grep -v "^#" $varscan_config | tr '\n' ' '`;
+#
+#--mpileup 1 
+#--p-value 0.99 
+#--somatic-p-value 0.05 
+#--min-coverage-normal 20 
+#--min-coverage-tumor 20 
+#--min-var-freq 0.05 
+#--min-freq-for-hom 0.75 
+#--normal-purity 1.00 
+#--tumor-purity 1.00 
+#--strand-filter 1 
+#--min-avg-qual 15 
+
+    # Read configuration file into %params
+    my %params = get_config_params($varscan_config);
+    test_config_parameters_varscan_run(%params, $varscan_config);
+   my $varscan_args = "\
+--mpileup $params{'varscan.mpileup'} \
+--p-value $params{'varscan.p-value'} \
+--somatic-p-value $params{'varscan.somatic-p-value'} \
+--min-coverage-normal $params{'varscan.min-coverage-normal'} \
+--min-coverage-tumor $params{'varscan.min-coverage-tumor'} \
+--min-var-freq $params{'varscan.min-var-freq'} \
+--min-freq-for-hom $params{'varscan.min-freq-for-hom'} \
+--normal-purity $params{'varscan.normal-purity'} \
+--tumor-purity $params{'varscan.tumor-purity'} \
+--strand-filter $params{'varscan.strand-filter'} \
+--min-avg-qual $params{'varscan.min-avg-qual'} \
+--output-vcf 1";
+
+print "$varscan_args \n";
+die("Testing only\n");
 
     print OUT <<"EOF";
 #!/bin/bash

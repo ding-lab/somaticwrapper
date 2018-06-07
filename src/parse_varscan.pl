@@ -12,6 +12,20 @@
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.vcf   -> varscan_snv_dbsnp
     # varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf    -> varscan_indel_dbsnp
 
+# The following parameters are read from varscan_config.  Numbers provided are parameters used by Song circa May 2018
+#    snv.min-tumor-freq = 0.05 
+#    snv.max-normal-freq = 0.05 
+#    snv.p-value = 0.05
+#    indel.min-tumor-freq = 0.05 
+#    indel.max-normal-freq = 0.05 
+#    indel.p-value = 0.05
+#    filter.min-coverage = 20 
+#    filter.min-reads2 = 4 
+#    filter.min-strands2 = 1 
+#    filter.min-avg-qual = 20 
+#    filter.min-var-freq = 0.05 
+#    filter.p-value = 0.05
+
 # CWL changes:
 # * get rid of genomevip_label steps
 # * input filenames are passed explicitly: varscan_indel_raw and varscan_snv_raw
@@ -19,16 +33,52 @@
 
 use File::Basename;
 
+# return hash of parameters of form params{key}=value, where key and value are specified in configuration file as
+#   key = value
+# Unlike params in GenomeVIP, where a key of the form "x.y.z" is stripped so key=z, here the entire key is retained
+sub get_config_params {
+    my $config_fn = $1;
+    my $DEBUG=2;
 
-# TODO: these parameters should be exposed
-#my $somatic_snv_params="--min-tumor-freq 0.10 --max-normal-freq 0.05 --p-value 0.07";
-my $somatic_snv_params="--min-tumor-freq 0.05 --max-normal-freq 0.05 --p-value 0.05";  # consistent with Song's
-#my $somatic_indel_params="--min-tumor-freq 0.10 --max-normal-freq 0.05 --p-value 0.07";
-my $somatic_indel_params="--min-tumor-freq 0.05 --max-normal-freq 0.05 --p-value 0.05"; # consistent with Song's
-#my $somatic_filter_params="--min-coverage 30 --min-reads2 4 --min-strands2 1 --min-avg-qual 20 --min-var-freq 0.10 --p-value 0.05";
-my $somatic_filter_params="--min-coverage 20 --min-reads2 4 --min-strands2 1 --min-avg-qual 20 --min-var-freq 0.05 --p-value 0.05";
+    open( my $fh, '<', $config_fn ) or die "Can't open config file $config_fn: $!";
 
-# TODO: expose filter parameters
+    my %paras;
+    # first form is from GenomeVIP/dbsnp_filter.pl
+    # map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
+    map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ $_[0] } = $v } } (<$fh>);
+    close $fh;
+
+    if ($DEBUG) {
+        map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
+    }
+    return %paras;
+}
+
+# Confirm that all required configuration parameters are defined.  Exit with an error if they are not
+sub test_config_parameters_varscan_parse {
+    my %params = shift;
+    my $config_fn = shift;
+
+    my @required_keys = (
+        "snv.min-tumor-freq",
+        "snv.max-normal-freq",
+        "snv.p-value",
+        "indel.min-tumor-freq",
+        "indel.max-normal-freq",
+        "indel.p-value",
+        "filter.min-coverage",
+        "filter.min-reads2",
+        "filter.min-strands2",
+        "filter.min-avg-qual",
+        "filter.min-var-freq",
+        "filter.p-value");
+
+    foreach my $key (@required_keys) {
+        if (! exists $params($key)) {
+            die ("Required key $key not found in configuration file $config_fn\n");
+        }
+    }
+}
 
 sub parse_varscan{
     my $sample_full_path = shift;
@@ -40,9 +90,27 @@ sub parse_varscan{
     my $varscan_jar = shift;
     my $varscan_indel_raw = shift; # indeloutgvip
     my $varscan_snv_raw = shift;  # snvoutgvip
+    my $varscan_config = shift;
 
     $current_job_file = "j4_parse_varscan.sh";
     die "Error: dbSnP database file $dbsnp_db does not exist\n" if (! -e $dbsnp_db);
+
+    # Read configuration file into %params
+    my %params = get_config_params($varscan_config);
+    test_config_parameters_varscan_parse(%params, $varscan_config);
+
+    # TODO: document these parameters
+    # construct parameter arguments from %params
+    my $somatic_snv_params="--min-tumor-freq $params{'snv.min-tumor-freq'} --max-normal-freq $params{'snv.max-normal-freq'} --p-value $params{'snv.p-value'}";  
+    my $somatic_indel_params="--min-tumor-freq $params{'indel.min-tumor-freq'} --max-normal-freq $params{'indel.max-normal-freq'} --p-value $params{'indel.p-value'}";  
+    my $somatic_filter_params="--min-coverage $params{'filter.min-coverage'} --min-reads2 $params{'filter.min-reads2'} " +
+        "--min-strands2 $params{'filter.min-strands2'} --min-avg-qual $params{'filter.min-avg-qual'} " + 
+        "--min-var-freq $params{'filter.min-var-freq'} --p-value $params{'filter.p-value'}";
+
+    echo "Somatic SNV Params:\n$somatic_snv_params\n";
+    echo "Somatic Indel Params:\n$somatic_indel_params\n";
+    echo "Somatic Filter Params:\n$somatic_filter_params\n";
+die("Quitting early\n");
 
     my $bsub = "bash";
     my $filter_results = "$sample_full_path/varscan/filter_out";
