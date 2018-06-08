@@ -33,31 +33,10 @@
 
 use File::Basename;
 
-# return hash of parameters of form params{key}=value, where key and value are specified in configuration file as
-#   key = value
-# Unlike params in GenomeVIP, where a key of the form "x.y.z" is stripped so key=z, here the entire key is retained
-sub get_config_params {
-    my $config_fn = $1;
-    my $DEBUG=2;
-
-    open( my $fh, '<', $config_fn ) or die "Can't open config file $config_fn: $!";
-
-    my %paras;
-    # first form is from GenomeVIP/dbsnp_filter.pl
-    # map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
-    map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ $_[0] } = $v } } (<$fh>);
-    close $fh;
-
-    if ($DEBUG) {
-        map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
-    }
-    return %paras;
-}
 
 # Confirm that all required configuration parameters are defined.  Exit with an error if they are not
 sub test_config_parameters_varscan_parse {
-    my %params = shift;
-    my $config_fn = shift;
+    my ($config_fn, %params) = @_;
 
     my @required_keys = (
         "snv.min-tumor-freq",
@@ -74,7 +53,7 @@ sub test_config_parameters_varscan_parse {
         "filter.p-value");
 
     foreach my $key (@required_keys) {
-        if (! exists $params($key)) {
+        if (! exists $params{$key}) {
             die ("Required key $key not found in configuration file $config_fn\n");
         }
     }
@@ -93,24 +72,31 @@ sub parse_varscan{
     my $varscan_config = shift;
 
     $current_job_file = "j4_parse_varscan.sh";
-    die "Error: dbSnP database file $dbsnp_db does not exist\n" if (! -e $dbsnp_db);
+    
+    # It would be helpul to allow dbsnp_db to be not set, which would imply skipping the filtering step
+    # This is currently not supported: require dbsnp_db to be defined and a file
+    if ($dbsnp_db eq "") {
+        die("Error: dbsnp_db not defined\n");
+    } else {
+        die "Error: dbSnP database file $dbsnp_db does not exist\n" if (! -e $dbsnp_db);
+    }
 
     # Read configuration file into %params
-    my %params = get_config_params($varscan_config);
-    test_config_parameters_varscan_parse(%params, $varscan_config);
+    my %params = get_config_params($varscan_config, 1);
+    test_config_parameters_varscan_parse($varscan_config, %params);
 
     # TODO: document these parameters
     # construct parameter arguments from %params
     my $somatic_snv_params="--min-tumor-freq $params{'snv.min-tumor-freq'} --max-normal-freq $params{'snv.max-normal-freq'} --p-value $params{'snv.p-value'}";  
-    my $somatic_indel_params="--min-tumor-freq $params{'indel.min-tumor-freq'} --max-normal-freq $params{'indel.max-normal-freq'} --p-value $params{'indel.p-value'}";  
-    my $somatic_filter_params="--min-coverage $params{'filter.min-coverage'} --min-reads2 $params{'filter.min-reads2'} " +
-        "--min-strands2 $params{'filter.min-strands2'} --min-avg-qual $params{'filter.min-avg-qual'} " + 
+    my $somatic_indel_params="--min-tumor-freq $params{'indel.min-tumor-freq'} " . 
+        "--max-normal-freq $params{'indel.max-normal-freq'} --p-value $params{'indel.p-value'}";  
+    my $somatic_filter_params="--min-coverage $params{'filter.min-coverage'} --min-reads2 $params{'filter.min-reads2'} " .
+        "--min-strands2 $params{'filter.min-strands2'} --min-avg-qual $params{'filter.min-avg-qual'} " . 
         "--min-var-freq $params{'filter.min-var-freq'} --p-value $params{'filter.p-value'}";
 
-    echo "Somatic SNV Params:\n$somatic_snv_params\n";
-    echo "Somatic Indel Params:\n$somatic_indel_params\n";
-    echo "Somatic Filter Params:\n$somatic_filter_params\n";
-die("Quitting early\n");
+    print "Somatic SNV Params:\n$somatic_snv_params\n";
+    print "Somatic Indel Params:\n$somatic_indel_params\n";
+    print "Somatic Filter Params:\n$somatic_filter_params\n";
 
     my $bsub = "bash";
     my $filter_results = "$sample_full_path/varscan/filter_out";

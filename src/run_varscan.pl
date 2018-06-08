@@ -2,11 +2,53 @@
 # * bamfilelist.inp
 # * varscan.out.som_indel.vcf
 # * varscan.out.som_snv.vcf
+#
+# The following parameters are read from varscan_config and are mandatory
+#  varscan.mpileup
+#  varscan.p-value
+#  varscan.somatic-p-value
+#  varscan.min-coverage-normal
+#  varscan.min-coverage-tumor
+#  varscan.min-var-freq
+#  varscan.min-freq-for-hom
+#  varscan.normal-purity
+#  varscan.tumor-purity
+#  varscan.strand-filter
+#  varscan.min-avg-qual
+
+#
+# Utility functions
+#
+sub get_config_params {
+# return hash of parameters of form params{key}=value, where key and value are specified in configuration file as
+#   key = value
+# Unlike params in GenomeVIP, where a key of the form "x.y.z" is stripped so key=z, here the entire key is retained
+    my $config_fn = shift;
+    my $DEBUG=shift;
+
+    print ("Reading configuration file: $config_fn\n");
+
+    open( my $fh, '<', $config_fn ) or die "Can't open config file $config_fn: $!";
+
+    my %paras;
+    # first form is from GenomeVIP/dbsnp_filter.pl
+    # map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
+    map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ $_[0] } = $v } } (<$fh>);
+    close $fh;
+
+    if ($DEBUG) {
+        map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
+    }
+    return %paras;
+}
 
 # Confirm that all required configuration parameters are defined.  Exit with an error if they are not
 sub test_config_parameters_varscan_run {
-    my %params = shift;
-    my $config_fn = shift;
+
+# Discussion of subtleties of passing hashes in perl: pass strings first
+# https://stackoverflow.com/questions/3567316/unable-to-pass-a-hash-and-a-string-to-a-function-together-in-perl
+    
+    my ($config_fn, %params) = @_;
 
     my @required_keys = (
         "varscan.mpileup",
@@ -22,8 +64,8 @@ sub test_config_parameters_varscan_run {
         "varscan.min-avg-qual");
 
     foreach my $key (@required_keys) {
-        if (! exists $params($key)) {
-            die ("Required key $key not found in configuration file $config_fn\n");
+        if (! exists $params{$key}) {
+            die ("Error: Required key $key not found in configuration file $config_fn\n");
         }
     }
 }
@@ -87,24 +129,25 @@ sub run_varscan{
 #--min-avg-qual 15 
 
     # Read configuration file into %params
-    my %params = get_config_params($varscan_config);
-    test_config_parameters_varscan_run(%params, $varscan_config);
-   my $varscan_args = "\
---mpileup $params{'varscan.mpileup'} \
---p-value $params{'varscan.p-value'} \
---somatic-p-value $params{'varscan.somatic-p-value'} \
---min-coverage-normal $params{'varscan.min-coverage-normal'} \
---min-coverage-tumor $params{'varscan.min-coverage-tumor'} \
---min-var-freq $params{'varscan.min-var-freq'} \
---min-freq-for-hom $params{'varscan.min-freq-for-hom'} \
---normal-purity $params{'varscan.normal-purity'} \
---tumor-purity $params{'varscan.tumor-purity'} \
---strand-filter $params{'varscan.strand-filter'} \
---min-avg-qual $params{'varscan.min-avg-qual'} \
+    my %params = get_config_params($varscan_config, 0);
+
+    test_config_parameters_varscan_run($varscan_config, %params);
+
+   my $varscan_args = "
+--mpileup $params{'varscan.mpileup'} 
+--p-value $params{'varscan.p-value'} 
+--somatic-p-value $params{'varscan.somatic-p-value'} 
+--min-coverage-normal $params{'varscan.min-coverage-normal'} 
+--min-coverage-tumor $params{'varscan.min-coverage-tumor'} 
+--min-var-freq $params{'varscan.min-var-freq'} 
+--min-freq-for-hom $params{'varscan.min-freq-for-hom'} 
+--normal-purity $params{'varscan.normal-purity'} 
+--tumor-purity $params{'varscan.tumor-purity'} 
+--strand-filter $params{'varscan.strand-filter'} 
+--min-avg-qual $params{'varscan.min-avg-qual'} 
 --output-vcf 1";
 
-print "$varscan_args \n";
-die("Testing only\n");
+    $varscan_args =~ tr/\r\n//d;
 
     print OUT <<"EOF";
 #!/bin/bash
