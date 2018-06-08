@@ -10,8 +10,9 @@
 # Note that DATAD is mapped to the container
 # SomaticWrapper work directory is $DATAD/data
 #   This allows directories not executed by SomaticWrapper (e.g., A_Reference) to exist on the data partition too
-DATAD="$HOME/src/SomaticWrapper/data"
-IMAGE="mwyczalkowski/somatic-wrapper:latest"
+DATAD="/Users/mwyczalk/Projects/Rabix/TinDaisy/StrelkaDemo.dat"
+#IMAGE="mwyczalkowski/somatic-wrapper:latest"
+IMAGE="cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:cwl"
 
 docker run -v $DATAD:/data -it $IMAGE
 
