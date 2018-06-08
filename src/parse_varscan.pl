@@ -33,26 +33,6 @@
 
 use File::Basename;
 
-# return hash of parameters of form params{key}=value, where key and value are specified in configuration file as
-#   key = value
-# Unlike params in GenomeVIP, where a key of the form "x.y.z" is stripped so key=z, here the entire key is retained
-sub get_config_params {
-    my $config_fn = $1;
-    my $DEBUG=2;
-
-    open( my $fh, '<', $config_fn ) or die "Can't open config file $config_fn: $!";
-
-    my %paras;
-    # first form is from GenomeVIP/dbsnp_filter.pl
-    # map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
-    map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ $_[0] } = $v } } (<$fh>);
-    close $fh;
-
-    if ($DEBUG) {
-        map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
-    }
-    return %paras;
-}
 
 # Confirm that all required configuration parameters are defined.  Exit with an error if they are not
 sub test_config_parameters_varscan_parse {
@@ -74,7 +54,7 @@ sub test_config_parameters_varscan_parse {
         "filter.p-value");
 
     foreach my $key (@required_keys) {
-        if (! exists $params($key)) {
+        if (! exists $params{$key}) {
             die ("Required key $key not found in configuration file $config_fn\n");
         }
     }
@@ -96,7 +76,7 @@ sub parse_varscan{
     die "Error: dbSnP database file $dbsnp_db does not exist\n" if (! -e $dbsnp_db);
 
     # Read configuration file into %params
-    my %params = get_config_params($varscan_config);
+    my %params = get_config_params($varscan_config, 1);
     test_config_parameters_varscan_parse(%params, $varscan_config);
 
     # TODO: document these parameters
@@ -107,9 +87,9 @@ sub parse_varscan{
         "--min-strands2 $params{'filter.min-strands2'} --min-avg-qual $params{'filter.min-avg-qual'} " + 
         "--min-var-freq $params{'filter.min-var-freq'} --p-value $params{'filter.p-value'}";
 
-    echo "Somatic SNV Params:\n$somatic_snv_params\n";
-    echo "Somatic Indel Params:\n$somatic_indel_params\n";
-    echo "Somatic Filter Params:\n$somatic_filter_params\n";
+    print "Somatic SNV Params:\n$somatic_snv_params\n";
+    print "Somatic Indel Params:\n$somatic_indel_params\n";
+    print "Somatic Filter Params:\n$somatic_filter_params\n";
 die("Quitting early\n");
 
     my $bsub = "bash";
