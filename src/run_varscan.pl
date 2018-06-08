@@ -2,11 +2,27 @@
 # * bamfilelist.inp
 # * varscan.out.som_indel.vcf
 # * varscan.out.som_snv.vcf
+#
+# The following parameters are read from varscan_config and are mandatory
+#  varscan.mpileup
+#  varscan.p-value
+#  varscan.somatic-p-value
+#  varscan.min-coverage-normal
+#  varscan.min-coverage-tumor
+#  varscan.min-var-freq
+#  varscan.min-freq-for-hom
+#  varscan.normal-purity
+#  varscan.tumor-purity
+#  varscan.strand-filter
+#  varscan.min-avg-qual
 
+#
+# Utility functions
+#
+sub get_config_params {
 # return hash of parameters of form params{key}=value, where key and value are specified in configuration file as
 #   key = value
 # Unlike params in GenomeVIP, where a key of the form "x.y.z" is stripped so key=z, here the entire key is retained
-sub get_config_params {
     my $config_fn = shift;
     my $DEBUG=shift;
 
@@ -49,7 +65,7 @@ sub test_config_parameters_varscan_run {
 
     foreach my $key (@required_keys) {
         if (! exists $params{$key}) {
-            die ("Required key $key not found in configuration file $config_fn\n");
+            die ("Error: Required key $key not found in configuration file $config_fn\n");
         }
     }
 }

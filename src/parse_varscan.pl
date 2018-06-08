@@ -36,8 +36,7 @@ use File::Basename;
 
 # Confirm that all required configuration parameters are defined.  Exit with an error if they are not
 sub test_config_parameters_varscan_parse {
-    my %params = shift;
-    my $config_fn = shift;
+    my ($config_fn, %params) = @_;
 
     my @required_keys = (
         "snv.min-tumor-freq",
@@ -73,24 +72,31 @@ sub parse_varscan{
     my $varscan_config = shift;
 
     $current_job_file = "j4_parse_varscan.sh";
-    die "Error: dbSnP database file $dbsnp_db does not exist\n" if (! -e $dbsnp_db);
+    
+    # It would be helpul to allow dbsnp_db to be not set, which would imply skipping the filtering step
+    # This is currently not supported: require dbsnp_db to be defined and a file
+    if ($dbsnp_db eq "") {
+        die("Error: dbsnp_db not defined\n");
+    } else {
+        die "Error: dbSnP database file $dbsnp_db does not exist\n" if (! -e $dbsnp_db);
+    }
 
     # Read configuration file into %params
     my %params = get_config_params($varscan_config, 1);
-    test_config_parameters_varscan_parse(%params, $varscan_config);
+    test_config_parameters_varscan_parse($varscan_config, %params);
 
     # TODO: document these parameters
     # construct parameter arguments from %params
     my $somatic_snv_params="--min-tumor-freq $params{'snv.min-tumor-freq'} --max-normal-freq $params{'snv.max-normal-freq'} --p-value $params{'snv.p-value'}";  
-    my $somatic_indel_params="--min-tumor-freq $params{'indel.min-tumor-freq'} --max-normal-freq $params{'indel.max-normal-freq'} --p-value $params{'indel.p-value'}";  
-    my $somatic_filter_params="--min-coverage $params{'filter.min-coverage'} --min-reads2 $params{'filter.min-reads2'} " +
-        "--min-strands2 $params{'filter.min-strands2'} --min-avg-qual $params{'filter.min-avg-qual'} " + 
+    my $somatic_indel_params="--min-tumor-freq $params{'indel.min-tumor-freq'} " . 
+        "--max-normal-freq $params{'indel.max-normal-freq'} --p-value $params{'indel.p-value'}";  
+    my $somatic_filter_params="--min-coverage $params{'filter.min-coverage'} --min-reads2 $params{'filter.min-reads2'} " .
+        "--min-strands2 $params{'filter.min-strands2'} --min-avg-qual $params{'filter.min-avg-qual'} " . 
         "--min-var-freq $params{'filter.min-var-freq'} --p-value $params{'filter.p-value'}";
 
     print "Somatic SNV Params:\n$somatic_snv_params\n";
     print "Somatic Indel Params:\n$somatic_indel_params\n";
     print "Somatic Filter Params:\n$somatic_filter_params\n";
-die("Quitting early\n");
 
     my $bsub = "bash";
     my $filter_results = "$sample_full_path/varscan/filter_out";
