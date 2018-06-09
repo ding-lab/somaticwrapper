@@ -60,13 +60,15 @@ RUN pip install \
 # Perl packags
 RUN cpanm XML::XPath
 
-# Strelka v 2.7.1 is latest,
-#  -> incorporate the newest Strelka at some point 
-#RUN cd /usr/local \
-#    && wget https://github.com/Illumina/strelka/releases/download/v2.7.1/strelka-2.7.1.centos5_x86_64.tar.bz2 \
-#    && bzip2 -d strelka-2.7.1.centos5_x86_64.tar.bz2 \
-#    && tar -xf strelka-2.7.1.centos5_x86_64.tar \
-#    && rm strelka-2.7.1.centos5_x86_64.tar
+# Notes on Strelka2 installation
+# there are issues with installing strelka in /usr/local, because strelka1 already exists
+# for now, removing /usr/local/strelka and /usr/local/strelka_workflow-1.0.15
+# cd /usr/local
+# git clone https://github.com/Illumina/strelka.git  strelka2
+# mkdir strelka2_build; cd strelka2_build
+# /usr/local/strelka2/configure --prefix=/usr/local/strelka2
+# make -C /usr/local/strelka2_build
+# make install
 
 # Note that SomaticWrapper v1.1 uses strelka 1.0.15.  We download that too
 RUN cd /usr/local \
@@ -137,11 +139,20 @@ RUN cd /usr/local \
     && cd /usr/local/ensembl-vep \
     && perl INSTALL.pl /data/D_Ensembl -a a
 
+# Install Strelka2 
+RUN cd /usr/local \
+    && git clone https://github.com/Illumina/strelka.git strelka2 \
+    && mkdir strelka2_build \
+    && cd strelka2_build \
+    && /usr/local/strelka2/configure --prefix=/usr/local/strelka2 \
+    && make -C /usr/local/strelka2_build \
+    && make install
+
 COPY vimrc /root/.vimrc
 
 # change the hash below to force clone
 # get it with git rev-parse HEAD, though it doesn't matter what it is as long as it changes
-ENV latest_commit f72a3ab5b16ec77aa6159a7afad387b5021a9c58
+ENV latest_commit boo4
 RUN cd /usr/local \
     && git clone -b cwl https://github.com/ding-lab/somaticwrapper 
 
