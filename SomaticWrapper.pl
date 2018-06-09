@@ -88,6 +88,7 @@ my $results_dir = ".";
 my $vep_cache_dir;
 my $vep_cache_gz;
 my $output_vep = 0;
+my $is_strelka2 = 0;
 my $no_delete_temp = 0;
 my $strelka_config; 
 my $varscan_config; 
@@ -96,6 +97,7 @@ my $centromere_bed;
 my $gatk_jar = "/usr/local/GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar";
 my $perl = "/usr/bin/perl";
 my $strelka_dir = "/usr/local/strelka";
+my $strelka2_dir = "/usr/local/strelka2";
 my $vep_cmd = "/usr/local/ensembl-vep/vep";
 my $pindel_dir = "/usr/local/pindel";
 my $snpsift_jar = "/usr/local/snpEff/SnpSift.jar";
@@ -132,6 +134,7 @@ GetOptions(
     'gatk_jar=s' => \$gatk_jar,
     'perl=s' => \$perl,
     'strelka_dir=s' => \$strelka_dir,
+    'strelka2_dir=s' => \$strelka2_dir,
     'vep_cmd=s' => \$vep_cmd,
     'pindel_dir=s' => \$pindel_dir,
     'snpsift_jar=s' => \$snpsift_jar,
@@ -147,6 +150,7 @@ GetOptions(
     'varscan_indel_vcf=s' => \$varscan_indel_vcf,
     'input_vcf=s' => \$input_vcf,
     'output_vcf=s' => \$output_vcf,
+    'is_strelka2=s' => \$is_strelka2,
 ) or die "Error parsing command line args.\n$usage\n";
 
 die $usage unless @ARGV >= 1;
@@ -173,7 +177,22 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("normal_bam undefined \n") unless $normal_bam;
     die("strelka_config undefined \n") unless $strelka_config;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    run_strelka($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $strelka_dir, $reference_fasta, $strelka_config);
+
+    print("strelka_config: $strelka_config\n");
+
+    my $strelka_bin;
+    if ($is_strelka2) {
+        $strelka_bin="$strelka2_dir/bin/configureStrelkaSomaticWorkflow.py";
+    } else {
+        $strelka_bin="$strelka_dir/bin/configureStrelkaWorkflow.pl";
+    }
+
+    # switching 1->2 is more than just changing $strelka_dir, since the script name changes too.
+    # have $strelka_dir and $strelka2_dir
+    # have --strelka_version values 1 or 2
+    # --exome is based on strelka.ini
+
+    run_strelka($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $strelka_bin, $reference_fasta, $strelka_config, $is_strelka2);
 } elsif (($step_number eq '2') || ($step_number eq 'run_varscan')) {
     die("tumor_bam undefined \n") unless $tumor_bam;
     die("normal_bam undefined \n") unless $normal_bam;
@@ -182,6 +201,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     run_varscan($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $varscan_config, $varscan_jar);
 } elsif (($step_number eq '3') || ($step_number eq 'parse_strelka')) {
     die("Strelka SNV Raw input file not specified \n") unless $strelka_snv_raw;
+    die("strelka_config undefined \n") unless $strelka_config;
     parse_strelka($results_dir, $job_files_dir, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $strelka_snv_raw);
 } elsif (($step_number eq '4') || ($step_number eq 'parse_varscan')) {
     die("Varscan Indel Raw input file not specified \n") unless $varscan_indel_raw;

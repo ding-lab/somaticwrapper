@@ -1,5 +1,3 @@
-# bam readcount not used because not using FP Filter
-#my $bam_readcount = "/usr/local/bin/bam-readcount";
 
 # Pre-CWL arrangement:
     # The following files are created by prior steps, $sample_full_path/strelka/strelka_out/results and accessed here
@@ -25,7 +23,13 @@ sub parse_strelka {
     my $snpsift_jar = shift;
     my $input_snv = shift;  # New to CWL: pass this filename explicitly (passed.somatic.snvs.vcf)
 
-    die "Error: dbSnP database file $dbsnp_db does not exist\n" if (! -e $dbsnp_db);
+    # It would be helpul to allow dbsnp_db to be not set, which would imply skipping the filtering step
+    # This is currently not supported: require dbsnp_db to be defined and a file
+    if ($dbsnp_db eq "") {
+        die("Error: dbsnp_db not defined\n");
+    } else {
+        die "Error: dbSnP database file $dbsnp_db does not exist\n" if (! -e $dbsnp_db);
+    }
 
     $current_job_file = "j3_parse_strelka.sh";
 
