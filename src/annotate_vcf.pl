@@ -22,6 +22,8 @@
 # if $cache_gz is defined, it is assumed this is a .tar.gz version of VEP cache.
 #   extract its contents into $cache_dir (./vep-cache if not specified)
 #   It will subsequently be deleted
+#
+# Output is $results_dir/vep/output.vcf
 
 # helper function
 sub write_vep_input {
@@ -57,7 +59,7 @@ EOF
 }
 
 sub annotate_vcf {
-    my $sample_full_path = shift;
+    my $results_dir = shift;
     my $job_files_dir = shift;
     my $REF = shift;
     my $gvip_dir = shift;
@@ -68,15 +70,16 @@ sub annotate_vcf {
     my $cache_gz = shift;   
     my $output_vep = shift;  # if 1, output annotated vep after merge step.  If 0, output vcf format 
     my $input_vcf = shift;  # for CWL work, we are passed an input VCF
-    my $output_vcf = shift;  # for CWL work, we are passed an output annotated vcf
+
 
     $current_job_file = "j10_vep.sh";
 
     my $bsub = "bash";
-    my $filter_results = "$sample_full_path/vep";
+    my $filter_results = "$results_dir/vep";
     system("mkdir -p $filter_results");
 
     my $config_fn = "$filter_results/vep.merged.input";
+    my $output_vcf = "$filter_results/output.vcf";
 
     my $use_vep_db = 1;
 
