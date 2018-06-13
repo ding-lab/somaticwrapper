@@ -38,6 +38,7 @@ unless ( -e $paras{'variants_file'} ) { die "input indels not exist !!! \n"; }
 my $zero = 0.001;
 if( exists $paras{'zero_variant_support'}) {
     $zero=$paras{'zero_variant_support'};
+    print("Setting zero_variant_support: $zero\n");
 } else {
     print("Using default value of zero_variant_support: $zero\n");
 }
