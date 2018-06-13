@@ -34,9 +34,13 @@ if( $paras{'apply_filter'} eq "true" &&  !exists($paras{'mode'}) ) { die "Could 
 # file exist ? 
 unless ( -e $paras{'variants_file'} ) { die "input indels not exist !!! \n"; }
 
-# TODO: make this an adjustable parameter
 #my $zero=0.001;  # Song has 0.01
-my $zero=$params{'zero_variant_support'};
+my $zero = 0.001;
+if( exists $paras{'zero_variant_support'}) {
+    $zero=$paras{'zero_variant_support'};
+} else {
+    print("Using default value of zero_variant_support: $zero\n");
+}
 
 my $var_file        = $paras{'variants_file'};
 
