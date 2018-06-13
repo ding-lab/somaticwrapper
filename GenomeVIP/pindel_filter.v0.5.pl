@@ -22,8 +22,6 @@ use POSIX qw( WIFEXITED );
 use File::Temp qw/ tempfile /;
 
 
-my $zero=0.001;
-
 my $thisdir;
 $thisdir=`dirname $ARGV[0]`;
 chomp $thisdir;
@@ -36,6 +34,9 @@ if( $paras{'apply_filter'} eq "true" &&  !exists($paras{'mode'}) ) { die "Could 
 # file exist ? 
 unless ( -e $paras{'variants_file'} ) { die "input indels not exist !!! \n"; }
 
+# TODO: make this an adjustable parameter
+#my $zero=0.001;  # Song has 0.01
+my $zero=$params{'zero_variant_support'};
 
 my $var_file        = $paras{'variants_file'};
 
