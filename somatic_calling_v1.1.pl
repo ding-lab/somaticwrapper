@@ -163,20 +163,21 @@ my $hold_job_file = "";
 my $bsub_com = "";
 my $sample_full_path = "";
 my $sample_name = "";
+
 #my $mutect="/gscuser/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
-my $mutect="/gscuser/scao/tools/mutect-1.1.7.jar";
-my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
+#my $mutect="/gscuser/scao/tools/mutect-1.1.7.jar";
+my $STRELKA_DIR="/diskmnt/Software/strelka_workflow-1.0.14/bin";
 #my $h37_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
-my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
-my $f_ref_annot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
+my $f_exac="/diskmnt/Datasets/ExAC/r0.3.1/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
+#my $f_ref_annot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
 my $h37_REF_bai=$h37_REF.".fai";
-my $pindel="/gscuser/scao/tools/pindel/pindel";
-my $PINDEL_DIR="/gscuser/scao/tools/pindel";
-my $picardexe="/gscuser/scao/tools/picard.jar";
-my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
-my $java_dir="/gscuser/scao/tools/jre1.8.0_121";
+my $pindel="/diskmnt/Software/pindel-0.2.5b9-commit-b706fba/pindel/";
+my $PINDEL_DIR="/diskmnt/Software/pindel-0.2.5b9-commit-b706fba/";
+my $picardexe="/diskmnt/Software/picard.jar";
+my $gatk="/diskmnt/Software/GenomeAnalysisTK-3.7-0-gcfedb67.jar";
+my $java_dir="/diskmnt/Software/jre1.8.0_121";
 #my $java_dir="/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64";
-my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
+my $f_centromere="/diskmnt/Datasets/Centromeres/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 
 opendir(DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
 my @sample_dir_list = readdir DH;
@@ -280,8 +281,8 @@ if($step_number==9 || $step_number==0)
 
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";   }
+    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
     print $bsub_com;
     system ($bsub_com);
 
@@ -315,8 +316,8 @@ if (($step_number == 0) || ($step_number == 10)) {
 
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";   }
+    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
     print $bsub_com;
     system ($bsub_com);
 
@@ -441,9 +442,9 @@ sub bsub_strelka{
 
 	if($q_name eq "research-hpc")
 	{
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err sh $sh_file\n";     }
+    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
 	else { 
-	    $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err sh $sh_file\n"; 
+	    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n"; 
 	}
 	print $bsub_com;
     system ($bsub_com);
@@ -584,8 +585,8 @@ sub bsub_varscan{
 
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";   }
+    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
     print $bsub_com;
     system ($bsub_com);
 
@@ -729,8 +730,8 @@ sub bsub_parse_strelka{
 
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";   }
+    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
     print $bsub_com;
     system ($bsub_com);
 }
@@ -910,8 +911,8 @@ sub bsub_parse_varscan{
 
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";   }
+    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
     print $bsub_com;
     system ($bsub_com);
 	}
@@ -978,8 +979,8 @@ sub bsub_pindel{
 
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }        
-	else {        $bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";   }
+    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }        
+	else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
     print $bsub_com;
     system ($bsub_com);
 
@@ -1230,8 +1231,8 @@ sub bsub_parse_pindel {
  my $sh_file=$job_files_dir."/".$current_job_file;
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }    
-	else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";   }
+    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }    
+	else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
     print $bsub_com;
     system ($bsub_com);
 	
@@ -1341,7 +1342,8 @@ print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --anal
  my $sh_file=$job_files_dir."/".$current_job_file;
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";                                
+    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }    
+	else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";                                
     }
     print $bsub_com;
 
@@ -1427,8 +1429,8 @@ sub bsub_merge_vcf{
 
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>60000] rusage[mem=60000]\" -M 60000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>60000] rusage[mem=60000]\" -M 60000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";                                                      
+    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";                                                      
     }
     print $bsub_com;
 
@@ -1483,8 +1485,8 @@ sub bsub_vcf_2_maf{
 
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";                                
+    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";                                
     }
     print $bsub_com;
 	system ($bsub_com);
