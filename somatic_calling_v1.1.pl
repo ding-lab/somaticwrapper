@@ -163,19 +163,17 @@ my $hold_job_file = "";
 my $bsub_com = "";
 my $sample_full_path = "";
 my $sample_name = "";
-#my $mutect="/gscuser/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
-my $mutect="/gscuser/scao/tools/mutect-1.1.7.jar";
+### absolute paths for STRELKA, PINDEL, GATK
 my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
-#my $h37_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
-my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
-my $f_ref_annot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
-my $h37_REF_bai=$h37_REF.".fai";
 my $pindel="/gscuser/scao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/scao/tools/pindel";
 my $picardexe="/gscuser/scao/tools/picard.jar";
 my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
 my $java_dir="/gscuser/scao/tools/jre1.8.0_121";
-#my $java_dir="/gscmnt/gc2525/dinglab/rmashl/Software/bin/jre/1.8.0_121-x64";
+
+my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
+my $f_ref_annot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
+my $h37_REF_bai=$h37_REF.".fai";
 my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 
 opendir(DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
@@ -198,16 +196,21 @@ if ($step_number < 9) {
                 $current_job_file="";
                 if($step_number==0)
                 {  
-				   &bsub_strelka();
+# run strelka ##	
+			   &bsub_strelka();
+# run varscan ##
 				   &bsub_varscan();
+## run pindel ##
 					&bsub_pindel();
+## parse strelka ##
 				   &bsub_parse_strelka();
+## parse varscan ##
 				   &bsub_parse_varscan();
-				   #&bsub_pindel();
+## parse pindel ##
 				   &bsub_parse_pindel();
-				  # &bsub_vep();
-				  # &bsub_mutect();
+##  merge vcf files from different callings ##
 				   &bsub_merge_vcf();
+## vcf to maf annotation ##
 				   &bsub_vcf_2_maf();
 				}
                  elsif ($step_number == 1) {
@@ -1237,116 +1240,6 @@ sub bsub_parse_pindel {
 	
 	}
 
-sub bsub_mutect{
-    #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
-    $current_job_file = "j8_mutect_".$sample_name.".sh";
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-
-    if (! -e $IN_bam_T) {#make sure there is a input fasta file 
-        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        print "Warning: Died because there is no input bam file for bwa:\n";
-        print "File $IN_bam_T does not exist!\n";
-        die "Please check command line argument!", $normal, "\n\n";
-
-    }
-
-    if (! -s $IN_bam_T) {#make sure input fasta file is not empty
-        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        die "Warning: Died because $IN_bam_T is empty!", $normal, "\n\n";
-    }
-
-    if (! -e $IN_bam_N) {#make sure there is a input fasta file 
-        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        print "Warning: Died because there is no input bam file for bwa:\n";
-        print "File $IN_bam_N does not exist!\n";
-        die "Please check command line argument!", $normal, "\n\n";
-
-    }
-
-    if (! -s $IN_bam_N) {#make sure input fasta file is not empty
-        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
-    }
-
-	my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
-    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
-
-    `rm $lsf_out`;
-	`rm $lsf_err`; 
-
-    open(MUTECT, ">$job_files_dir/$current_job_file") or die $!;
-    print MUTECT "#!/bin/bash\n";
-    #print MUTECT "#BSUB -n 1\n";
-    #print MUTECT "#BSUB -R \"rusage[mem=30000]\"","\n";
-    #print MUTECT "#BSUB -M 30000000\n";
-    #print MUTECT "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    #print MUTECT "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    #print MUTECT "#BSUB -J $current_job_file\n";
-    #print MUTECT "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print MUTECT "#BSUB -q long\n";
-    #print MUTECT "#BSUB -q research-hpc\n";
-    #print MUTECT "scr_t0=\`date \+\%s\`\n";
-    print MUTECT "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print MUTECT "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-	print MUTECT "TBAM_rg=".$sample_full_path."/".$sample_name.".T.rg.bam\n";
-    print MUTECT "NBAM_rg=".$sample_full_path."/".$sample_name.".N.rg.bam\n";
-    print MUTECT "TBAM_rg_bai=".$sample_full_path."/".$sample_name.".T.rg.bam.bai\n";
-    print MUTECT "NBAM_rg_bai=".$sample_full_path."/".$sample_name.".N.rg.bam.bai\n";
-	print MUTECT "fcov=".$sample_full_path."/mutect/mutect.coverage\n";
-    print MUTECT "fstat=".$sample_full_path."/mutect/mutect.status\n";
-    print MUTECT "myRUNDIR=".$sample_full_path."/mutect\n";
-    print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
-    print MUTECT "rawvcfgvip=".$sample_full_path."/mutect/mutect.raw.gvip.vcf\n";
-    print MUTECT "rawvcfsnv=".$sample_full_path."/mutect/mutect.raw.gvip.snv.vcf\n";
-    print MUTECT "rawvcfindel=".$sample_full_path."/mutect/mutect.raw.gvip.indel.vcf\n";
-    print MUTECT "RUNDIR=".$sample_full_path."\n";
-    print MUTECT "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
-    print MUTECT "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print MUTECT "export JAVA_HOME=$java_dir\n";
-    print MUTECT "export JAVA_OPTS=\"-Xmx10g\"\n";
-    print MUTECT "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    print MUTECT "if [ ! -d \${myRUNDIR} ]\n";
-    print MUTECT "then\n";
-    print MUTECT "mkdir \${myRUNDIR}\n";
-    print MUTECT "fi\n";
-   # print MUTECT "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-   # print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-   # print MUTECT "else\n";
-    print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-    #print MUTECT "fi\n";
-    print MUTECT "if [ $status_rg -eq 0 ]\n";
-    print MUTECT "then\n";	
-	print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${NBAM} O=\${NBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
-    print MUTECT "samtools index \${NBAM_rg}\n";
-    print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${TBAM} O=\${TBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
-    print MUTECT "samtools index \${TBAM_rg}\n";
-	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";
-print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --vcf \${rawvcf}\n";
-#  	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor \${TBAM_rg} -I:normal \${NBAM_rg}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";
-	print MUTECT "rm \${NBAM_rg}\n";
-    print MUTECT "rm \${NBAM_rg_bai}\n";
-	print MUTECT "rm \${TBAM_rg}\n";
-    print MUTECT "rm \${TBAM_rg_bai}\n";
-	print MUTECT "else\n";
-	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
-    #print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
-	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect --analysis_type MuTect --reference_sequence $h37_REF -B:dbsnp,VCF dbsnp_132_b37.leftAligned.vcf -B:cosmic,VCF hg19_cosmic_v54_120711.vcf --input_file:normal /data/patient/GatkSomaticIndelDetector/picard_s-fibros_converted_sorted.bam --input_file:tumor /data/patient/GatkSomaticIndelDetector/picard_s-296_converted_sorted.bam --out /data/patient/example_MuTect.call_stats.txt --coverage_file /data/patient/example_MuTect.coverage.wig.txt --fraction_contamination 0\n";
-    print MUTECT "fi\n";
-	print MUTECT "     ".$run_script_path."genomevip_label.pl mutect \${rawvcf} \${rawvcfgvip}\n";
-#    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip}  -o  \${rawvcfsnv}   -selectType SNP -selectType MNP\n";
-#    print MUTECT "java \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T SelectVariants  -V  \${rawvcfgvip} -o \${rawvcfindel}  -selectType INDEL\n";
-    close MUTECT;
-    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
- my $sh_file=$job_files_dir."/".$current_job_file;
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";                                
-    }
-    print $bsub_com;
-
-    system ( $bsub_com );
-}
 
 sub bsub_merge_vcf{
   
