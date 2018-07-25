@@ -12,7 +12,7 @@
 # runs pindel with arguments -T 4 -m 6 -w 1
 # f_centromere is optional bed file passed to pindel to exclude regions
 #   if it is defined, must exist
-# will delete temporary files (pindel_D, etc) unless no_delete_temp is 1
+# will delete temporary files (pindel_D, etc) unless no_delete_temp is true
 
 sub run_pindel {
     my $IN_bam_T = shift;

@@ -49,8 +49,8 @@ Configuration file parameters [defaults]
           It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
     --vep_cache_gz s: extract contents of .tar.gz vep cache tree into vep_cache_dir, or "./vep-cache" if vep_cache_dir not specified
-    --output_vep : if 1, write final annotated merged file in VEP rather than VCF format [0]
-    --no_delete_temp : if 1, do not delete temp files in run_pindel
+    --output_vep : if defined, write final annotated merged file in VEP rather than VCF format
+    --no_delete_temp : if defined, do not delete temp files in run_pindel and parse_pindel
     --strelka_config s: path to strelka.ini file, required for strelka run
     --varscan_config s: path to varscan.ini file, required for varscan run and parse
     --pindel_config s: path to pindel.ini file, required for pindel parsing
@@ -87,9 +87,9 @@ my $sw_dir = "/usr/local/somaticwrapper";
 my $results_dir = ".";  
 my $vep_cache_dir;
 my $vep_cache_gz;
-my $output_vep = 0;
-my $is_strelka2;
-my $no_delete_temp = 0;
+my $output_vep;     # Boolean
+my $is_strelka2;    # Boolean
+my $no_delete_temp; # Boolean
 my $strelka_config; 
 my $varscan_config; 
 my $pindel_config; 
@@ -124,8 +124,6 @@ GetOptions(
     'results_dir=s' => \$results_dir,
     'vep_cache_dir=s' => \$vep_cache_dir,
     'vep_cache_gz=s' => \$vep_cache_gz,
-    'output_vep=s' => \$output_vep,
-    'no_delete_temp=s' => \$no_delete_temp,
     'strelka_config=s' => \$strelka_config,
     'varscan_config=s' => \$varscan_config,
     'pindel_config=s' => \$pindel_config,
@@ -148,6 +146,8 @@ GetOptions(
     'pindel_vcf=s' => \$pindel_vcf,
     'varscan_indel_vcf=s' => \$varscan_indel_vcf,
     'input_vcf=s' => \$input_vcf,
+    'output_vep!' => \$output_vep,
+    'no_delete_temp!' => \$no_delete_temp,
     'is_strelka2!' => \$is_strelka2,
 ) or die "Error parsing command line args.\n$usage\n";
 
