@@ -218,7 +218,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("pindel_config undefined \n") unless $pindel_config;
     die("pindel raw input file not specified \n") unless $pindel_raw;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    parse_pindel($results_dir, $job_files_dir, $reference_fasta, $perl, $gvip_dir, $pindel_dir, $dbsnp_db, $snpsift_jar, $pindel_config, $pindel_raw);
+    parse_pindel($results_dir, $job_files_dir, $reference_fasta, $perl, $gvip_dir, $pindel_dir, $dbsnp_db, $snpsift_jar, $pindel_config, $pindel_raw, $no_delete_temp);
 } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
     die("strelka_snv_vcf undefined \n") unless $strelka_snv_vcf;
     die("varscan_snv_vcf undefined \n") unless $varscan_snv_vcf;
