@@ -25,6 +25,10 @@ sub parse_pindel {
     my $pindel_raw_in = shift; # NEW
     my $no_delete_temp = shift;
 
+    if (! $no_delete_temp) {
+        $no_delete_temp = 0; # avoid empty variables
+    }
+
     $current_job_file = "j7_parse_pindel.sh";
 
     my $bsub = "bash";
@@ -105,8 +109,9 @@ if [[ $no_delete_temp == 1 ]]; then
 
 else
 
->&2 echo Deleting intermediate (_fail) files
-rm -f *_fail*
+>&2 echo Deleting intermediate \\"filter fail\\" files
+cd $filter_results
+rm -f \*_fail\*
 
 fi
 

@@ -24,6 +24,10 @@ sub run_pindel {
     my $f_centromere = shift;
     my $no_delete_temp = shift;
 
+    if (! $no_delete_temp) {
+        $no_delete_temp = 0; # avoid empty variables
+    }
+
     my $centromere_arg = "";
     die "Error: Tumor BAM $IN_bam_T does not exist\n" if (! -e $IN_bam_T);
     die "Error: Tumor BAM $IN_bam_T is empty\n" if (! -s $IN_bam_T);
