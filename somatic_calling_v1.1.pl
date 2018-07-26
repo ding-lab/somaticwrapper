@@ -47,10 +47,10 @@ $normal
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
 <wgs> ==  1 for yes and 0 for no 
 
-with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
-without chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite.fa
-mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
-hg19: /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta 
+#with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
+#without chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite.fa
+#mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
+#hg19: /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta 
 
 $red 	     [0]  Run all steps
 $green       [1]  Run streka
@@ -166,13 +166,13 @@ my $sample_name = "";
 
 #my $mutect="/gscuser/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
 #my $mutect="/gscuser/scao/tools/mutect-1.1.7.jar";
-my $STRELKA_DIR="/diskmnt/Software/strelka_workflow-1.0.14/bin";
+my $STRELKA_DIR="/diskmnt/Software/strelka_workflow-1.0.14/bin/bin";
 #my $h37_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
 my $f_exac="/diskmnt/Datasets/ExAC/r0.3.1/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 #my $f_ref_annot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
 my $h37_REF_bai=$h37_REF.".fai";
-my $pindel="/diskmnt/Software/pindel-0.2.5b9-commit-b706fba/pindel/";
-my $PINDEL_DIR="/diskmnt/Software/pindel-0.2.5b9-commit-b706fba/";
+my $pindel="/diskmnt/Software/pindel-0.2.5b9-commit-b706fba/pindel";
+my $PINDEL_DIR="/diskmnt/Software/pindel-0.2.5b9-commit-b706fba";
 my $picardexe="/diskmnt/Software/picard.jar";
 my $gatk="/diskmnt/Software/GenomeAnalysisTK-3.7-0-gcfedb67.jar";
 my $java_dir="/diskmnt/Software/jre1.8.0_121";
@@ -279,13 +279,16 @@ if($step_number==9 || $step_number==0)
 
  my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
-    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
+#    if($q_name eq "research-hpc")
+#    {
+#    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+#    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
+#    print $bsub_com;
+#    system ($bsub_com);
 
+$bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+print $bsub_com;
+system ($bsub_com);
 }
 
 #######################################################################
@@ -314,15 +317,18 @@ if (($step_number == 0) || ($step_number == 10)) {
 
  	my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
-    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
+#    if($q_name eq "research-hpc")
+#    {
+#    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+#    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
+#    print $bsub_com;
+#    system ($bsub_com);
 
-	
+$bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+print $bsub_com;
+system ($bsub_com);
 }
+
 #######################################################################
 if ($step_number == 0) {
     print $green, "All jobs are submitted! You will get email notification when this run is completed.\n",$normal;
@@ -386,9 +392,9 @@ sub bsub_strelka{
 	print STREKA "RUNDIR=".$sample_full_path."\n";
 	print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
 	print STREKA "STRELKA_VCF=".$sample_full_path."/strelka/strelka_out/results/passed.somatic.snvs.vcf"."\n";   
-	print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
+	print STREKA "CONFDIR="."/diskmnt/Software/Tools_for_SomaticWrapper/config\n";
  	print STREKA "TASK_STATUS=".$sample_full_path."/strelka/strelka_out/task.complete"."\n";
-	print STREKA "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+	print STREKA "export SAMTOOLS_DIR=/diskmnt/Software/samtools-1.2/bin\n";
 	print STREKA "export JAVA_HOME=$java_dir\n";
 	print STREKA "export JAVA_OPTS=\"-Xmx10g\"\n";
 	print STREKA "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
@@ -440,16 +446,21 @@ sub bsub_strelka{
     close STREKA;
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-	if($q_name eq "research-hpc")
-	{
-    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
-	else { 
-	    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n"; 
-	}
-	print $bsub_com;
-    system ($bsub_com);
+#	if($q_name eq "research-hpc")
+#	{
+#    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+#	else { 
+#	    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n"; 
+#	}
+#	print $bsub_com;
+#    system ($bsub_com);
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     #system ( $bsub_com );
+
+
+$bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+print $bsub_com;
+system ($bsub_com);
 }
 
 sub bsub_varscan{
@@ -510,10 +521,10 @@ sub bsub_varscan{
     print VARSCAN "STATUSDIR=".$sample_full_path."/status\n";
     print VARSCAN "RESULTSDIR=".$sample_full_path."/varscan_results\n";
     print VARSCAN "RUNDIR=".$sample_full_path."\n";
-    print VARSCAN "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
+    print VARSCAN "CONFDIR="."/diskmnt/Software/Tools_for_SomaticWrapper/config2\n";
    	print VARSCAN "GENOMEVIP_SCRIPTS=/gscmnt/gc2525/dinglab/rmashl/Software/bin/genomevip\n";
-	print VARSCAN "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-	print VARSCAN "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+	print VARSCAN "export VARSCAN_DIR=/diskmnt/Software/varscan-2.3.8\n";
+	print VARSCAN "export SAMTOOLS_DIR=/diskmnt/Software/samtools-1.2\n";
     print VARSCAN "export JAVA_HOME=$java_dir\n";
     print VARSCAN "export JAVA_OPTS=\"-Xmx10g\"\n";
     print VARSCAN "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
@@ -583,18 +594,20 @@ sub bsub_varscan{
 
  my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
-    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
+#    if($q_name eq "research-hpc")
+#    {
+#    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+#    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
+#    print $bsub_com;
+#    system ($bsub_com);
 
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     #system ( $bsub_com );
 
+$bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+print $bsub_com;
+system ($bsub_com);
 }
-
 
 sub bsub_parse_strelka{
 
@@ -639,22 +652,22 @@ sub bsub_parse_strelka{
     print STREKAP "SG_DIR=".$sample_full_path."/strelka\n";
     print STREKAP "RUNDIR=".$sample_full_path."\n";
     print STREKAP "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
-	print STREKAP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print STREKAP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
+	print STREKAP "export SAMTOOLS_DIR=/diskmnt/Software/samtools-1.2\n";
+    print STREKAP "export VARSCAN_DIR=/diskmnt/Software/varscan-2.3.8";
     print STREKAP "export JAVA_HOME=$java_dir\n";
     print STREKAP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print STREKAP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print STREKAP "cat > \${myRUNDIR}/strelka_out/results/strelka_dbsnp_filter.snv.input <<EOF\n";
-    print STREKAP "streka.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-    print STREKAP "streka.dbsnp.snv.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
+    print STREKAP "streka.dbsnp.snv.annotator = /diskmnt/Software/snpEff_20150522/SnpSift.jar\n";
+    print STREKAP "streka.dbsnp.snv.db = /diskmnt/Software/Tools_for_SomaticWrapper/00-All.brief.pass.cosmic.vcf\n";
     print STREKAP "streka.dbsnp.snv.rawvcf = ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
     print STREKAP "streka.dbsnp.snv.mode = filter\n";
     print STREKAP "streka.dbsnp.snv.passfile  = ./strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
     print STREKAP "streka.dbsnp.snv.dbsnpfile = ./strelka.somatic.snv.all.gvip.dbsnp_present.vcf\n";
     print STREKAP "EOF\n";
 	print STREKAP "cat > \${myRUNDIR}/strelka_out/results/strelka_dbsnp_filter.indel.input <<EOF\n";
-   	print STREKAP "streka.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-    print STREKAP "streka.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
+   	print STREKAP "streka.dbsnp.indel.annotator = /diskmnt/Software/snpEff_20150522/SnpSift.jar\n";
+    print STREKAP "streka.dbsnp.indel.db = /diskmnt/Software/Tools_for_SomaticWrapper/00-All.brief.pass.cosmic.vcf\n";
     print STREKAP "streka.dbsnp.indel.rawvcf = ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";
     print STREKAP "streka.dbsnp.indel.mode = filter\n";
     print STREKAP "streka.dbsnp.indel.passfile  = ./strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
@@ -728,13 +741,18 @@ sub bsub_parse_strelka{
 
  my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
-    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
+#    if($q_name eq "research-hpc")
+#    {
+#    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+#    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
+#    print $bsub_com;
+#    system ($bsub_com);
+
+$bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+print $bsub_com;
+system ($bsub_com);
 }
+
 sub bsub_parse_varscan{
 
     my ($step_by_step) = @_;
@@ -775,23 +793,23 @@ sub bsub_parse_varscan{
     print VARSCANP "myRUNDIR=".$sample_full_path."/varscan\n";
     print VARSCANP "STATUSDIR=".$sample_full_path."/status\n";
     print VARSCANP "RUNDIR=".$sample_full_path."\n";
-    print VARSCANP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-    print VARSCANP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+    print VARSCANP "export VARSCAN_DIR=/diskmnt/Software/varscan-2.3.8\n";
+    print VARSCANP "export SAMTOOLS_DIR=/diskmnt/Software/samtools-1.2\n";
     print VARSCANP "export JAVA_HOME=$java_dir\n";
 #    print VARSCANP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
 	print VARSCANP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print VARSCANP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input <<EOF\n";
-	print VARSCANP "varscan.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-	print VARSCANP "varscan.dbsnp.snv.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
+	print VARSCANP "varscan.dbsnp.snv.annotator = /diskmnt/Software/snpEff_20150522/SnpSift.jar\n";
+	print VARSCANP "varscan.dbsnp.snv.db = /diskmnt/Software/Tools_for_SomaticWrapper/00-All.brief.pass.cosmic.vcf\n";
 	print VARSCANP "varscan.dbsnp.snv.rawvcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf\n";
 	print VARSCANP "varscan.dbsnp.snv.mode = filter\n";
 	print VARSCANP "varscan.dbsnp.snv.passfile  = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
 	print VARSCANP "varscan.dbsnp.snv.dbsnpfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf\n";
 	print VARSCANP "EOF\n";
 	print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.indel.input <<EOF\n";
-	print VARSCANP "varscan.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-	print VARSCANP "varscan.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
+	print VARSCANP "varscan.dbsnp.indel.annotator = /diskmnt/Software/snpEff_20150522/SnpSift.jar\n";
+	print VARSCANP "varscan.dbsnp.indel.db = /diskmnt/Software/Tools_for_SomaticWrapper/00-All.brief.pass.cosmic.vcf\n";
 	print VARSCANP "varscan.dbsnp.indel.rawvcf = ./varscan.out.som_indel.gvip.Somatic.hc.vcf\n";
 	print VARSCANP "varscan.dbsnp.indel.mode = filter\n";
 	print VARSCANP "varscan.dbsnp.indel.passfile  = ./varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
@@ -909,13 +927,17 @@ sub bsub_parse_varscan{
 
  my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
-    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
-	}
+#    if($q_name eq "research-hpc")
+#    {
+#    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+#    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
+#    print $bsub_com;
+#    system ($bsub_com);
+
+$bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+print $bsub_com;
+system ($bsub_com);
+}
 
 sub bsub_pindel{
     my ($step_by_step) = @_;
@@ -977,14 +999,17 @@ sub bsub_pindel{
    # system ( $bsub_com );	
  my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }        
-	else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
+#    if($q_name eq "research-hpc")
+#    {
+#    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }        
+#	else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
+#    print $bsub_com;
+#    system ($bsub_com);
 
-	}
+$bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+print $bsub_com;
+system ($bsub_com);
+}
 
 #sub bsub_vep{
   
@@ -1164,8 +1189,8 @@ sub bsub_parse_pindel {
 	print PP "pindel.filter.somatic.max_num_homopolymer_repeat_units = 6\n";
 	print PP "EOF\n";
     print PP "cat > \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input <<EOF\n";
-    print PP "pindel.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-    print PP "pindel.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
+    print PP "pindel.dbsnp.indel.annotator = /diskmnt/Software/snpEff_20150522/SnpSift.jar\n";
+    print PP "pindel.dbsnp.indel.db = /diskmnt/Software/Tools_for_SomaticWrapper/00-All.brief.pass.cosmic.vcf\n";
     print PP "pindel.dbsnp.indel.rawvcf = ./pindel.out.current_final.gvip.Somatic.vcf\n";
     print PP "pindel.dbsnp.indel.mode = filter\n";
     print PP "pindel.dbsnp.indel.passfile  = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
@@ -1229,14 +1254,17 @@ sub bsub_parse_pindel {
 	print PP "fi\n";
 	close PP;
  my $sh_file=$job_files_dir."/".$current_job_file;
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }    
-	else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
-	
-	}
+#    if($q_name eq "research-hpc")
+#    {
+#    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }    
+#	else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";   }
+#    print $bsub_com;
+#    system ($bsub_com);
+
+$bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+print $bsub_com;
+system ($bsub_com);
+}
 
 sub bsub_mutect{
     #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
@@ -1303,7 +1331,7 @@ sub bsub_mutect{
     print MUTECT "rawvcfindel=".$sample_full_path."/mutect/mutect.raw.gvip.indel.vcf\n";
     print MUTECT "RUNDIR=".$sample_full_path."\n";
     print MUTECT "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
-    print MUTECT "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+    print MUTECT "export SAMTOOLS_DIR=/diskmnt/Software/samtools-1.2\n";
     print MUTECT "export JAVA_HOME=$java_dir\n";
     print MUTECT "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MUTECT "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
@@ -1323,7 +1351,7 @@ sub bsub_mutect{
     print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${TBAM} O=\${TBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
     print MUTECT "samtools index \${TBAM_rg}\n";
 	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";
-print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --vcf \${rawvcf}\n";
+# print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --vcf \${rawvcf}\n";
 #  	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor \${TBAM_rg} -I:normal \${NBAM_rg}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";
 	print MUTECT "rm \${NBAM_rg}\n";
     print MUTECT "rm \${NBAM_rg_bai}\n";
@@ -1340,15 +1368,20 @@ print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --anal
     close MUTECT;
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
  my $sh_file=$job_files_dir."/".$current_job_file;
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }    
-	else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";                                
-    }
-    print $bsub_com;
+#    if($q_name eq "research-hpc")
+#    {
+#    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }    
+#	else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";                                
+#    }
+#    print $bsub_com;
 
-    system ( $bsub_com );
+#    system ( $bsub_com );
+
+$bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+print $bsub_com;
+system ($bsub_com);
 }
+
 
 sub bsub_merge_vcf{
   
@@ -1388,7 +1421,7 @@ sub bsub_merge_vcf{
     print MERGE "STATUSDIR=".$sample_full_path."/status\n";
     print MERGE "RUNDIR=".$sample_full_path."\n";
     #print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-	print MERGE "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+	print MERGE "export SAMTOOLS_DIR=/diskmnt/Software/samtools-1.2\n";
     print MERGE "export JAVA_HOME=$java_dir\n";
     print MERGE "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
@@ -1403,7 +1436,7 @@ sub bsub_merge_vcf{
     print MERGE "merged.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
     print MERGE "merged.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache\n";
     #print MERGE "merged.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache/homo_sapiens/85_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print MERGE "merged.vep.reffasta = $f_ref_annot\n";
+    #print MERGE "merged.vep.reffasta = $f_ref_annot\n";
     print MERGE "merged.vep.assembly = GRCh37\n";
     print MERGE "EOF\n";
 	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
@@ -1427,15 +1460,20 @@ sub bsub_merge_vcf{
 	#print $bsub_com;
     #system ($bsub_com);
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
-    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";                                                      
-    }
-    print $bsub_com;
+#    if($q_name eq "research-hpc")
+#    {
+#    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+#    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";                                                      
+#    }
+#    print $bsub_com;
 
-   	system ($bsub_com);
-	}
+#   	system ($bsub_com);
+
+
+$bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+print $bsub_com;
+system ($bsub_com);
+}
 
 sub bsub_vcf_2_maf{
   
@@ -1478,19 +1516,21 @@ sub bsub_vcf_2_maf{
 	print MAF "rm \${F_VEP_2}\n"; 
 	print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
 	print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
-	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --filter-vcf $f_exac\n";
+	#print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --filter-vcf $f_exac\n";
  	#print MAF "     ".$run_script_path."splice_site_check.pl $sample_full_path\n"; 
     close MAF;
   	my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
-    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";                                
-    }
-    print $bsub_com;
-	system ($bsub_com);
+#    if($q_name eq "research-hpc")
+#    {
+#    $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";     }
+#    else {        $bsub_com = "qsub -V -l mem=30000 -e $lsf_err -o $lsf_out sh $sh_file\n";                                
+#    }
+#    print $bsub_com;
+#	system ($bsub_com);
 
-	}
-
+$bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+print $bsub_com;
+system ($bsub_com);
+}
  
