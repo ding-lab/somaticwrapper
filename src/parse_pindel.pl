@@ -40,8 +40,10 @@ sub parse_pindel {
     # pindel_filter is pathological in that all output data is written to the same directory as input data, and
     # the documentation does not describe a way to change that.  Since input data is passed, and we need
     # to be able to control where data is written to, we must create a soft-link to input data in output 
-    # directory.
+    # directory.  Link has to be created with an absolute filename
     die "Error: Pindel raw input file $pindel_raw_in does not exist\n" if (! -e $pindel_raw_in);
+    $pindel_raw_in = `readlink -f $pindel_raw_in`;
+    chomp $pindel_raw_in;
 
     system ("ln -fs $pindel_raw_in $filter_results "); 
     my $pindel_raw=$filter_results . "/" . basename($pindel_raw_in) ;
