@@ -100,14 +100,20 @@ sub parse_varscan{
 
     my $bsub = "bash";
     my $filter_results = "$sample_full_path/varscan/filter_out";
+    print("Filter results: $filter_results\n");
     system("mkdir -p $filter_results");
 
     # VarScan is pathological in that all output data is written to the same directory as input data, and
     # the documentation does not describe a way to change that.  Since input data is passed, and we need
     # to be able to control where data is written to, we must create a soft-link to input data in output 
-    # directory.
+    # directory.  Note that link must be created with absolute, not relative, path
     die "Error: Indel raw input file $varscan_indel_raw does not exist\n" if (! -e $varscan_indel_raw);
     die "Error: SNV raw input file $varscan_snv_raw does not exist\n" if (! -e $varscan_snv_raw);
+
+    $varscan_indel_raw = `readlink -f $varscan_indel_raw`;
+    chomp $varscan_indel_raw;
+    $varscan_snv_raw = `readlink -f $varscan_snv_raw`;
+    chomp $varscan_snv_raw;
 
     system ("ln -fs $varscan_indel_raw $filter_results "); 
     system ("ln -fs $varscan_snv_raw $filter_results "); 
@@ -122,7 +128,6 @@ sub parse_varscan{
     my $thissnvorig="$filter_results/varscan.out.som_snv.Somatic.hc.vcf";  # This is genrated by varscan processSomatic
     my $myindelorig="${indeloutbase}.vcf";
     my $thissnvpass="${snvoutbase}.Somatic.hc.somfilter_pass.vcf";
-
 
     my $log_file="$filter_results/varscan.out.som.log";
 
@@ -164,7 +169,7 @@ export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 
 echo \'APPLYING PROCESS FILTER TO SOMATIC SNVS:\' # &> $log_file
 # Script below creates the following in the same directory as the input data
-# The inability to define output directory is maddening 
+# The inability to define output directory complicates things
     # varscan.out.som_snv.Somatic.hc.vcf      -> used for SNV SNP filter below and vep annotation
     # varscan.out.som_snv.Somatic.vcf        
     # varscan.out.som_snv.LOH.hc.vcf         
@@ -212,8 +217,6 @@ $perl $gvip_dir/dbsnp_filter.pl  $filter_results/vs_dbsnp_filter.snv.input
     # varscan.out.som_indel.Somatic.hc.dbsnp_anno.vcf    
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/vs_dbsnp_filter.indel.input
 
-# Genome VIP SNV filter , and two GenomeVIP VEP annotation calls deleted from end of workflow per 
-# discussion with Song
 
 EOF
 
