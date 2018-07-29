@@ -39,8 +39,10 @@ sub write_vep_input {
     my $use_vep_db = shift;  # 1 for testing/demo, 0 for production
     my $output_vep = shift;  # output annotated vep rather than vcf format after merge step.  add suffix 'vep' to output
 
+    my $output_vep_int = 0;
     if ($output_vep) {
         $output = "$output.vep";
+        $output_vep_int = 1; 
     }
 
     print("Writing to $config_fn\n");
@@ -54,7 +56,7 @@ $module.reffasta = $REF
 $module.assembly = $assembly
 $module.cache_version = $cache_version
 $module.usedb = $use_vep_db  
-$module.output_vep = $output_vep  
+$module.output_vep = $output_vep_int
 EOF
 }
 
@@ -68,7 +70,7 @@ sub annotate_vcf {
     my $cache_version = shift; # 90
     my $cache_dir = shift;  # if defined, implies use_vep_db = 0
     my $cache_gz = shift;   
-    my $output_vep = shift;  # if 1, output annotated vep after merge step.  If 0, output vcf format 
+    my $output_vep = shift;  # if true, output annotated vep after merge step.  If false, output vcf format 
     my $input_vcf = shift;  # for CWL work, we are passed an input VCF
 
 

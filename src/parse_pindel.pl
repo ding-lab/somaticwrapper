@@ -10,6 +10,7 @@
 # * All input filenames explicitly passed
 # * The `grep ChrID` command is moved to the run_pindel step.  This changes the input into this script,
 #   which is `pindel_raw`
+# * Optionally delete files pindel-raw.CvgVafStrand_fail and pindel-raw.CvgVafStrand_pass.Homopolymer_fail.vcf
 
 sub parse_pindel {
     my $sample_full_path = shift;
@@ -22,6 +23,11 @@ sub parse_pindel {
     my $snpsift_jar = shift;
     my $pindel_config = shift;
     my $pindel_raw_in = shift; # NEW
+    my $no_delete_temp = shift;
+
+    if (! $no_delete_temp) {
+        $no_delete_temp = 0; # avoid empty variables
+    }
 
     $current_job_file = "j7_parse_pindel.sh";
 
@@ -34,8 +40,10 @@ sub parse_pindel {
     # pindel_filter is pathological in that all output data is written to the same directory as input data, and
     # the documentation does not describe a way to change that.  Since input data is passed, and we need
     # to be able to control where data is written to, we must create a soft-link to input data in output 
-    # directory.
+    # directory.  Link has to be created with an absolute filename
     die "Error: Pindel raw input file $pindel_raw_in does not exist\n" if (! -e $pindel_raw_in);
+    $pindel_raw_in = `readlink -f $pindel_raw_in`;
+    chomp $pindel_raw_in;
 
     system ("ln -fs $pindel_raw_in $filter_results "); 
     my $pindel_raw=$filter_results . "/" . basename($pindel_raw_in) ;
@@ -79,8 +87,9 @@ EOF
 #    pindel.out.raw.CvgVafStrand_fail
 #    pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass  -> this is input into dbSnP filter
 #    pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail  
-# 2. Label things  - no longer labeling things
-# 3. Run dbSnP filter
+# 2. Run dbSnP filter
+# 3. Optionally delete intermediate files
+#    - specifically, files with "_fail" in the filename
 
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");
@@ -95,6 +104,18 @@ export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 
 echo Running dbsnp_filter.pl
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/pindel_dbsnp_filter.indel.input
+
+if [[ $no_delete_temp == 1 ]]; then
+
+>&2 echo Not deleting intermediate files
+
+else
+
+>&2 echo Deleting intermediate \\"filter fail\\" files
+cd $filter_results
+rm -f \*_fail\*
+
+fi
 
 EOF
 
