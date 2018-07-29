@@ -40,7 +40,7 @@ Configuration file parameters [defaults]
     --normal_bam s: path to normal BAM.  Required for all runs
     --reference_fasta s: path to reference
     --assembly s: either "GRCh37" or "GRCh38", used for VEP [GRCh37]
-    --vep_cache_version s: Cache version, e.g. '90', used for VEP [GRCh37]
+    --vep_cache_version s: Cache version, e.g. '90', used for VEP.  Required if using vep cache
     --reference_dict s: path to reference dict file.  Default is reference_fasta with ".dict" appended
     --sw_dir s: Somatic Wrapper installation directory [/usr/local/somaticwrapper]
     --results_dir s: Per-sample analysis results written to results_dir; a relative directory, often same as sample name [.] 
