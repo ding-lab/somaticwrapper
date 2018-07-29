@@ -125,12 +125,16 @@ if ($paras{'apply_filter'} eq "true"  &&  $paras{'mode'} ne "pooled") {
 		$filter1_fail_fh->print($_."\n");
 		next;
 	    }
-	    if( ($t[34] + $t[36] + $t[34] + $t[36])/($t[32] + $t[33] + $t[34] + $t[36] + $t[34] + $t[36] ) <  $paras{'min_var_allele_freq'} ||  ($t[41] + $t[43] + $t[41] + $t[43])/($t[39] + $t[40] + $t[41] + $t[43] + $t[41] + $t[43]) > $zero) {
+### Change by scao from 057f57af7c72efc4e907e055bd931f714325c778 ## 
+        if( ($t[34] + $t[36] + $t[34] + $t[36])/($t[32] + $t[33] + $t[34] + $t[36] + $t[34] + $t[36] ) > $zero ||  ($t[41] + $t[43] + $t[41] + $t[43])/($t[39] + $t[40] + $t[41] + $t[43] + $t[41] + $t[43]) < $paras{'min_var_allele_freq'}) {
+#	    if( ($t[34] + $t[36] + $t[34] + $t[36])/($t[32] + $t[33] + $t[34] + $t[36] + $t[34] + $t[36] ) <  $paras{'min_var_allele_freq'} ||  ($t[41] + $t[43] + $t[41] + $t[43])/($t[39] + $t[40] + $t[41] + $t[43] + $t[41] + $t[43]) > $zero) {
 		$filter1_fail_fh->print($_."\n");
 		next;
 	    }
 	    if($paras{'require_balanced_reads'} =~ /true/) {  
-		if ( $t[34] == 0 ||  $t[36] == 0 || $t[41] > 0 || $t[43] > 0 ) {
+### Change by scao from 057f57af7c72efc4e907e055bd931f714325c778 ## 
+        if ( $t[41] == 0 || $t[43] == 0 ) {
+		#if ( $t[34] == 0 ||  $t[36] == 0 || $t[41] > 0 || $t[43] > 0 ) {
 		    $filter1_fail_fh->print($_."\n");
 		    next;
 		}
