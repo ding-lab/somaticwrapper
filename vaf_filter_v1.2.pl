@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 ## additional filtering ##
-## tumor >= 5% and normal <=1% for varscan and strelka 
+## tumor >= 5% and normal <=2% for varscan and strelka 
 ### pindel tumor >=10% since the vaf calculation underestimates the ref coverage ##
 ### add the filtering for indel length (100 bps)  ##
 
@@ -52,7 +52,7 @@ foreach my $l (`cat $f_m`)
          $ref=$temp[3];
          $var=$temp[4];
 
-         if(length($ref)>=100 || length($var)>=100)  { next; }
+         if(length($ref)>=$filter_indel_length || length($var)>=$filter_indel_length)  { next; }
  
 		 if($info=~/strelka-varscan/) 
 		 {
