@@ -1,6 +1,10 @@
 #!/usr/bin/perl
 
-## tumor >= 5% and normal <=1% 
+## additional filtering ##
+## tumor >= 5% and normal <=1% for varscan and strelka 
+### pindel tumor >=10% since the vaf calculation underestimates the ref coverage ##
+### add the filtering for indel length (100 bps)  ##
+
 use strict;
 use warnings;
 die unless @ARGV == 1;
@@ -13,11 +17,9 @@ my $min_vaf_somatic=0.05;
 my $min_vaf_pindel=0.1;
 my $max_vaf_germline=0.02; 
 my $min_coverage=20; 
-### OUT1 results after vcf filtering ###
+my $filter_indel_length = 100; 
+
 open(OUT1,">$f_filter_out");
-
-### OUT2 vaf filtering###
-
 open(OUT2,">$f_vaf_out"); 
 
 foreach my $l (`cat $f_m`) 
@@ -27,6 +29,10 @@ foreach my $l (`cat $f_m`)
 		if($ltr=~/^#/) { print OUT1 $ltr,"\n"; next;  }
 		else {
 		 my @temp=split("\t",$ltr); 
+		 #my $ref=$temp[3];
+		 #my $var=$temp[4];
+
+
 	 	 my $info=$temp[7];
 		 my @temp2; 	
 		 my %rc; 
@@ -44,16 +50,16 @@ foreach my $l (`cat $f_m`)
 		 my $tdp_var; 
 
          $ref=$temp[3];
-         $var=$temp[4]; 
+         $var=$temp[4];
 
-		 if(length($ref)>=100 || length($var)>=100)  { next; }
+         if(length($ref)>=100 || length($var)>=100)  { next; }
  
 		 if($info=~/strelka-varscan/) 
 		 {
 			#print $info,"\n"; 
 			#<STDIN>;
 	
-			$vaf_n=$temp[9];
+			$vaf_n=$temp[11];
 		 	$vaf_t=$temp[12];
 		 	$ref=$temp[3]; 
 		 	$var=$temp[4];
@@ -114,9 +120,9 @@ foreach my $l (`cat $f_m`)
 			} 	
 		}
 	
-		elsif($info=~/varscan/ || $info=~/varindel/)
+		elsif($info=~/varindel/)
 		{
-		   	$vaf_n=$temp[9];
+		   	$vaf_n=$temp[11];
         	$vaf_t=$temp[12];
 			@temp2=split(":",$vaf_n); 
 			#print $vaf_n,"\n";
@@ -133,7 +139,7 @@ foreach my $l (`cat $f_m`)
             $tdp_ref=$tdp4[0]+$tdp4[1];
             $tdp_var=$tdp4[2]+$tdp4[3];
 	        print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$ndp_ref,"\t",$ndp_ref/($ndp_ref+$ndp_var),"\t",$ndp_var,"\t",$ndp_var/($ndp_var+$ndp_ref),"\t",$tdp_ref,"\t",$tdp_ref/($tdp_ref+$tdp_var),"\t",$tdp_var,"\t",$tdp_var/($tdp_var+$tdp_ref),"\n";  
-		if($tdp_var/($tdp_var+$tdp_ref) >=$min_vaf_pindel && $ndp_var/($ndp_var+$ndp_ref)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 	
+		if($tdp_var/($tdp_var+$tdp_ref) >=$min_vaf_somatic && $ndp_var/($ndp_var+$ndp_ref)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 	
 			{
 			$ltr=~s/SVTYPE=//g;
 			print OUT1 $ltr,"\n"; 
@@ -143,8 +149,8 @@ foreach my $l (`cat $f_m`)
 		elsif($info=~/pindel/)
         {
 
-			$vaf_n=$temp[10];
-            $vaf_t=$temp[11];
+			$vaf_t=$temp[10];
+            $vaf_n=$temp[9];
 			if(!($vaf_t=~/\:/)) { next; } 
 			if(!($vaf_n=~/\:/)) { next; } 
 
@@ -161,10 +167,11 @@ foreach my $l (`cat $f_m`)
 
 			print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$ndp_ref,"\t",$ndp_ref/($ndp_ref+$ndp_var),"\t",$ndp_var,"\t",$ndp_var/($ndp_var+$ndp_ref),"\t",$tdp_ref,"\t",$tdp_ref/($tdp_ref+$tdp_var),"\t",$tdp_var,"\t",$tdp_var/($tdp_var+$tdp_ref),"\n";
 
-		if($tdp_var/($tdp_var+$tdp_ref)>=$min_vaf_somatic && $ndp_var/($ndp_ref+$ndp_var)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 
+		if($tdp_var/($tdp_var+$tdp_ref)>=$min_vaf_pindel && $ndp_var/($ndp_ref+$ndp_var)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 
 		{
-			   $ltr=~s/SVTYPE=//g;
-		       print OUT1 $ltr,"\n";	
+			#print $ltr,"\n";    
+ $ltr=~s/SVTYPE=//g;		 
+  print OUT1 $ltr,"\n";	
 		}
 		
 	}

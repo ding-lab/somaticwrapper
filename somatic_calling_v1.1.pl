@@ -33,7 +33,7 @@ my $normal = "\e[0m";
 (my $usage = <<OUT) =~ s/\t+//g;
 Somatic variant calling pipeline 
 Pipeline version: $version
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --refname --log --q --wgs 
+$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --wgs 
 
 $normal
 
@@ -41,7 +41,6 @@ $normal
 <log> = full path of the folder for saving log file; usually upper folder of rdir
 <srg> = bam having read group or not: 1, yes and 0, no (default 1)
 <sre> = re-run: 1, yes and 0, no  (default 0)
-<refname> = GRCh37 or Hg19
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
@@ -88,7 +87,6 @@ my $status = &GetOptions (
       "rdir=s" => \$run_dir,
 	  "ref=s"  => \$h37_REF,
 	  "log=s"  => \$log_dir,
-      "refname=s"  => \$ref_name,
       "wgs=i"  => \$s_wgs,	    	
 	  "q=s" => \$q_name,
    	  "help" => \$help, 
@@ -96,7 +94,7 @@ my $status = &GetOptions (
  
 #print $status,"\n";
 
-if ($help || $run_dir eq "" ||  $ref_name eq "" || $log_dir eq "" || $step_number<0) {
+if ($help || $run_dir eq "" || $log_dir eq "" || $step_number<0) {
 	  print $usage;
       exit;
    }
@@ -709,9 +707,11 @@ sub bsub_parse_strelka{
     print STREKAP "fi\n";
     print STREKAP "if [ ! -f  \${localstatus} ]\n";
 	print STREKAP "then\n"; 
+	## dbsnp filtering ###
     print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.snv.input\n";
     print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.indel.input\n";
-    print STREKAP "     ".$run_script_path."snv_filter.pl ./strelka_fpfilter.snv.input\n";
+    ## false positive filtering ##
+	print STREKAP "     ".$run_script_path."snv_filter.pl ./strelka_fpfilter.snv.input\n";
     print STREKAP '      grep "Error occurred during initialization of VM" ${strekasnvout}',"\n";
     print STREKAP '      CHECK=$?',"\n";
     print STREKAP '      while [ ${CHECK} -eq 0 ]',"\n";
@@ -1299,13 +1299,12 @@ sub bsub_merge_vcf{
     print MERGE "EOF\n";
 	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
 	#print MERGE "     ".$run_script_path."vaf_filter_hg19.pl \${RUNDIR}\n";
-    print MERGE "if [ $ref_name = $hg19 ]\n";
-    print MERGE "then\n";	
-	print MERGE "     ".$run_script_path."vaf_filter_hg19_v1.1.pl \${RUNDIR}\n";
-	print MERGE "else\n";
-	print MERGE "     ".$run_script_path."vaf_filter_v1.1.pl \${RUNDIR}\n";
-	print MERGE "fi\n";
-
+    #print MERGE "if [ $ref_name = $hg19 ]\n";
+    #print MERGE "then\n";	
+	print MERGE "     ".$run_script_path."vaf_filter_v1.2.pl \${RUNDIR}\n";
+	#print MERGE "else\n";
+	#print MERGE "     ".$run_script_path."vaf_filter_hg19_v1.1.pl \${RUNDIR}\n";
+	#print MERGE "fi\n";
 	print MERGE "cd \${RUNDIR}\n";
 	print MERGE ". $script_dir/set_envvars\n"; 
 	#print MERGE ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
