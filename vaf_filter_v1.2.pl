@@ -1,9 +1,13 @@
 #!/usr/bin/perl
 
 ## additional filtering ##
+## minimum coverage filtering: 20
 ## tumor >= 5% and normal <=2% for varscan and strelka 
 ### pindel tumor >=10% since the vaf calculation underestimates the ref coverage ##
 ### add the filtering for indel length (100 bps)  ##
+### SNV: called by both strelka and varscan ##
+## INDEL: called by either varscan or pindel ##
+## Song Cao ##
 
 use strict;
 use warnings;
@@ -73,6 +77,8 @@ foreach my $l (`cat $f_m`)
 			#my @temp3=split(",",$temp2[0]);
 			#$rc{'A'}=$temp3[0];
 
+			# get the read count for A, C, G and T for normal#
+
 	 	 	$rc{'A'}=(split(",",$temp2[0]))[0]; 
 		 	$rc{'C'}=(split(",",$temp2[1]))[0];
 		 	$rc{'G'}=(split(",",$temp2[4]))[0];
@@ -80,6 +86,7 @@ foreach my $l (`cat $f_m`)
 			#print $vaf_n,"\n";
 			#print $vaf_t,"\n";	
 			#<STDIN>;
+			
 			foreach my $nt (keys %rc) 
 			{
 				$r_tot+=$rc{$nt}; 
@@ -89,6 +96,7 @@ foreach my $l (`cat $f_m`)
 			@temp2=split(":",$vaf_t);
 
         	%rc2=();
+			# get the read count for A, C, G and T for tumor#
 
          	$rc2{'A'}=(split(",",$temp2[0]))[0];
          	$rc2{'C'}=(split(",",$temp2[1]))[0];
@@ -101,6 +109,7 @@ foreach my $l (`cat $f_m`)
 				#print $rc2{$nt},"\n";
         	}
 		#print $ltr,"\n";
+
 		my @vars=split(",",$var); 
 		my $rcvar=0;
 		my $rc2var=0; 
@@ -110,8 +119,11 @@ foreach my $l (`cat $f_m`)
 		 $rc2var+=$rc2{$v}; 
 		}		
 		
-		#print $rc{$ref},"\t",$rcvar,"\t",$rc2{$ref},"\t",$rc2var,"\n"; 
-		#<STDIN>;
+;
+		### calculate vaf for tumor and normal: 
+		## vaf calculation: defined as (number of reads supporting variant)/(number of reads supporting variant and number of reads supporting reference) ####
+		## use 20 a coverage filtering ##
+
 		print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$rc{$ref},"\t",$rc{$ref}/$r_tot,"\t",$rcvar,"\t",$rcvar/$r_tot,"\t",$rc2{$ref},"\t",$rc2{$ref}/$r_tot2,"\t",$rc2var,"\t",$rc2var/$r_tot2,"\n"; 
 
 		if($rc2var/$r_tot2>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_tot2>=$min_coverage && $r_tot>=$min_coverage) 
@@ -129,15 +141,25 @@ foreach my $l (`cat $f_m`)
 			my @ndp4=split(",",$temp2[3]);
 
 			if(scalar @ndp4<4) { @ndp4=split(",",$temp2[2]);  }  
+			#ndp_ref: read count for reference in normal #
+			#ndp_var: read count for variant in normal #
+
 			$ndp_ref=$ndp4[0]+$ndp4[1];
 			$ndp_var=$ndp4[2]+$ndp4[3];
+		
 			#print $vaf_t,"\n";
             @temp2=split(":",$vaf_t);
             my @tdp4=split(",",$temp2[3]);
             if(scalar @tdp4<4) { @tdp4=split(",",$temp2[2]);  }	
 
+			#tdp_ref: read count for reference #
+			#tdp_var: read count for variant #
+
             $tdp_ref=$tdp4[0]+$tdp4[1];
             $tdp_var=$tdp4[2]+$tdp4[3];
+
+        ## vaf calculation: defined as (number of reads supporting variant)/(number of reads supporting variant and number of reads supporting reference) ####			
+								
 	        print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$ndp_ref,"\t",$ndp_ref/($ndp_ref+$ndp_var),"\t",$ndp_var,"\t",$ndp_var/($ndp_var+$ndp_ref),"\t",$tdp_ref,"\t",$tdp_ref/($tdp_ref+$tdp_var),"\t",$tdp_var,"\t",$tdp_var/($tdp_var+$tdp_ref),"\n";  
 		if($tdp_var/($tdp_var+$tdp_ref) >=$min_vaf_somatic && $ndp_var/($ndp_var+$ndp_ref)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 	
 			{
@@ -156,10 +178,16 @@ foreach my $l (`cat $f_m`)
 
 			@temp2=split(":",$vaf_n);	
 			my @ndp2=split(",",$temp2[1]);
+		    ## ndp_ref: reads supporting the reference in normal ##
+			## ndp_var: reads supporting the variant in normal ##
             $ndp_ref=$ndp2[0];
             $ndp_var=$ndp2[1];
             @temp2=split(":",$vaf_t);
             my @tdp2=split(",",$temp2[1]);
+
+			## tdp_ref: reads supporting the reference in tumor ##
+			## ndp_var: reads supporting the variant in normal ##
+
             $tdp_ref=$tdp2[0];
             $tdp_var=$tdp2[1];
 			#print $ndp_ref,"\t",$ndp_var,"\t",$tdp_ref,"\t",$tdp_var,"\n";
