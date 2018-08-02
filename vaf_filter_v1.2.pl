@@ -7,6 +7,7 @@
 ### add the filtering for indel length (100 bps)  ##
 ### SNV: called by both strelka and varscan ##
 ## INDEL: called by either varscan or pindel ##
+## merged.filtered.vcf: the merged vcf file after filtering ##
 ## merged.vaf: save the variant allele frequency (vaf) ## 
 ## remove SVTYPE= tag from pindel output since the maf annotation will not accept it ##  
 
