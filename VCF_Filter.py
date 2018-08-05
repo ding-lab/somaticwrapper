@@ -29,6 +29,36 @@ def get_vaf(record):
     pass
 
 
+def get_readcounts_SNV(VCF_call):
+```
+For given call, return (read_counts, read_counts_variant, read_counts_total),
+where read_counts is dictionary of read counts by nucleotide, while read_counts_variant and read_counts_total
+are sums of counts of variant (from record.ALT) 
+pyvcf Call: http://pyvcf.readthedocs.io/en/latest/API.html#vcf-model-call
+    Can be obtained with record.genotype(name)
+```
+    # rc is dictionary with read counts for tier1 A, C, G, T 
+    tier=0   # this may be specific to STRELKA.  Want tier1
+    data=VCF_call.data
+
+    # read counts, as dictionary. e.g. {'A': 0, 'C': 0, 'T': 0, 'G': 25}
+    rc = {'A':data.AU[tier], 'C':data.CU[tier], 'G':data.GU[tier], 'T':data.TU[tier]}
+
+    # Sum read counts across all variants. In some cases, multiple variants are separated by , in ALT field
+    # Implicitly, only SNV supported here.
+    #   Note we convert vcf.model._Substitution to its string representation to use as key
+    rc_var = sum( [rc[v] for v in map(str, record.ALT) ] )
+    rc_tot = sum(d.values(rc))
+
+    return (rc, rc_var, rc_tot)
+
+
+def write_stats
+print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$rc{$ref},"\t",$rc{$ref}/$r_tot,"\t",$rcvar,"\t",$rcvar/$r_tot,"\t",$rc2{$ref},"\t",$rc2{$ref}/$r_tot2,"\t",$rc2var,"\t",$rc2var/$r_tot2,"\n";
+
+
+
+# Modeled after ~/strelka-varscan/ part of vaf_filter_v1.2.pl
 # Pindel after merge
 # 1   14106395    .   C   CTCA    .   PASS    AC=0;AF=0.00;AN=4;END=14106395;HOMLEN=2;HOMSEQ=TC;SVLEN=3;SVTYPE=INS;set=pindel GT:AD   ./. ./. 0/0:11,0    0/0:16,2
 # Varscan after merge 
@@ -37,33 +67,25 @@ def get_vaf(record):
 
 def filter_vcf(o, vcf_reader, no_header=False):
     '''Write BreakpointSurveyor BPC file'''
+
         
     for record in vcf_reader:
+        VCF_header = record.CHROM, record.POS, record.REF, record.ALT, record.FILTER
 
-        # rc_N, rc_T are tuples with read counts for tier 1 A, C, G, T for Normal and Tumor, resp
-        data_N=record.genotype('NORMAL').data
-        data_T=record.genotype('TUMOR').data
-        rc_N = {'A':data_N.AU[0], 'C':data_N.CU[0], 'G':data_N.GU[0], 'T':data_N.TU[0]}
-        rc_T = {'A':data_T.AU[0], 'C':data_T.CU[0], 'G':data_T.GU[0], 'T':data_T.TU[0]}
+        # Get read counts for tumor and normal samples
+        rc_N, rc_var_N, rc_tot_N = get_readcounts_snv(record.genotype('NORMAL'))
+        rc_T, rc_var_T, rc_tot_T = get_readcounts_snv(record.genotype('TUMOR'))
 
-        # Sum all variants. Need to convert vcf.model._Substitution to its string representation
-        rc_var_N = sum( [rc_N[v] for v in map(str, record.ALT) ] )
-        rc_var_T = sum( [rc_T[v] for v in map(str, record.ALT) ] )
+### calculate vaf for tumor and normal:
+## vaf calculation: defined as (number of reads supporting variant)/(number of reads supporting variant and number of reads supporting reference) ####
+## use 20 a coverage filtering ##
+        vaf_N = rc_var_N / rc_tot_N
+        vaf_T = rc_var_T / rc_tot_T
 
-        eprint(rc_var_N)
-        eprint(rc_var_T)
-        sys.exit(1)
-
-
-        for v in map(str, record.ALT): # Convert vcf.model._Substitution to its string representation
-            if v not in rc_N:
-                eprint("Warning: rc_N does not have counts for variant %s" % v)
-            eprint(rc_N[v])
-            eprint(rc_T[v])
-#            eprint(rc_N[v])
-#            if v not in rc_T.keys():
-#                eprint("Warning: rc_T does not have counts for variant %s" % v)
-#            eprint(rc_T[v])
+#            if($rc2var/$r_tot2>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_tot2>=$min_coverage && $r_tot>=$min_coverage) 
+#            {
+#                print OUT1 $ltr,"\n";   # merged.filtered.vcf 
+#            } 	
 
         sys.exit(1)
 
