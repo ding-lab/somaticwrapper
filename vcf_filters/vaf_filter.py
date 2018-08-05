@@ -33,6 +33,7 @@ class TumorNormal_SNV_VAF(vcf.filters.Base):
     def filter_name(self):
         return self.name
 
+    # This seems to be pretty specific to strelka
     def get_readcounts_snv(self, VCF_record, sample_name):
         tier=0   # this may be specific to STRELKA.  Want tier1
         data=VCF_record.genotype(sample_name).data
@@ -78,4 +79,51 @@ class TumorNormal_SNV_VAF(vcf.filters.Base):
 
         if (self.debug):
             eprint("Passes VAF filter")
+
+
+class indelLengthFilter(vcf.filters.Base):
+    'Filter indel variant sites by reference and variant length'
+
+    name = 'indel_length'
+
+    @classmethod
+    def customize_parser(self, parser):
+        parser.add_argument('--min_length', type=int, default=0, help='Retain sites where indel length > given value')
+        parser.add_argument('--max_length', type=int, default=0, help='Retain sites where indel length <= given value. 0 disables test')
+        parser.add_argument('--length_debug', action="store_true", default=False, help='Print debugging information to stderr')
+
+    def __init__(self, args):
+        self.min_length = args.min_length
+        self.max_length = args.max_length
+        # below becomes Description field in VCF
+        self.__doc__ = "Retain calls where indel length > %d and < %d " % (self.min_length, self.max_length)
+        self.debug = args.length_debug
+
+    def filter_name(self):
+        return self.name
+
+    def __call__(self, record):
+
+        len_ALT = len(record.ALT)
+        len_REF = len(record.REF)
+        if (self.debug):
+            eprint("Variant, Reference: %s, %s" % (record.ALT, record.REF))
+            eprint("Variant, Reference lengths: %d, %d" % (len_ALT, len_REF))
+
+        if len_ALT < self.min_length:
+            if (self.debug): eprint("Failed ALT min_length = %d" % len_ALT)
+            return "len_ALT: %f" % len_ALT
+        if len_REF < self.min_length:
+            if (self.debug): eprint("Failed REF min_length = %d" % len_REF)
+            return "len_REF: %f" % len_REF
+
+        if len_ALT > self.max_length:
+            if (self.debug): eprint("Failed ALT max_length = %d" % len_ALT)
+            return "len_ALT: %f" % len_ALT
+        if len_REF > self.max_length:
+            if (self.debug): eprint("Failed REF max_length = %d" % len_REF)
+            return "len_REF: %f" % len_REF
+
+        if (self.debug):
+            eprint("Passes length filter")
 
