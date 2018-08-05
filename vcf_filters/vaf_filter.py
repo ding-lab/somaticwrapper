@@ -19,6 +19,7 @@ class TumorNormal_SNV_VAF(vcf.filters.Base):
         parser.add_argument('--max_vaf_germline', type=float, default=0.02, help='Retain sites where normal VAF <= than given value')
         parser.add_argument('--tumor_name', type=str, default="TUMOR", help='Tumor sample name in VCF')
         parser.add_argument('--normal_name', type=str, default="NORMAL", help='Normal sample name in VCF')
+        parser.add_argument('--caller', type=str, required=True, choices=['pindel', 'strelka', 'varscan'], help='Caller type')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
 
     def __init__(self, args):
@@ -28,17 +29,15 @@ class TumorNormal_SNV_VAF(vcf.filters.Base):
         self.normal_name = args.normal_name
         # below becomes Description field in VCF
         self.__doc__ = "Retain calls where normal VAF <= %f and tumor VAF >= %f " % (self.max_vaf_germline, self.min_vaf_somatic)
+        self.caller = args.caller
         self.debug = args.debug
-
+            
     def filter_name(self):
         return self.name
 
-    # This seems to be pretty specific to strelka
-    def get_readcounts_snv(self, VCF_record, sample_name):
-        tier=0   # this may be specific to STRELKA.  Want tier1
-        data=VCF_record.genotype(sample_name).data
-
+    def get_readcounts_strelka(self, VCF_data):
         # read counts, as dictionary. e.g. {'A': 0, 'C': 0, 'T': 0, 'G': 25}
+        tier=0   
         rc = {'A':data.AU[tier], 'C':data.CU[tier], 'G':data.GU[tier], 'T':data.TU[tier]}
 
         # Sum read counts across all variants. In some cases, multiple variants are separated by , in ALT field
@@ -46,23 +45,45 @@ class TumorNormal_SNV_VAF(vcf.filters.Base):
         #   Note we convert vcf.model._Substitution to its string representation to use as key
         rc_var = sum( [rc[v] for v in map(str, VCF_record.ALT) ] )
         rc_tot = sum(rc.values())
-        return (rc, rc_var, rc_tot)
+        vaf = float(rc_var) / float(rc_tot)
+        if self.debug:
+            eprint("rc: %s, rc_var: %f, rc_tot: %f, vaf: %f" % (str(rc), rc_var, rc_tot, vaf))
+        return vaf
+
+    def get_readcounts_varscan(self, VCF_data):
+        # We'll take advantage of pre-calculated VAF
+        # Varscan: CallData(GT=0/0, GQ=None, DP=96, RD=92, AD=1, FREQ=1.08%, DP4=68,24,1,0)
+        ##FORMAT=<ID=FREQ,Number=1,Type=String,Description="Variant allele frequency">
+        vaf = VCF_data.FREQ
+        if self.debug:
+            eprint("VCF_data.FREQ = %s" % vaf)
+        return float(vaf.strip('%'))/100.
+
+    # Not clear we want to implement this, since pindel only calls indels
+    def get_readcounts_pindel(self, VCF_data):
+        return 0
+
+    def get_vaf_snv(self, VCF_record, sample_name, caller):
+        data=VCF_record.genotype(sample_name).data
+        if self.debug:
+            eprint(caller + sample_name)
+        if self.caller == 'strelka':
+            return self.get_readcounts_strelka(data)
+        elif self.caller == 'varscan':
+            return self.get_readcounts_varscan(data)
+        elif self.caller == 'pindel':
+            return self.get_readcounts_pindel(data)
+        else:
+            raise Exception( "Unknown caller: " + self.caller)
+
 
     def __call__(self, record):
-
-        rc_N, rc_var_N, rc_tot_N = self.get_readcounts_snv(record, self.normal_name)
-        rc_T, rc_var_T, rc_tot_T = self.get_readcounts_snv(record, self.tumor_name)
-        if (self.debug):
-            eprint("Variant, Reference: %s, %s" % (record.ALT, record.REF))
-            eprint("NORMAL: rc = %s rc_var %d rc_tot %d " % (rc_N, rc_var_N, rc_tot_N))
-            eprint("TUMOR: rc = %s rc_var %d rc_tot %d " % (rc_T, rc_var_T, rc_tot_T))
-
-# calculate vaf for tumor and normal:
-# vaf calculation: defined as (number of reads supporting variant)/(number of reads supporting variant and number of reads supporting reference) ####
-        vaf_N = float(rc_var_N) / float(rc_tot_N)
-        vaf_T = float(rc_var_T) / float(rc_tot_T)
-        if (self.debug):
-            eprint("vaf_N: %f  vaf_T: %f" % (vaf_N, vaf_T))
+        if self.caller == 'pindel':
+            vaf_N = self.get_vaf_snv(record, 'sample.N', self.caller)
+            vaf_T = self.get_vaf_snv(record, 'sample.T', self.caller)
+        else:
+            vaf_N = self.get_vaf_snv(record, 'NORMAL', self.caller)
+            vaf_T = self.get_vaf_snv(record, 'TUMOR', self.caller)
 
 ##       Original logic, with 2=Tumor
 ##       RETAIN if($rc2var/$r_tot2>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_tot2>=$min_coverage && $r_tot>=$min_coverage)
