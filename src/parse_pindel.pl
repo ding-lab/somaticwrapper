@@ -85,10 +85,14 @@ EOF
 # 1. run pindel_filter.  This produces
 #    pindel.out.raw.CvgVafStrand_pass 
 #    pindel.out.raw.CvgVafStrand_fail
-#    pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass  -> this is input into dbSnP filter
-#    pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail  
-# 2. Run dbSnP filter
-# 3. Optionally delete intermediate files
+#    pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf  -> this is input into dbSnP filter
+#    pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail.vcf  
+# 2. rename headers of pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf to be "NORMAL" and "TUMOR" 
+# 3. Run dbSnP filter
+#    pindel.out.current_final.dbsnp_pass.vcf
+#    pindel.out.current_final.dbsnp_pass.vcf.idx
+#    pindel.out.current_final.dbsnp_present.vcf
+# 4. Optionally delete intermediate files
 #    - specifically, files with "_fail" in the filename
 
     my $outfn = "$job_files_dir/$current_job_file";
@@ -99,6 +103,11 @@ EOF
 
 echo Running pindel_filter.v0.5.pl
 $perl $gvip_dir/pindel_filter.v0.5.pl $filter_results/pindel_filter.input
+
+# Reheader output of pindel_filter to have sample names "NORMAL" and "TUMOR"
+TMP=$filter_out.tmp
+mv $filter_out $TMP
+awk 'BEGIN{FS="\t";OFS="\t"}{if ($1 == "#CHROM") print $1, $2, $3, $4, $5, $6, $7, $8, $9, "NORMAL", "TUMOR"; else print}' $TMP > $filter_out
 
 export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 
@@ -113,7 +122,7 @@ else
 
 >&2 echo Deleting intermediate \\"filter fail\\" files
 cd $filter_results
-rm -f \*_fail\*
+rm -f \*_fail\* $TMP
 
 fi
 
