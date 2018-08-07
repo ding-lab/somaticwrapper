@@ -6,10 +6,10 @@ import vcf.filters
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-class TumorNormal_SNV_VAF(vcf.filters.Base):
-    'Filter SNV variant sites by tumor and normal VAF (variant allele frequency)'
+class TumorNormal_VAF(vcf.filters.Base):
+    'Filter variant sites by tumor and normal VAF (variant allele frequency)'
 
-    name = 'snv_vaf'
+    name = 'vaf'
 
 ##       RETAIN if($rcTvar/$r_totT>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_totT>=$min_coverage && $r_tot>=$min_coverage)
 
@@ -19,7 +19,7 @@ class TumorNormal_SNV_VAF(vcf.filters.Base):
         parser.add_argument('--max_vaf_germline', type=float, default=0.02, help='Retain sites where normal VAF <= than given value')
         parser.add_argument('--tumor_name', type=str, default="TUMOR", help='Tumor sample name in VCF')
         parser.add_argument('--normal_name', type=str, default="NORMAL", help='Normal sample name in VCF')
-        parser.add_argument('--caller', type=str, required=True, choices=['strelka', 'varscan'], help='Caller type')
+        parser.add_argument('--caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel'], help='Caller type')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
 
     def __init__(self, args):
@@ -74,12 +74,12 @@ class TumorNormal_SNV_VAF(vcf.filters.Base):
         data=VCF_record.genotype(sample_name).data
         variant_caller = self.caller  # we permit the possibility that each line has a different caller
         if self.debug:
-            eprint(caller + sample_name)
+            eprint(variant_caller + sample_name)
         if variant_caller == 'strelka':
+            if VCF_record.is_snp() is False:
+                raise Exception( "Only SNP calls supported for Strelka: " + VCF_record)
             return self.get_readcounts_strelka(data)
         elif variant_caller == 'varscan':
-            return self.get_readcounts_varscan(data)
-        elif variant_caller == 'varindel':
             return self.get_readcounts_varscan(data)
         elif variant_caller == 'pindel':
             return self.get_readcounts_pindel(data)
@@ -104,7 +104,7 @@ class TumorNormal_SNV_VAF(vcf.filters.Base):
         if (self.debug):
             eprint("Passes VAF filter")
 
-class indelLengthFilter(vcf.filters.Base):
+class IndelLengthFilter(vcf.filters.Base):
     'Filter indel variant sites by reference and variant length'
 
     name = 'indel_length'
@@ -140,13 +140,86 @@ class indelLengthFilter(vcf.filters.Base):
             if (self.debug): eprint("Failed REF min_length = %d" % len_REF)
             return "len_REF: %f" % len_REF
 
-        if len_ALT > self.max_length:
-            if (self.debug): eprint("Failed ALT max_length = %d" % len_ALT)
-            return "len_ALT: %f" % len_ALT
-        if len_REF > self.max_length:
-            if (self.debug): eprint("Failed REF max_length = %d" % len_REF)
-            return "len_REF: %f" % len_REF
+        if self.max_length is not 0:
+            if len_ALT > self.max_length:
+                if (self.debug): eprint("Failed ALT max_length = %d" % len_ALT)
+                return "len_ALT: %f" % len_ALT
+            if len_REF > self.max_length:
+                if (self.debug): eprint("Failed REF max_length = %d" % len_REF)
+                return "len_REF: %f" % len_REF
 
         if (self.debug):
             eprint("Passes length filter")
+
+class DepthFilter(vcf.filters.Base):
+    'Filter variant sites by read depth'
+    # Normally we would be able to use the built-in filter "dps"; however, pindel does not write the DP tag and depth filtering fails
+
+    name = 'read_depth'
+
+    @classmethod
+    def customize_parser(self, parser):
+        parser.add_argument('--min_depth', type=int, default=0, help='Retain sites where read depth for tumor and normal > given value')
+        parser.add_argument('--depth_debug', action="store_true", default=False, help='Print debugging information to stderr')
+        parser.add_argument('--depth_caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel'], help='Caller type')
+
+    def __init__(self, args):
+        self.min_depth = args.min_depth
+        # below becomes Description field in VCF
+        self.__doc__ = "Retain calls where read depth in tumor and normal > %d " % (self.min_depth)
+        self.debug = args.depth_debug
+
+    def filter_name(self):
+        return self.name
+
+    def get_depth_strelka(self, VCF_data):
+        depth = VCF_data.DP
+        if self.debug:
+            eprint("strelka depth = %d" % depth)
+        return depth
+
+    def get_depth_varscan(self, VCF_data):
+        depth = VCF_data.DP
+        if self.debug:
+            eprint("varscan depth = %d" % depth)
+        return depth
+
+    def get_depth_pindel(self, VCF_data):
+        rc_ref, rc_var = VCF_data.AD
+        depth = rc_ref + rc_var
+        if self.debug:
+            eprint("pindel depth = %d" % depth)
+        return depth
+
+    def get_depth(self, VCF_record, sample_name):
+        data=VCF_record.genotype(sample_name).data
+        variant_caller = self.caller  
+        if self.debug:
+            eprint(variant_caller + sample_name)
+        if variant_caller == 'strelka':
+            return self.get_depth_strelka(data)
+        elif variant_caller == 'varscan':
+            return self.get_depth_varscan(data)
+        elif variant_caller == 'pindel':
+            return self.get_depth_pindel(data)
+        else:
+            raise Exception( "Unknown caller: " + variant_caller)
+
+    def __call__(self, record):
+
+        depth_N = self.get_depth(record, self.normal_name)
+        depth_T = self.get_depth(record, self.tumor_name)
+
+        if (self.debug):
+            eprint("Variant, Reference depths: %d, %d" % (depth_N, depth_T))
+
+        if depth_N < self.min_depth:
+            if (self.debug): eprint("Failed NORMAL min_depth = %d" % depth_N)
+            return "depth_N: %d" % depth_N
+        if depth_T < self.min_depth:
+            if (self.debug): eprint("Failed TUMOR min_depth = %d" % depth_T)
+            return "depth_T: %d" % depth_T
+
+        if (self.debug):
+            eprint("Passes read depth filter")
 
