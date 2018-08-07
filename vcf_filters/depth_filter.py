@@ -15,9 +15,6 @@ class DepthFilter(vcf.filters.Base):
     @classmethod
     def customize_parser(self, parser):
         parser.add_argument('--min_depth', type=int, default=0, help='Retain sites where read depth for tumor and normal > given value')
-#        parser.add_argument('--depth_debug', action="store_true", default=False, help='Print debugging information to stderr')
-#        parser.add_argument('--depth_caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel'], help='Caller type')
-
         parser.add_argument('--tumor_name', type=str, default="TUMOR", help='Tumor sample name in VCF')
         parser.add_argument('--normal_name', type=str, default="NORMAL", help='Normal sample name in VCF')
         parser.add_argument('--caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel'], help='Caller type')
@@ -58,8 +55,6 @@ class DepthFilter(vcf.filters.Base):
     def get_depth(self, VCF_record, sample_name):
         data=VCF_record.genotype(sample_name).data
         variant_caller = self.caller  
-        if self.debug:
-            eprint(variant_caller + sample_name)
         if variant_caller == 'strelka':
             return self.get_depth_strelka(data)
         elif variant_caller == 'varscan':
@@ -75,15 +70,15 @@ class DepthFilter(vcf.filters.Base):
         depth_T = self.get_depth(record, self.tumor_name)
 
         if (self.debug):
-            eprint("Variant, Reference depths: %d, %d" % (depth_N, depth_T))
+            eprint("Normal, Tumor depths: %d, %d" % (depth_N, depth_T))
 
         if depth_N < self.min_depth:
-            if (self.debug): eprint("Failed NORMAL min_depth = %d" % depth_N)
+            if (self.debug): eprint("** Failed NORMAL min_depth = %d ** " % depth_N)
             return "depth_N: %d" % depth_N
         if depth_T < self.min_depth:
-            if (self.debug): eprint("Failed TUMOR min_depth = %d" % depth_T)
+            if (self.debug): eprint("** Failed TUMOR min_depth = %d ** " % depth_T)
             return "depth_T: %d" % depth_T
 
         if (self.debug):
-            eprint("Passes read depth filter")
+            eprint("** Passes read depth filter **")
 

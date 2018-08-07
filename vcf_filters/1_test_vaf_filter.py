@@ -15,20 +15,20 @@ MAIN_FILTER="vcf_filter.py --no-filtered" # Assuming in path
 # Arguments to VAF filter
 SNV_VAF_ARGS="vaf --min_vaf_somatic 0.1 --debug" # --debug"
 
-## testing - varscan SNP
+## testing - varscan SNP - OK
 #CALLER="--caller varscan"
 #$MAIN_FILTER --local-script $VAF_FILTER_LOCAL $VARSCAN_VCF $SNV_VAF_ARGS $CALLER
 
-# testing - varscan INDEL
+# testing - varscan INDEL - OK
 #CALLER="--caller varscan"
 #$MAIN_FILTER --local-script $VAF_FILTER_LOCAL $VARSCAN_INDEL_VCF $SNV_VAF_ARGS $CALLER
 
 ## testing - pindel.  Note that pindel has different sample names for now
-#CALLER="--caller pindel"
+#CALLER="--caller pindel" - OK
 #NAMES="--normal_name pindel.N --tumor_name pindel.T"
 #$MAIN_FILTER --local-script $VAF_FILTER_LOCAL $PINDEL_VCF $SNV_VAF_ARGS $CALLER $NAMES
 
-# testing - strelka
+# testing - strelka - OK
 CALLER="--caller strelka"
 $MAIN_FILTER --local-script $VAF_FILTER_LOCAL $STRELKA_VCF $SNV_VAF_ARGS $CALLER
 

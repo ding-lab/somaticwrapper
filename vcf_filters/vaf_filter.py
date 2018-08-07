@@ -38,7 +38,6 @@ class TumorNormal_VAF(vcf.filters.Base):
 
     def get_readcounts_strelka(self, VCF_record, VCF_data):
         # pass VCF_record only to extract info (like ALT and is_snp) not available in VCF_data
-        # call information should be obtained from VCF_data
 
         if not VCF_record.is_snp:
             raise Exception( "Only SNP calls supported for Strelka: " + VCF_record)
@@ -77,8 +76,6 @@ class TumorNormal_VAF(vcf.filters.Base):
     def get_vaf(self, VCF_record, sample_name):
         data=VCF_record.genotype(sample_name).data
         variant_caller = self.caller  # we permit the possibility that each line has a different caller
-        if self.debug:
-            eprint(variant_caller + sample_name)
         if variant_caller == 'strelka':
             return self.get_readcounts_strelka(VCF_record, data)
         elif variant_caller == 'varscan':
@@ -92,17 +89,19 @@ class TumorNormal_VAF(vcf.filters.Base):
         vaf_N = self.get_vaf(record, self.normal_name)
         vaf_T = self.get_vaf(record, self.tumor_name)
 
+        if (self.debug):
+            eprint("Normal, Tumor vaf: %f, %f" % (vaf_N, vaf_T))
 ##       Original logic, with 2=Tumor
 ##       RETAIN if($rc2var/$r_tot2>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_tot2>=$min_coverage && $r_tot>=$min_coverage)
 ##       Here, logic is reversed.  We return if fail a test
         if vaf_T < self.min_vaf_somatic:
             if (self.debug):
-                eprint("Failed vaf_T < min_vaf_somatic")
+                eprint("** Failed vaf_T < min_vaf_somatic **")
             return "VAF_T: %f" % vaf_T
         if vaf_N >= self.max_vaf_germline:
             if (self.debug):
-                eprint("Failed vaf_N >= max_vaf_germline")
+                eprint("** Failed vaf_N >= max_vaf_germline **")
             return "VAF_N: %f" % vaf_N
         if (self.debug):
-            eprint("Passes VAF filter")
+            eprint("** Passes VAF filter **")
 
