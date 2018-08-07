@@ -13,13 +13,15 @@ class TumorNormal_VAF(vcf.filters.Base):
 
 ##       RETAIN if($rcTvar/$r_totT>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_totT>=$min_coverage && $r_tot>=$min_coverage)
 
+    # for merged caller, will evaluate call based on value of 'set' variable
+
     @classmethod
     def customize_parser(self, parser):
         parser.add_argument('--min_vaf_somatic', type=float, default=0.05, help='Retain sites where tumor VAF > than given value')
         parser.add_argument('--max_vaf_germline', type=float, default=0.02, help='Retain sites where normal VAF <= than given value')
         parser.add_argument('--tumor_name', type=str, default="TUMOR", help='Tumor sample name in VCF')
         parser.add_argument('--normal_name', type=str, default="NORMAL", help='Normal sample name in VCF')
-        parser.add_argument('--caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel'], help='Caller type')
+        parser.add_argument('--caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel', 'merged'], help='Caller type')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
 
     def __init__(self, args):
@@ -73,15 +75,29 @@ class TumorNormal_VAF(vcf.filters.Base):
             eprint("pindel VCF = %f" % vaf)
         return vaf
 
-    def get_vaf(self, VCF_record, sample_name):
+    def get_vaf(self, VCF_record, sample_name, variant_caller=None):
         data=VCF_record.genotype(sample_name).data
-        variant_caller = self.caller  # we permit the possibility that each line has a different caller
+        if variant_caller is None:
+            variant_caller = self.caller  # we permit the possibility that each line has a different caller
+
         if variant_caller == 'strelka':
             return self.get_readcounts_strelka(VCF_record, data)
         elif variant_caller == 'varscan':
             return self.get_readcounts_varscan(VCF_record, data)
         elif variant_caller == 'pindel':
             return self.get_readcounts_pindel(VCF_record, data)
+        elif variant_caller == 'merged':
+            # Caller is contained in 'set' INFO field
+            merged_caller = VCF_record.INFO['set'][0]
+            if merged_caller == 'strelka':
+                return self.get_readcounts_strelka(VCF_record, data)
+            if merged_caller == 'varscan':
+                return self.get_readcounts_strelka(VCF_record, data)
+            if merged_caller == 'varindel':
+                return self.get_readcounts_strelka(VCF_record, data)
+            if merged_caller == 'strelka-varscan':
+                return self.get_readcounts_strelka(VCF_record, data)
+        
         else:
             raise Exception( "Unknown caller: " + variant_caller)
 
