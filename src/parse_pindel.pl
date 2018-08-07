@@ -106,8 +106,8 @@ $perl $gvip_dir/pindel_filter.v0.5.pl $filter_results/pindel_filter.input
 
 # Reheader output of pindel_filter to have sample names "NORMAL" and "TUMOR"
 TMP=$filter_out.tmp
-mv $filter_out $TMP
-awk 'BEGIN{FS="\t";OFS="\t"}{if ($1 == "#CHROM") print $1, $2, $3, $4, $5, $6, $7, $8, $9, "NORMAL", "TUMOR"; else print}' $TMP > $filter_out
+mv $filter_out \$TMP
+awk 'BEGIN{FS="\\t";OFS="\\t"}{if (\$1 == "#CHROM") print \$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, "NORMAL", "TUMOR"; else print}' \$TMP > $filter_out
 
 export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 
