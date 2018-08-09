@@ -14,6 +14,9 @@
 
 # Testing using SomaticWrapper results
 DATAD="/diskmnt/Projects/Users/hsun/beta_tinDaisy/compare/mgi_sw_C3N-01649"
+
+# results of past TinDaisy run
+DATAD="/diskmnt/Projects/Users/hsun/beta_tinDaisy/tin-daisy/results/TinDaisy.workflow-2018-07-30-135946.799/root"
 IMAGED="/home/mwyczalk_test/data/docker/data"  # a second volume to mount with per-image dagta
 
 #IMAGE="mwyczalkowski/somatic-wrapper:latest"
