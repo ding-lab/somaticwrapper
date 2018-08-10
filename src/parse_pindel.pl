@@ -122,7 +122,10 @@ else
 
 >&2 echo Deleting intermediate \\"filter fail\\" files
 cd $filter_results
-rm -f \*_fail\* $TMP
+rm -f \*_fail\* 
+
+tmp_base=\$(basename \$TMP)
+rm -f \$tmp_base
 
 fi
 
