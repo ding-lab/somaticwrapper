@@ -22,8 +22,6 @@ ARGS="\
 "
 #--no_delete_temp \
 
-# final output of step 10 is ./results/merged/merged.vcf (or ./results/vep/output.vcf.vep if --output_vep)
-
 BIN="/usr/local/somaticwrapper/SomaticWrapper.pl"
 perl $BIN $ARGS $STEP
 
