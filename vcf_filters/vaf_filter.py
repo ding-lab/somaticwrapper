@@ -1,36 +1,127 @@
 from __future__ import print_function
 import sys
 import vcf.filters
+import ConfigParser
+import os.path
 
-# Portable printing to stderr, from https://stackoverflow.com/questions/5574702/how-to-print-to-stderr-in-python-2
+# Filter VCF files according to tumor, normal VAF values
+#
+# This is called from pyvcf's `vcf_filter.py` with `vaf` module.
+# the following parameters are required:
+# * min_vaf_somatic
+# * max_vaf_germline
+# * tumor_name
+# * normal_name
+#
+# These may be specified on the command line (e.g., --min_vaf_somatic 0.05) or in
+# configuration file, as specified by --config config.ini  Sample contents of config file:
+#   [vaf]
+#   min_vaf_somatic = 0.05
+#
+##       RETAIN if($rcTvar/$r_totT>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_totT>=$min_coverage && $r_tot>=$min_coverage)
+#
+# Required command line parameter:
+# --caller caller - specifies tool used for variant call. 'strelka', 'varscan', 'pindel', 'merged'
+#
+# optional command line parameters
+# --debug
+# --config config.ini
+
+
 def eprint(*args, **kwargs):
+# Portable printing to stderr, from https://stackoverflow.com/questions/5574702/how-to-print-to-stderr-in-python-2
     print(*args, file=sys.stderr, **kwargs)
 
-class TumorNormal_VAF(vcf.filters.Base):
+# Configuration file and initialization of parameters:
+# * we can read a configuration file (ini format) as an alternative to passing command line parameters
+#   * --config config.ini will read config file config.ini, and read parameters associated with section [ vaf ]
+#   * See details here: https://docs.python.org/3/library/configparser.html#supported-ini-file-structure
+# * A parameter in configuration file will be overridden by command line argument of the same name
+# * No default command line values in general
+
+class ConfigFileFilter(vcf.filters.Base):
+    'Base class of pyvcf filters which can read from configuration ini file'
+
+    def set_args(self, config, args, option, required=True, arg_type="string"):
+        '''
+        Set class attributes directly from command line args (priority) or configparser, if present.
+        set_args(self,config,args,"foo") will define self.foo = "foo value"
+        arg_type = "float" will cast to float.  This should be generalized.
+        '''
+        value = None
+        if option in vars(args) and vars(args)[option] is not None:
+            value = vars(args)[option]
+            if self.debug:
+                eprint("Setting %s = %s from args" % (option, value))
+        elif config is not None and config.has_option(self.name, option):
+            if arg_type == "float":
+                value = config.getfloat(self.name, option)
+            else:
+                value = config.get(self.name, option)
+            if self.debug:
+                eprint("Setting %s = %s from config" % (option, value))
+
+        if value is None:
+            msg = "Argument %s not defined" % option
+            if required:
+                raise Exception("Error: %s " % msg)
+            else:
+                eprint("Config value %s not defined" % option)
+        else:
+            setattr(self, option, value)
+
+# https://docs.python.org/3/library/configparser.html and https://docs.python.org/2/library/configparser.html
+    def read_config_file(self, config_fn):
+    # return None if not defined
+
+        if config_fn is None:
+            return None
+        eprint("Reading configuration file " + config_fn)
+        if not os.path.isfile(config_fn):
+            raise Exception("Error: Configuration file %s not found." % config_fn)
+        config = ConfigParser.ConfigParser()
+        config.read(config_fn)
+        return config
+
+
+class TumorNormal_VAF(ConfigFileFilter):
     'Filter variant sites by tumor and normal VAF (variant allele frequency)'
 
     name = 'vaf'
-
-##       RETAIN if($rcTvar/$r_totT>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_totT>=$min_coverage && $r_tot>=$min_coverage)
 
     # for merged caller, will evaluate call based on value of 'set' variable
 
     @classmethod
     def customize_parser(self, parser):
-        parser.add_argument('--min_vaf_somatic', type=float, default=0.05, help='Retain sites where tumor VAF > than given value')
-        parser.add_argument('--max_vaf_germline', type=float, default=0.02, help='Retain sites where normal VAF <= than given value')
-        parser.add_argument('--tumor_name', type=str, default="TUMOR", help='Tumor sample name in VCF')
-        parser.add_argument('--normal_name', type=str, default="NORMAL", help='Normal sample name in VCF')
-        parser.add_argument('--caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel', 'merged'], help='Caller type')
-        parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
+        # super(TumorNormal_VAF, cls).customize_parser(parser)
 
+        parser.add_argument('--min_vaf_somatic', type=float, help='Retain sites where tumor VAF > than given value')
+        parser.add_argument('--max_vaf_germline', type=float, help='Retain sites where normal VAF <= than given value')
+        parser.add_argument('--tumor_name', type=str, help='Tumor sample name in VCF')
+        parser.add_argument('--normal_name', type=str, help='Normal sample name in VCF')
+        parser.add_argument('--caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel', 'merged'], help='Caller type')
+        parser.add_argument('--config', type=str, help='Optional configuration file')
+        parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
+        
     def __init__(self, args):
-        self.min_vaf_somatic = args.min_vaf_somatic
-        self.max_vaf_germline = args.max_vaf_germline
-        self.tumor_name = args.tumor_name
-        self.normal_name = args.normal_name
+        # super(TumorNormal_VAF, self).__init__(args)
+
+        # These will not be set from config file (though could be)
         self.caller = args.caller
         self.debug = args.debug
+
+        # Read arguments from config file first, if present.
+        # Then read from command line args, if defined
+        # Note that default values in command line args would
+        #   clobber configuration file values
+
+        config = self.read_config_file(args.config)
+
+        self.set_args(config, args, "min_vaf_somatic", arg_type="float")
+        self.set_args(config, args, "max_vaf_germline", arg_type="float")
+        self.set_args(config, args, "tumor_name")
+        self.set_args(config, args, "normal_name")
+        sys.exit(1)
 
         # below becomes Description field in VCF
         self.__doc__ = "Retain calls where normal VAF <= %f and tumor VAF >= %f " % (self.max_vaf_germline, self.min_vaf_somatic)

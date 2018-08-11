@@ -13,7 +13,8 @@ VAF_FILTER_LOCAL="vaf_filter.py"  # filter module
 MAIN_FILTER="vcf_filter.py --no-filtered" # Assuming in path
 
 # Arguments to VAF filter
-SNV_VAF_ARGS="vaf --min_vaf_somatic 0.1 --debug" # --debug"
+#SNV_VAF_ARGS="vaf --min_vaf_somatic 0.1 --debug" # --debug"
+SNV_VAF_ARGS="vaf --debug" # --debug"
 
 ## testing - varscan SNP - OK
 #CALLER="--caller varscan"
@@ -30,5 +31,6 @@ SNV_VAF_ARGS="vaf --min_vaf_somatic 0.1 --debug" # --debug"
 
 # testing - strelka - OK
 CALLER="--caller strelka"
-$MAIN_FILTER --local-script $VAF_FILTER_LOCAL $STRELKA_VCF $SNV_VAF_ARGS $CALLER
+CONFIG="--config vcf_filter_config.ini"
+$MAIN_FILTER --local-script $VAF_FILTER_LOCAL $STRELKA_VCF $SNV_VAF_ARGS $CALLER $CONFIG
 
