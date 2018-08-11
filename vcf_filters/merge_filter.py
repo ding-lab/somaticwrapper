@@ -8,34 +8,38 @@ import vcf.filters
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-class IndelLengthFilter(vcf.filters.Base):
+class MergedCallerFilter(vcf.filters.Base):
     'Filter variant sites by caller, as defined by INFO field "set".'
 
-    name = 'indel_length'
+    name = 'merged_caller'
 
     @classmethod
     def customize_parser(self, parser):
-        parser.add_argument('--include_caller', help='Retain only calls with given caller(s); comma-separated list')
-        parser.add_argument('--exclude_caller', help='Exclude all calls with given caller(s); comma-separated list')
+        parser.add_argument('--include', help='Retain only calls with given caller(s); comma-separated list')
+        parser.add_argument('--exclude', help='Exclude all calls with given caller(s); comma-separated list')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
 
     def __init__(self, args):
-        # define either include_caller or exclude_caller; test with XOR        
-        if (args.include_caller is None) ^ (args.exclude_caller is None):
-            raise Exception("Must define exactly one of the following: --include_caller, --exclude_caller")
 
-        if args.include_caller is not None:
+        # User defines either include caller or exclude caller, but not both
+        if bool(args.include) == bool(args.exclude):
+            raise Exception("Must define exactly one of the following: --include, --exclude")
+
+        eprint("OK")
+        sys.exit(1)                
+
+        if args.include is not None:
             self.including = True
-            self.callers = self.include_caller.split(',') 
+            self.callers = self.include.split(',') 
         else:
             self.including = False
-            self.callers = self.exclude_caller.split(',') 
+            self.callers = self.exclude.split(',') 
 
         # below becomes Description field in VCF
         if self.including:
-            self.__doc__ = "Retain calls where 'set' INFO field includes one of " + args.include_caller
+            self.__doc__ = "Retain calls where 'set' INFO field includes one of " + args.include
         else:
-            self.__doc__ = "Exclude calls where 'set' INFO field includes any of " + args.exclude_caller
+            self.__doc__ = "Exclude calls where 'set' INFO field includes any of " + args.exclude
 
         self.debug = args.debug
 
