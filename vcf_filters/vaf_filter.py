@@ -1,8 +1,5 @@
-from __future__ import print_function
+import common_filter
 import sys
-import vcf.filters
-import ConfigParser
-import os.path
 
 # Filter VCF files according to tumor, normal VAF values
 #
@@ -18,8 +15,6 @@ import os.path
 #   [vaf]
 #   min_vaf_somatic = 0.05
 #
-##       RETAIN if($rcTvar/$r_totT>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_totT>=$min_coverage && $r_tot>=$min_coverage)
-#
 # Required command line parameter:
 # --caller caller - specifies tool used for variant call. 'strelka', 'varscan', 'pindel', 'merged'
 #
@@ -27,64 +22,7 @@ import os.path
 # --debug
 # --config config.ini
 
-
-def eprint(*args, **kwargs):
-# Portable printing to stderr, from https://stackoverflow.com/questions/5574702/how-to-print-to-stderr-in-python-2
-    print(*args, file=sys.stderr, **kwargs)
-
-# Configuration file and initialization of parameters:
-# * we can read a configuration file (ini format) as an alternative to passing command line parameters
-#   * --config config.ini will read config file config.ini, and read parameters associated with section [ vaf ]
-#   * See details here: https://docs.python.org/3/library/configparser.html#supported-ini-file-structure
-# * A parameter in configuration file will be overridden by command line argument of the same name
-# * No default command line values in general
-
-class ConfigFileFilter(vcf.filters.Base):
-    'Base class of pyvcf filters which can read from configuration ini file'
-
-    def set_args(self, config, args, option, required=True, arg_type="string"):
-        '''
-        Set class attributes directly from command line args (priority) or configparser, if present.
-        set_args(self,config,args,"foo") will define self.foo = "foo value"
-        arg_type = "float" will cast to float.  This should be generalized.
-        '''
-        value = None
-        if option in vars(args) and vars(args)[option] is not None:
-            value = vars(args)[option]
-            if self.debug:
-                eprint("Setting %s = %s from args" % (option, value))
-        elif config is not None and config.has_option(self.name, option):
-            if arg_type == "float":
-                value = config.getfloat(self.name, option)
-            else:
-                value = config.get(self.name, option)
-            if self.debug:
-                eprint("Setting %s = %s from config" % (option, value))
-
-        if value is None:
-            msg = "Argument %s not defined" % option
-            if required:
-                raise Exception("Error: %s " % msg)
-            else:
-                eprint("Config value %s not defined" % option)
-        else:
-            setattr(self, option, value)
-
-# https://docs.python.org/3/library/configparser.html and https://docs.python.org/2/library/configparser.html
-    def read_config_file(self, config_fn):
-    # return None if not defined
-
-        if config_fn is None:
-            return None
-        eprint("Reading configuration file " + config_fn)
-        if not os.path.isfile(config_fn):
-            raise Exception("Error: Configuration file %s not found." % config_fn)
-        config = ConfigParser.ConfigParser()
-        config.read(config_fn)
-        return config
-
-
-class TumorNormal_VAF(ConfigFileFilter):
+class TumorNormal_VAF(common_filter.ConfigFileFilter):
     'Filter variant sites by tumor and normal VAF (variant allele frequency)'
 
     name = 'vaf'
@@ -180,6 +118,7 @@ class TumorNormal_VAF(ConfigFileFilter):
         elif variant_caller == 'merged':
             # Caller is contained in 'set' INFO field
             merged_caller = VCF_record.INFO['set'][0]
+            # TODO: finish and test this thoroughly.  In a merged line with set=A-B-C, call readcounts with "A"
             if merged_caller == 'strelka':
                 return self.get_readcounts_strelka(VCF_record, data)
             if merged_caller == 'varscan':
@@ -188,7 +127,6 @@ class TumorNormal_VAF(ConfigFileFilter):
                 return self.get_readcounts_strelka(VCF_record, data)
             if merged_caller == 'strelka-varscan':
                 return self.get_readcounts_strelka(VCF_record, data)
-        
         else:
             raise Exception( "Unknown caller: " + variant_caller)
 
