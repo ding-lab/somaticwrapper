@@ -42,8 +42,6 @@ class TumorNormal_VAF(ConfigFileFilter):
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
         
     def __init__(self, args):
-        # super(TumorNormal_VAF, self).__init__(args)
-
         # These will not be set from config file (though could be)
         self.caller = args.caller
         self.debug = args.debug
@@ -52,7 +50,6 @@ class TumorNormal_VAF(ConfigFileFilter):
         # Then read from command line args, if defined
         # Note that default values in command line args would
         #   clobber configuration file values so are not defined
-
         config = self.read_config_file(args.config)
 
         self.set_args(config, args, "min_vaf_somatic", arg_type="float")
@@ -120,12 +117,16 @@ class TumorNormal_VAF(ConfigFileFilter):
             # TODO: finish and test this thoroughly.  In a merged line with set=A-B-C, call readcounts with "A"
             if merged_caller == 'strelka':
                 return self.get_readcounts_strelka(VCF_record, data)
-            if merged_caller == 'varscan':
+            elif merged_caller == 'varscan':
+                return self.get_readcounts_varscan(VCF_record, data)
+            elif merged_caller == 'varindel':
+                return self.get_readcounts_varscan(VCF_record, data)
+            elif merged_caller == 'strelka-varscan':
                 return self.get_readcounts_strelka(VCF_record, data)
-            if merged_caller == 'varindel':
-                return self.get_readcounts_strelka(VCF_record, data)
-            if merged_caller == 'strelka-varscan':
-                return self.get_readcounts_strelka(VCF_record, data)
+            elif merged_caller == 'pindel':
+                return self.get_readcounts_pindel(VCF_record, data)
+            else:
+                raise Exception( "Unknown caller in INFO set field: " + merged_caller)
         else:
             raise Exception( "Unknown caller: " + variant_caller)
 
@@ -136,7 +137,7 @@ class TumorNormal_VAF(ConfigFileFilter):
         if (self.debug):
             eprint("Normal, Tumor vaf: %f, %f" % (vaf_N, vaf_T))
 ##       Original logic, with 2=Tumor
-##       RETAIN if($rc2var/$r_tot2>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_tot2>=$min_coverage && $r_tot>=$min_coverage)
+##           RETAIN if($rc2var/$r_tot2>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_tot2>=$min_coverage && $r_tot>=$min_coverage)
 ##       Here, logic is reversed.  We return if fail a test
         if vaf_T < self.min_vaf_somatic:
             if (self.debug):

@@ -13,27 +13,28 @@ DEPTH_FILTER_LOCAL="depth_filter.py"  # filter module
 LENGTH_FILTER_LOCAL="length_filter.py"  # filter module
 
 MAIN_FILTER="vcf_filter.py --no-filtered" # Assuming in path
+CONFIG="--config vcf_filter_config.ini"
 
 # arguments to depth filter
-DEPTH_ARGS="read_depth --min_depth 100 --debug"
+DEPTH_ARGS="read_depth --debug"
 
 ## testing - varscan SNP - OK
 CALLER="--caller varscan"
 VCF=$VARSCAN_VCF
-$MAIN_FILTER --local-script $DEPTH_FILTER_LOCAL $VCF $DEPTH_ARGS $CALLER
+$MAIN_FILTER --local-script $DEPTH_FILTER_LOCAL $VCF $DEPTH_ARGS $CALLER $CONFIG
 
-## testing - varscan indel - OK
-CALLER="--caller varscan"
-VCF=$VARSCAN_INDEL_VCF
-$MAIN_FILTER --local-script $DEPTH_FILTER_LOCAL $VCF $DEPTH_ARGS $CALLER
-
-## testing - strelka - OK
-CALLER="--caller strelka"
-VCF=$STRELKA_VCF
-$MAIN_FILTER --local-script $DEPTH_FILTER_LOCAL $VCF $DEPTH_ARGS $CALLER
-
-## testing - pindel - OK
-CALLER="--caller pindel"
-NAMES="--normal_name pindel.N --tumor_name pindel.T"
-VCF=$PINDEL_VCF
-$MAIN_FILTER --local-script $DEPTH_FILTER_LOCAL $VCF $DEPTH_ARGS $CALLER $NAMES
+### testing - varscan indel - OK
+#CALLER="--caller varscan"
+#VCF=$VARSCAN_INDEL_VCF
+#$MAIN_FILTER --local-script $DEPTH_FILTER_LOCAL $VCF $DEPTH_ARGS $CALLER
+#
+### testing - strelka - OK
+#CALLER="--caller strelka"
+#VCF=$STRELKA_VCF
+#$MAIN_FILTER --local-script $DEPTH_FILTER_LOCAL $VCF $DEPTH_ARGS $CALLER
+#
+#### testing - pindel - OK
+#CALLER="--caller pindel"
+#NAMES="--normal_name pindel.N --tumor_name pindel.T"
+#VCF=$PINDEL_VCF
+#$MAIN_FILTER --local-script $DEPTH_FILTER_LOCAL $VCF $DEPTH_ARGS $CALLER $NAMES

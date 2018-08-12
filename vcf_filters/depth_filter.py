@@ -1,12 +1,26 @@
-from __future__ import print_function
+from common_filter import *
 import sys
-import vcf.filters
 
-# Portable printing to stderr, from https://stackoverflow.com/questions/5574702/how-to-print-to-stderr-in-python-2
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+# Filter VCF files according to tumor, normal read depth
+#
+# the following parameters are required:
+# * min_depth
+# * tumor_name
+# * normal_name
+#
+# These may be specified on the command line (e.g., --min_depth 10) or in
+# configuration file, as specified by --config config.ini  Sample contents of config file:
+#   [read_depth]
+#   min_depth = 10
+#
+# Required command line parameter:
+# --caller caller - specifies tool used for variant call. 'strelka', 'varscan', 'pindel'
+#
+# optional command line parameters
+# --debug
+# --config config.ini
 
-class DepthFilter(vcf.filters.Base):
+class DepthFilter(ConfigFileFilter):
     'Filter variant sites by read depth'
     # Normally we would be able to use the built-in filter "dps"; however, pindel does not write the DP tag and depth filtering fails
 
@@ -14,18 +28,27 @@ class DepthFilter(vcf.filters.Base):
 
     @classmethod
     def customize_parser(self, parser):
-        parser.add_argument('--min_depth', type=int, default=0, help='Retain sites where read depth for tumor and normal > given value')
-        parser.add_argument('--tumor_name', type=str, default="TUMOR", help='Tumor sample name in VCF')
-        parser.add_argument('--normal_name', type=str, default="NORMAL", help='Normal sample name in VCF')
+        parser.add_argument('--min_depth', type=int, help='Retain sites where read depth for tumor and normal > given value')
+        parser.add_argument('--tumor_name', type=str, help='Tumor sample name in VCF')
+        parser.add_argument('--normal_name', type=str, help='Normal sample name in VCF')
         parser.add_argument('--caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel'], help='Caller type')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
+        parser.add_argument('--config', type=str, help='Optional configuration file')
 
     def __init__(self, args):
-        self.min_depth = args.min_depth
-        self.tumor_name = args.tumor_name
-        self.normal_name = args.normal_name
+        # These will not be set from config file (though could be)
         self.caller = args.caller
         self.debug = args.debug
+
+        # Read arguments from config file first, if present.
+        # Then read from command line args, if defined
+        # Note that default values in command line args would
+        #   clobber configuration file values so are not defined
+        config = self.read_config_file(args.config)
+
+        self.set_args(config, args, "min_depth", arg_type="int")
+        self.set_args(config, args, "tumor_name")
+        self.set_args(config, args, "normal_name")
 
         # below becomes Description field in VCF
         self.__doc__ = "Retain calls where read depth in tumor and normal > %d " % (self.min_depth)
