@@ -1,4 +1,4 @@
-import common_filter
+from common_filter import *
 import sys
 
 # Filter VCF files according to tumor, normal VAF values
@@ -22,7 +22,7 @@ import sys
 # --debug
 # --config config.ini
 
-class TumorNormal_VAF(common_filter.ConfigFileFilter):
+class TumorNormal_VAF(ConfigFileFilter):
     'Filter variant sites by tumor and normal VAF (variant allele frequency)'
 
     name = 'vaf'
@@ -51,7 +51,7 @@ class TumorNormal_VAF(common_filter.ConfigFileFilter):
         # Read arguments from config file first, if present.
         # Then read from command line args, if defined
         # Note that default values in command line args would
-        #   clobber configuration file values
+        #   clobber configuration file values so are not defined
 
         config = self.read_config_file(args.config)
 
@@ -59,7 +59,6 @@ class TumorNormal_VAF(common_filter.ConfigFileFilter):
         self.set_args(config, args, "max_vaf_germline", arg_type="float")
         self.set_args(config, args, "tumor_name")
         self.set_args(config, args, "normal_name")
-        sys.exit(1)
 
         # below becomes Description field in VCF
         self.__doc__ = "Retain calls where normal VAF <= %f and tumor VAF >= %f " % (self.max_vaf_germline, self.min_vaf_somatic)

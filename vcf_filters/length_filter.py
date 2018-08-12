@@ -1,25 +1,48 @@
-from __future__ import print_function
+from common_filter import *
 import sys
-import vcf.filters
 
-# Portable printing to stderr, from https://stackoverflow.com/questions/5574702/how-to-print-to-stderr-in-python-2
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+# Filter VCF files according to indel length:
+# Retain calls where length of variant and reference > min_length and < max_length 
+#
+# The following parameters are required:
+# * min_length
+# * max_length
+#
+# These may be specified on the command line (e.g., --max_length 100) or in
+# configuration file, as specified by --config config.ini  Sample contents of config file:
+#   [indel_length]
+#   max_length = 100
+#
+# optional command line parameters
+# --debug
+# --config config.ini
 
-class IndelLengthFilter(vcf.filters.Base):
+class IndelLengthFilter(ConfigFileFilter):
     'Filter indel variant sites by reference and variant length'
 
     name = 'indel_length'
 
     @classmethod
     def customize_parser(self, parser):
-        parser.add_argument('--min_length', type=int, default=0, help='Retain sites where indel length > given value')
-        parser.add_argument('--max_length', type=int, default=0, help='Retain sites where indel length <= given value. 0 disables test')
+        parser.add_argument('--min_length', type=int, help='Retain sites where indel length > given value')
+        parser.add_argument('--max_length', type=int, help='Retain sites where indel length <= given value. 0 disables test')
+        parser.add_argument('--config', type=str, help='Optional configuration file')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
 
     def __init__(self, args):
-        self.min_length = args.min_length
-        self.max_length = args.max_length
+        # These will not be set from config file (though could be)
+        self.debug = args.debug
+
+        # Read arguments from config file first, if present.
+        # Then read from command line args, if defined
+        # Note that default values in command line args would
+        #   clobber configuration file values so are not defined
+
+        config = self.read_config_file(args.config)
+
+        self.set_args(config, args, "min_length", arg_type="int")
+        self.set_args(config, args, "max_length", arg_type="int")
+
         # below becomes Description field in VCF
         self.__doc__ = "Retain calls where indel length > %d and < %d " % (self.min_length, self.max_length)
         self.debug = args.debug

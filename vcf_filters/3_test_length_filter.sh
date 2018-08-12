@@ -12,9 +12,11 @@ LENGTH_FILTER_LOCAL="length_filter.py"  # filter module
 MAIN_FILTER="vcf_filter.py --no-filtered" # Assuming in path
 
 # arguments to length filter
-LENGTH_ARGS="indel_length --max_length 10 --debug "
+LENGTH_ARGS="indel_length --debug "
 
-$MAIN_FILTER --local-script $LENGTH_FILTER_LOCAL $VARSCAN_VCF $LENGTH_ARGS
+CONFIG="--config vcf_filter_config.ini"
+
+$MAIN_FILTER --local-script $LENGTH_FILTER_LOCAL $VARSCAN_VCF $LENGTH_ARGS $CONFIG
 
 
 # TESTING

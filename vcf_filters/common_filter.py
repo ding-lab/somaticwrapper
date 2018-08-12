@@ -23,7 +23,7 @@ class ConfigFileFilter(vcf.filters.Base):
         '''
         Set class attributes directly from command line args (priority) or configparser, if present.
         set_args(self,config,args,"foo") will define self.foo = "foo value"
-        arg_type = "float" will cast to float.  This should be generalized.
+        arg_type = "float", "int" will cast to float, int.  This should be generalized.
         '''
         value = None
         if option in vars(args) and vars(args)[option] is not None:
@@ -33,8 +33,13 @@ class ConfigFileFilter(vcf.filters.Base):
         elif config is not None and config.has_option(self.name, option):
             if arg_type == "float":
                 value = config.getfloat(self.name, option)
-            else:
+            elif arg_type == "int":
+                value = config.getint(self.name, option)
+            elif arg_type == "string":
                 value = config.get(self.name, option)
+            else:
+                raise Exception("Unknown arg_type: %s " % arg_type)
+                
             if self.debug:
                 eprint("Setting %s = %s from config" % (option, value))
 
