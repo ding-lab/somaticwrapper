@@ -25,15 +25,12 @@ class MergedCallerFilter(vcf.filters.Base):
         if bool(args.include) == bool(args.exclude):
             raise Exception("Must define exactly one of the following: --include, --exclude")
 
-        eprint("OK")
-        sys.exit(1)                
-
         if args.include is not None:
             self.including = True
-            self.callers = self.include.split(',') 
+            self.callers = args.include.split(',') 
         else:
             self.including = False
-            self.callers = self.exclude.split(',') 
+            self.callers = args.exclude.split(',') 
 
         # below becomes Description field in VCF
         if self.including:
@@ -48,8 +45,8 @@ class MergedCallerFilter(vcf.filters.Base):
 
     def __call__(self, record):
         # "caller" is defined by "set" info field
-        assert len(VCF_record.INFO['set']) == 1 # assuming that has only one field, need to rework comparison logic if this breaks
-        caller = VCF_record.INFO['set'][0]
+        assert len(record.INFO['set']) == 1 # assuming that has only one field, need to rework comparison logic if this breaks
+        caller = record.INFO['set'][0]
 
         if self.including:
             # keep call only if caller is in callers list
