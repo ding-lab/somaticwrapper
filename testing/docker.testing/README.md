@@ -12,6 +12,17 @@ Provides a test bed using StrelkaDemo test dataset for development and testing
 ```
 where STEP is 1,2,3,4,5,7,8,10.  This will write output to `./results` directory.  
 
+### Steps
+
+* 1 = `run_strelka`
+* 2 = `run_varscan`
+* 3 = `parse_strelka`
+* 4 = `parse_varscan`
+* 5 = `run_pindel`
+* 7 = `parse_pindel`
+* 8 = `merge_vcf`
+* 10 = `annotate_vcf`
+
 ## Docker testing and development
 
 The Docker image `cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:cwl` incorporates the CWL branch

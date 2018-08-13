@@ -54,13 +54,13 @@ ARGS="\
 --results_dir $OUTDIR \
 --pindel_raw $OUTDIR/pindel/pindel_out/pindel-raw.dat \
 --strelka_snv_raw $OUTDIR/strelka/strelka_out/results/variants/somatic.snvs.vcf.gz \
---strelka_snv_vcf $OUTDIR/strelka/filter_out/strelka.somatic.snv.all.dbsnp_pass.vcf \
+--strelka_snv_vcf $OUTDIR/strelka/filter_out/strelka.somatic.snv.all.dbsnp_pass.filtered.vcf \
 --varscan_indel_raw $OUTDIR/varscan/varscan_out/varscan.out.som_indel.vcf \
 --varscan_snv_raw $OUTDIR/varscan/varscan_out/varscan.out.som_snv.vcf \
---varscan_indel_vcf $OUTDIR/varscan/filter_out/varscan.out.som_indel.Somatic.hc.vcf \
---varscan_snv_vcf $OUTDIR/varscan/filter_out/varscan.out.som_snv.Somatic.hc.vcf \
+--varscan_indel_vcf $OUTDIR/varscan/filter_out/varscan.out.som_indel.Somatic.hc.filtered.vcf \
+--varscan_snv_vcf $OUTDIR/varscan/filter_out/varscan.out.som_snv.Somatic.hc.filtered.vcf \
 --pindel_raw $OUTDIR/pindel/pindel_out/pindel-raw.dat \
---pindel_vcf $OUTDIR/pindel/filter_out/pindel.out.current_final.dbsnp_pass.vcf \
+--pindel_vcf $OUTDIR/pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf \
 --input_vcf $OUTDIR/merged/merged.vcf \
 "
 
