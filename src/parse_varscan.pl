@@ -9,8 +9,8 @@
     # varscan.out.som_snv.Somatic.hc.vcf      -> varscan_snv_process
     # varscan.out.som_indel.Somatic.hc.vcf    -> varscan_indel_process
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf   -> varscan_snv_filtered
-    # varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.vcf   -> varscan_snv_dbsnp
-    # varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf    -> varscan_indel_dbsnp
+    # varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.filtered.vcf   -> varscan_snv_dbsnp, used for merge_vcf
+    # varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf    -> varscan_indel_dbsnp, used for merge_vcf
 
 # The following parameters are read from varscan_config.  Numbers provided are parameters used by Song circa May 2018
 #    snv.min-tumor-freq = 0.05 
@@ -32,7 +32,6 @@
 #   * these had been varscan.out.som_indel.vcf and varscan.out.som_snv.vcf
 
 use File::Basename;
-
 
 # Confirm that all required configuration parameters are defined.  Exit with an error if they are not
 sub test_config_parameters_varscan_parse {
@@ -64,12 +63,14 @@ sub parse_varscan{
     my $job_files_dir = shift;
     my $perl = shift;
     my $gvip_dir = shift;
+    my $filter_dir = shift;
     my $dbsnp_db = shift;
     my $snpsift_jar = shift;
     my $varscan_jar = shift;
     my $varscan_indel_raw = shift; # indeloutgvip
     my $varscan_snv_raw = shift;  # snvoutgvip
     my $varscan_config = shift;
+    my $varscan_vcf_filter_config = shift;
 
     $current_job_file = "j4_parse_varscan.sh";
     
@@ -121,20 +122,16 @@ sub parse_varscan{
     my $snv_raw=$filter_results . "/" . basename($varscan_snv_raw) ;
 
     # These based on original script
-    my $snvoutbase="$filter_results/varscan.out.som_snv";
-    my $indeloutbase="$filter_results/varscan.out.som_indel";
 
-    #my $thissnvorig="${snvoutbase}.Somatic.hc.vcf";  # This is genrated by varscan processSomatic
     my $thissnvorig="$filter_results/varscan.out.som_snv.Somatic.hc.vcf";  # This is genrated by varscan processSomatic
-    my $myindelorig="${indeloutbase}.vcf";
-    my $thissnvpass="${snvoutbase}.Somatic.hc.somfilter_pass.vcf";
+    my $myindelorig="$filter_results/varscan.out.som_indel.vcf";
 
     my $log_file="$filter_results/varscan.out.som.log";
 
     my $somsnvpass="$filter_results/varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf";
 
-    my $indeloutbase="$filter_results/varscan.out.som_indel";
-
+    # $dbsnp_filtered_snv_fn is the output of dbsnp filter of SNV calls
+    my $dbsnp_filtered_snv_fn = "$filter_results/varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.vcf";
     my $out = "$filter_results/vs_dbsnp_filter.snv.input";
     print("Writing to $out\n");
     open(OUT, ">$out") or die $!;
@@ -143,21 +140,32 @@ varscan.dbsnp.snv.annotator = $snpsift_jar
 varscan.dbsnp.snv.db = $dbsnp_db
 varscan.dbsnp.snv.rawvcf = $somsnvpass
 varscan.dbsnp.snv.mode = filter
-varscan.dbsnp.snv.passfile  = $filter_results/varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.vcf
+varscan.dbsnp.snv.passfile  = $dbsnp_filtered_snv_fn
 varscan.dbsnp.snv.dbsnpfile = $filter_results/varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_present.vcf
 EOF
 
+    # $dbsnp_filtered_indel_fn is the output of dbsnp filter of SNV calls
+    my $dbsnp_filtered_indel_fn = "$filter_results/varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf";
     my $out = "$filter_results/vs_dbsnp_filter.indel.input";
     print("Writing to $out\n");
     open(OUT, ">$out") or die $!;
     print OUT <<"EOF";
 varscan.dbsnp.indel.annotator = $snpsift_jar
 varscan.dbsnp.indel.db = $dbsnp_db
-varscan.dbsnp.indel.rawvcf = $indeloutbase.Somatic.hc.vcf
+varscan.dbsnp.indel.rawvcf = $filter_results/varscan.out.som_indel.Somatic.hc.vcf
 varscan.dbsnp.indel.mode = filter
-varscan.dbsnp.indel.passfile  = $indeloutbase.Somatic.hc.dbsnp_pass.vcf
-varscan.dbsnp.indel.dbsnpfile = $indeloutbase.Somatic.hc.dbsnp_present.vcf
+varscan.dbsnp.indel.passfile  = $dbsnp_filtered_indel_fn
+varscan.dbsnp.indel.dbsnpfile = $filter_results/varscan.out.som_indel.Somatic.hc.dbsnp_present.vcf
 EOF
+
+    # Run vcf_filter.py family of filters: VAF, read depth, and indel length
+    #    * Reads varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.vcf
+    #        * Outputs varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.filtered.vcf
+    #    * Reads varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf
+    #        * Outputs varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf
+    my $vcf_filtered_snv_fn = "$filter_results/varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.filtered.vcf";
+    my $vcf_filtered_indel_fn = "$filter_results/varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf";
+
 
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");
@@ -170,7 +178,7 @@ export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 echo \'APPLYING PROCESS FILTER TO SOMATIC SNVS:\' # &> $log_file
 # Script below creates the following in the same directory as the input data
 # The inability to define output directory complicates things
-    # varscan.out.som_snv.Somatic.hc.vcf      -> used for SNV SNP filter below and vep annotation
+    # varscan.out.som_snv.Somatic.hc.vcf      -> used for SNV SNP filter below 
     # varscan.out.som_snv.Somatic.vcf        
     # varscan.out.som_snv.LOH.hc.vcf         
     # varscan.out.som_snv.LOH.vcf            
@@ -184,7 +192,7 @@ echo \'APPLYING PROCESS FILTER TO SOMATIC INDELS:\' # &>> $log_file
     # varscan.out.som_indel.Germline.vcf       
     # varscan.out.som_indel.LOH.hc.vcf         
     # varscan.out.som_indel.LOH.vcf            
-    # varscan.out.som_indel.Somatic.hc.vcf     -> used for Indel SnP Filter below and vep annotation
+    # varscan.out.som_indel.Somatic.hc.vcf     -> used for Indel SnP Filter below 
     # varscan.out.som_indel.Somatic.vcf        
 java \${JAVA_OPTS} -jar $varscan_jar processSomatic $indel_raw   $somatic_indel_params  # &>> $log_file
 
@@ -194,7 +202,7 @@ java \${JAVA_OPTS} -jar $varscan_jar processSomatic $indel_raw   $somatic_indel_
 echo \'APPLYING SOMATIC FILTER:\' # &>> $log_file
 
 # Script below creates:
-    # varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf   -> used for SNV dbSnP and vep annotation
+    # varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf   -> used for SNV dbSnP 
 java \${JAVA_OPTS} -jar $varscan_jar somaticFilter  $thissnvorig $somatic_filter_params  --indel-file  $indel_raw --output-file  $somsnvpass  # &>> $log_file   
 
 ### dbSnP Filter
@@ -204,7 +212,7 @@ java \${JAVA_OPTS} -jar $varscan_jar somaticFilter  $thissnvorig $somatic_filter
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf
 # and generates:
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_present.vcf  
-    # varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.vcf     -> used for merge_vcf
+    # varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.vcf     -> used for vcf_filter.py
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_anno.vcf   
 $perl $gvip_dir/dbsnp_filter.pl  $filter_results/vs_dbsnp_filter.snv.input
 
@@ -213,9 +221,17 @@ $perl $gvip_dir/dbsnp_filter.pl  $filter_results/vs_dbsnp_filter.snv.input
     # varscan.out.som_indel.Somatic.hc.vcf
 # and generates:
     # varscan.out.som_indel.Somatic.hc.dbsnp_present.vcf 
-    # varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf    -> used for merge_vcf
+    # varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf    -> used for vcf_filter.py
     # varscan.out.som_indel.Somatic.hc.dbsnp_anno.vcf    
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/vs_dbsnp_filter.indel.input
+
+    # varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.filtered.vcf     -> used for merge_vcf
+    # varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf    -> used for merge_vcf
+
+echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
+export PYTHONPATH="$filter_dir:\$PYTHONPATH"
+bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_snv_fn varscan $varscan_vcf_filter_config $vcf_filtered_snv_fn 
+bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_indel_fn varscan $varscan_vcf_filter_config $vcf_filtered_indel_fn 
 
 
 EOF

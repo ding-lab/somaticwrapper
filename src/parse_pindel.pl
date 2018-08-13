@@ -1,8 +1,5 @@
 
-# Skipping VEP annotation
-
-# principal output used in merging: pindel/filter_out/pindel.out.current_final.dbsnp_pass.vcf
-# -> pindel_dbsnp output
+# principal output used in merging: pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf
 
 # CWL changes:
 # * genomevip_labeling removed
@@ -18,12 +15,14 @@ sub parse_pindel {
     my $REF = shift;
     my $perl = shift;
     my $gvip_dir = shift;
+    my $filter_dir = shift;
     my $pindel_dir = shift;
     my $dbsnp_db = shift;
     my $snpsift_jar = shift;
     my $pindel_config = shift;
     my $pindel_raw_in = shift; # NEW
     my $no_delete_temp = shift;
+    my $pindel_vcf_filter_config = shift;
 
     if (! $no_delete_temp) {
         $no_delete_temp = 0; # avoid empty variables
@@ -70,6 +69,7 @@ pindel.filter.date = 000000
 EOF
 
 ## dbSnP Filter
+    my $dbsnp_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.vcf";
     my $out = "$filter_results/pindel_dbsnp_filter.indel.input";
     print("Writing to $out\n");
     open(OUT, ">$out") or die $!;
@@ -78,18 +78,27 @@ pindel.dbsnp.indel.annotator = $snpsift_jar
 pindel.dbsnp.indel.db = $dbsnp_db
 pindel.dbsnp.indel.rawvcf = $filter_out
 pindel.dbsnp.indel.mode = filter
-pindel.dbsnp.indel.passfile  = $filter_results/pindel.out.current_final.dbsnp_pass.vcf
+pindel.dbsnp.indel.passfile  = $dbsnp_filtered_fn
 pindel.dbsnp.indel.dbsnpfile = $filter_results/pindel.out.current_final.dbsnp_present.vcf
 EOF
 
 # 1. run pindel_filter.  This produces
 #    pindel.out.raw.CvgVafStrand_pass 
 #    pindel.out.raw.CvgVafStrand_fail
-#    pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass  -> this is input into dbSnP filter
-#    pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail  
-# 2. Run dbSnP filter
-# 3. Optionally delete intermediate files
+#    pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf  -> this is input into dbSnP filter
+#    pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail.vcf  
+# 2. rename headers of pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf to be "NORMAL" and "TUMOR" 
+# 3. Run dbSnP filter
+#    pindel.out.current_final.dbsnp_pass.vcf
+#    pindel.out.current_final.dbsnp_pass.vcf.idx
+#    pindel.out.current_final.dbsnp_present.vcf
+# 4. run vcf_filter.py family of filters: VAF, read depth, and indel length
+#    * Reads pindel.out.current_final.dbsnp_pass.vcf
+#    * Outputs pindel.out.current_final.dbsnp_pass.filtered.vcf
+# 5. Optionally delete intermediate files
 #    - specifically, files with "_fail" in the filename
+
+    my $vcf_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.filtered.vcf";
 
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");
@@ -100,10 +109,19 @@ EOF
 echo Running pindel_filter.v0.5.pl
 $perl $gvip_dir/pindel_filter.v0.5.pl $filter_results/pindel_filter.input
 
+# Reheader output of pindel_filter to have sample names "NORMAL" and "TUMOR"
+TMP=$filter_out.tmp
+mv $filter_out \$TMP
+awk 'BEGIN{FS="\\t";OFS="\\t"}{if (\$1 == "#CHROM") print \$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, "NORMAL", "TUMOR"; else print}' \$TMP > $filter_out
+
 export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 
 echo Running dbsnp_filter.pl
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/pindel_dbsnp_filter.indel.input
+
+echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
+export PYTHONPATH="$filter_dir:\$PYTHONPATH"
+bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn pindel $pindel_vcf_filter_config $vcf_filtered_fn
 
 if [[ $no_delete_temp == 1 ]]; then
 
@@ -113,7 +131,10 @@ else
 
 >&2 echo Deleting intermediate \\"filter fail\\" files
 cd $filter_results
-rm -f \*_fail\*
+rm -f \*_fail\* 
+
+tmp_base=\$(basename \$TMP)
+rm -f \$tmp_base
 
 fi
 

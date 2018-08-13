@@ -1,0 +1,30 @@
+# Basic script to start bash in a SomaticWrapper container in standard Docker 
+
+# SomaticWrapper.workflow starts SomaticWrapper docker container with more features
+# and works with MGI's non-standard Docker environment
+
+# This starts mwyczalkowski/somatic-wrapper:latest and maps directories:
+# Container: /data  
+# Host: /Users/mwyczalk/src/SomaticWrapper/data
+
+# Note that DATAD is mapped to the container
+# SomaticWrapper work directory is $DATAD/data
+#   This allows directories not executed by SomaticWrapper (e.g., A_Reference) to exist on the data partition too
+#DATAD="/Users/mwyczalk/Projects/Rabix/TinDaisy/StrelkaDemo.dat"
+
+# Testing using SomaticWrapper results
+DATAD="/diskmnt/Projects/Users/hsun/beta_tinDaisy/compare/mgi_sw_C3N-01649"
+
+# results of past TinDaisy run
+DATAD="/diskmnt/Projects/Users/hsun/beta_tinDaisy/tin-daisy/results/TinDaisy.workflow-2018-07-30-135946.799/root"
+IMAGED="/home/mwyczalk_test/data/docker/data"  # a second volume to mount with per-image dagta
+
+#IMAGE="mwyczalkowski/somatic-wrapper:latest"
+IMAGE="cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:cwl"
+
+docker run -v $DATAD:/data -v $IMAGED:/image -it $IMAGE
+
+# To start another terminal in running container, first get name of running container with `docker ps`,
+# then start bash in it with,
+# `docker exec -it <container_name> bash`
+

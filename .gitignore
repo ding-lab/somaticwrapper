@@ -1,3 +1,5 @@
 .*.swp
+*.pyc
 runtime
 COSMIC_credentials.dat
+StrelkaDemo.results/

@@ -1,0 +1,42 @@
+Testing of specific run to compare SomaticWrapper.master vs. cwl
+Focusing on step 7 for now to develop filtering
+This will be tracked, for now, on git so can be preserved outside of docker image
+
+## SomaticWrapper run
+
+*Original runs (MGI)*
+```
+Results: /gscmnt/gc2533/dinglab/scao/cptac3/batch3/wxs/adjsomatic/C3N-01649
+    top-level results (merge, vcf, etc) here: merged.C3N-01649.tar.gz
+Run scripts: /gscmnt/gc2533/dinglab/scao/cptac3/batch3/wxs/tmpsomatic
+    tmpsomatic.C3N-01649.tar.gz
+Logs: /gscmnt/gc2533/dinglab/scao/cptac3/batch3/wxs/LSF_DIR_SOMATIC
+    LSF_DIR_SOMATIC.C3N-01649.tar.gz
+```
+
+These are copied to `origdata` and expanded in `origdata/sw.C3N-01694`
+
+*Results copy (Denali)*
+Select SomaticWrapper results: denali:/diskmnt/Projects/Users/hsun/beta_tinDaisy/compare/mgi_sw_C3N-01649/
+
+## Tin Daisy run (Denali)
+
+Results: `denali:/diskmnt/Projects/Users/hsun/beta_tinDaisy/tin-daisy/results/TinDaisy.workflow-2018-07-30-135946.799/root/`
+
+This directory will be mounted as /data when docker started with `start_docker.C3N-01649-test.sh`
+
+# Files
+
+We will only use data which is visible in /data and /image once in container, which 
+map to ,
+```
+DATAD="/diskmnt/Projects/Users/hsun/beta_tinDaisy/compare/mgi_sw_C3N-01649"
+IMAGED="/home/mwyczalk_test/data/docker/data"  # a second volume to mount with per-image dagta
+```
+
+So from container we have,
+
+REFERENCE_FASTA="/image/A_Reference/Homo_sapiens_assembly19.fasta"
+PINDEL_CONFIG="/StrelkaDemo.dat/pindel.WES.ini"
+DBSNP_DB="/image/B_Filter/dbsnp.noCOSMIC.GRCh37.vcf.gz"  # note that this differs from 00-All.brief.pass.cosmic.vcf.gz used in SW.  For present purposes that is OK
+PINDEL_RAW="/data/s5_run_pindel/results/pindel/pindel_out/pindel-raw.dat"
