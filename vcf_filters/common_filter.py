@@ -58,7 +58,8 @@ class ConfigFileFilter(vcf.filters.Base):
 
         if config_fn is None:
             return None
-        eprint("Reading configuration file " + config_fn)
+        if self.debug:
+            eprint("Reading configuration file " + config_fn)
         if not os.path.isfile(config_fn):
             raise Exception("Error: Configuration file %s not found." % config_fn)
         config = ConfigParser.ConfigParser()
