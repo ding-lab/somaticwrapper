@@ -1,8 +1,5 @@
 
-# Skipping VEP annotation
-
-# principal output used in merging: pindel/filter_out/pindel.out.current_final.dbsnp_pass.vcf
-# -> pindel_dbsnp output
+# principal output used in merging: pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf
 
 # CWL changes:
 # * genomevip_labeling removed
@@ -24,6 +21,7 @@ sub parse_pindel {
     my $pindel_config = shift;
     my $pindel_raw_in = shift; # NEW
     my $no_delete_temp = shift;
+    my $pindel_vcf_filter_config = shift;
 
     if (! $no_delete_temp) {
         $no_delete_temp = 0; # avoid empty variables
@@ -70,6 +68,7 @@ pindel.filter.date = 000000
 EOF
 
 ## dbSnP Filter
+    my $dbsnp_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.vcf"
     my $out = "$filter_results/pindel_dbsnp_filter.indel.input";
     print("Writing to $out\n");
     open(OUT, ">$out") or die $!;
@@ -78,7 +77,7 @@ pindel.dbsnp.indel.annotator = $snpsift_jar
 pindel.dbsnp.indel.db = $dbsnp_db
 pindel.dbsnp.indel.rawvcf = $filter_out
 pindel.dbsnp.indel.mode = filter
-pindel.dbsnp.indel.passfile  = $filter_results/pindel.out.current_final.dbsnp_pass.vcf
+pindel.dbsnp.indel.passfile  = $dbsnp_filtered_fn
 pindel.dbsnp.indel.dbsnpfile = $filter_results/pindel.out.current_final.dbsnp_present.vcf
 EOF
 
@@ -92,8 +91,13 @@ EOF
 #    pindel.out.current_final.dbsnp_pass.vcf
 #    pindel.out.current_final.dbsnp_pass.vcf.idx
 #    pindel.out.current_final.dbsnp_present.vcf
-# 4. Optionally delete intermediate files
+# 4. run vcf_filter.py family of filters: VAF, read depth, and indel length
+#    * Reads pindel.out.current_final.dbsnp_pass.vcf
+#    * Outputs pindel.out.current_final.dbsnp_pass.filtered.vcf
+# 5. Optionally delete intermediate files
 #    - specifically, files with "_fail" in the filename
+
+    my $vcf_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.filtered.vcf"
 
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");
@@ -113,6 +117,9 @@ export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 
 echo Running dbsnp_filter.pl
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/pindel_dbsnp_filter.indel.input
+
+echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
+bash vcf_filters/run_combined_vcf_filter.sh $dbsnp_filtered_fn pindel $pindel_vcf_filter_config $vcf_filtered_fn
 
 if [[ $no_delete_temp == 1 ]]; then
 

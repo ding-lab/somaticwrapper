@@ -3,6 +3,9 @@
 # * pass all input VCFs
 # * Output port: merged/merged.vcf
 
+# TODO: update scripts to take into account .filtered input
+# add filtering of merged VCF
+
 sub merge_vcf {
     my $sample_full_path = shift;
     my $job_files_dir = shift;
