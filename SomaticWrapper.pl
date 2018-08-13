@@ -118,7 +118,9 @@ my $varscan_snv_vcf;
 my $varscan_indel_vcf;
 my $pindel_vcf;
 my $input_vcf;
-my $strelka_vcf_filter_config, $varscan_vcf_filter_config, $pindel_vcf_filter_config;
+my $strelka_vcf_filter_config; 
+my $varscan_vcf_filter_config; 
+my $pindel_vcf_filter_config;
 
 GetOptions(
     'tumor_bam=s' => \$tumor_bam,
@@ -167,6 +169,7 @@ my ( $step_number ) = @ARGV;
 # Distinguising between location of modules of somatic wrapper and GenomeVIP
 # GenomeVIP is not distributed separately so hard code the path
 my $gvip_dir="$sw_dir/GenomeVIP";
+my $filter_dir="$sw_dir/vcf_filters";
 
 # automatically generated scripts in runtime
 my $job_files_dir="$results_dir/runtime";  # OUTPUT PORT
@@ -213,14 +216,13 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("Strelka SNV Raw input file not specified \n") unless $strelka_snv_raw;
     die("strelka_config undefined \n") unless $strelka_config;
     die("strelka_vcf_filter_config undefined \n") unless $strelka_vcf_filter_config;
-    parse_strelka($results_dir, $job_files_dir, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $strelka_snv_raw, $strelka_vcf_filter_config);
+    parse_strelka($results_dir, $job_files_dir, $perl, $gvip_dir, $filter_dir, $dbsnp_db, $snpsift_jar, $strelka_snv_raw, $strelka_vcf_filter_config);
 } elsif (($step_number eq '4') || ($step_number eq 'parse_varscan')) {
     die("Varscan Indel Raw input file not specified \n") unless $varscan_indel_raw;
     die("Varscan SNV Raw input file not specified \n") unless $varscan_snv_raw;
     die("varscan_config undefined \n") unless $varscan_config;
     die("varscan_vcf_filter_config undefined \n") unless $varscan_vcf_filter_config;
-    parse_varscan($results_dir, $job_files_dir, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $varscan_jar, $varscan_indel_raw, $varscan_snv_raw, \
-        $varscan_config, $varscan_vcf_filter_config);
+    parse_varscan($results_dir, $job_files_dir, $perl, $gvip_dir, $filter_dir, $dbsnp_db, $snpsift_jar, $varscan_jar, $varscan_indel_raw, $varscan_snv_raw, $varscan_config, $varscan_vcf_filter_config);
 } elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
     die("tumor_bam undefined \n") unless $tumor_bam;
     die("normal_bam undefined \n") unless $normal_bam;
@@ -231,8 +233,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("pindel raw input file not specified \n") unless $pindel_raw;
     die("reference_fasta undefined \n") unless $reference_fasta;
     die("pindel_vcf_filter_config undefined \n") unless $pindel_vcf_filter_config;
-    parse_pindel($results_dir, $job_files_dir, $reference_fasta, $perl, $gvip_dir, $pindel_dir, $dbsnp_db, $snpsift_jar, $pindel_config, $pindel_raw, \
-        $no_delete_temp, $pindel_vcf_filter_config);
+    parse_pindel($results_dir, $job_files_dir, $reference_fasta, $perl, $gvip_dir, $filter_dir, $pindel_dir, $dbsnp_db, $snpsift_jar, $pindel_config, $pindel_raw, $no_delete_temp, $pindel_vcf_filter_config);
 } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
     die("strelka_snv_vcf undefined \n") unless $strelka_snv_vcf;
     die("varscan_snv_vcf undefined \n") unless $varscan_snv_vcf;
@@ -240,7 +241,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("varscan_indel_vcf undefined \n") unless $varscan_indel_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
 
-    merge_vcf($results_dir, $job_files_dir, $reference_fasta, $gatk_jar, $strelka_snv_vcf, $varscan_indel_vcf, $varscan_snv_vcf, $pindel_vcf);
+    merge_vcf($results_dir, $job_files_dir, $filter_dir, $reference_fasta, $gatk_jar, $strelka_snv_vcf, $varscan_indel_vcf, $varscan_snv_vcf, $pindel_vcf);
 } elsif (($step_number eq '10') || ($step_number eq 'annotate_vcf')) {
     die("assembly undefined \n") unless $assembly;
     die("input_vcf undefined \n") unless $input_vcf;

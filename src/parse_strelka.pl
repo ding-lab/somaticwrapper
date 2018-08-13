@@ -9,6 +9,7 @@ sub parse_strelka {
     my $job_files_dir = shift;
     my $perl = shift;
     my $gvip_dir = shift;
+    my $filter_dir = shift;
     my $dbsnp_db = shift;
     my $snpsift_jar = shift;
     my $input_snv = shift;  # New to CWL: pass this filename explicitly (passed.somatic.snvs.vcf)
@@ -30,7 +31,7 @@ sub parse_strelka {
     system("mkdir -p $filter_results");
 
 # create strelka_dbsnp_filter.snv.input
-    my $dbsnp_filtered_fn = "$filter_results/strelka.somatic.snv.all.dbsnp_pass.vcf"
+    my $dbsnp_filtered_fn = "$filter_results/strelka.somatic.snv.all.dbsnp_pass.vcf";
     my $dbsnp_config = "$filter_results/strelka_dbsnp_filter.snv.input";
     print("Writing to $dbsnp_config\n");
     open(OUT, ">$dbsnp_config") or die $!;
@@ -48,7 +49,7 @@ EOF
     print("Writing to $outfn\n");
     open(OUT, ">$outfn") or die $!;
 
-    my $vcf_filtered_fn = "$filter_results/strelka.somatic.snv.all.dbsnp_pass.filtered.vcf"
+    my $vcf_filtered_fn = "$filter_results/strelka.somatic.snv.all.dbsnp_pass.filtered.vcf";
 
 # Note that dbsnp_filter.pl automatically adds dbsnp_anno.vcf suffix to rawvcf when creating output
 # Step 5 (dbSnP Filter on SNV) creates these two files:
@@ -68,7 +69,8 @@ export VARSCAN_DIR="/usr/local"
 $perl $gvip_dir/dbsnp_filter.pl $dbsnp_config
 
 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
-bash vcf_filters/run_combined_vcf_filter.sh $dbsnp_filtered_fn strelka $strelka_vcf_filter_config $vcf_filtered_fn
+export PYTHONPATH="$filter_dir:\$PYTHONPATH"
+bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn strelka $strelka_vcf_filter_config $vcf_filtered_fn
 
 EOF
     close OUT;

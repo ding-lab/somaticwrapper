@@ -15,6 +15,7 @@ sub parse_pindel {
     my $REF = shift;
     my $perl = shift;
     my $gvip_dir = shift;
+    my $filter_dir = shift;
     my $pindel_dir = shift;
     my $dbsnp_db = shift;
     my $snpsift_jar = shift;
@@ -68,7 +69,7 @@ pindel.filter.date = 000000
 EOF
 
 ## dbSnP Filter
-    my $dbsnp_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.vcf"
+    my $dbsnp_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.vcf";
     my $out = "$filter_results/pindel_dbsnp_filter.indel.input";
     print("Writing to $out\n");
     open(OUT, ">$out") or die $!;
@@ -97,7 +98,7 @@ EOF
 # 5. Optionally delete intermediate files
 #    - specifically, files with "_fail" in the filename
 
-    my $vcf_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.filtered.vcf"
+    my $vcf_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.filtered.vcf";
 
     my $outfn = "$job_files_dir/$current_job_file";
     print("Writing to $outfn\n");
@@ -119,7 +120,8 @@ echo Running dbsnp_filter.pl
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/pindel_dbsnp_filter.indel.input
 
 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
-bash vcf_filters/run_combined_vcf_filter.sh $dbsnp_filtered_fn pindel $pindel_vcf_filter_config $vcf_filtered_fn
+export PYTHONPATH="$filter_dir:\$PYTHONPATH"
+bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn pindel $pindel_vcf_filter_config $vcf_filtered_fn
 
 if [[ $no_delete_temp == 1 ]]; then
 

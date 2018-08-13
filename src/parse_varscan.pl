@@ -63,6 +63,7 @@ sub parse_varscan{
     my $job_files_dir = shift;
     my $perl = shift;
     my $gvip_dir = shift;
+    my $filter_dir = shift;
     my $dbsnp_db = shift;
     my $snpsift_jar = shift;
     my $varscan_jar = shift;
@@ -144,7 +145,7 @@ varscan.dbsnp.snv.dbsnpfile = $filter_results/varscan.out.som_snv.Somatic.hc.som
 EOF
 
     # $dbsnp_filtered_indel_fn is the output of dbsnp filter of SNV calls
-    my $dbsnp_filtered_indel_fn = "$filter_results/varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf"
+    my $dbsnp_filtered_indel_fn = "$filter_results/varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf";
     my $out = "$filter_results/vs_dbsnp_filter.indel.input";
     print("Writing to $out\n");
     open(OUT, ">$out") or die $!;
@@ -163,7 +164,7 @@ EOF
     #    * Reads varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf
     #        * Outputs varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf
     my $vcf_filtered_snv_fn = "$filter_results/varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.filtered.vcf";
-    my $vcf_filtered_indel_fn = "$filter_results/varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf"
+    my $vcf_filtered_indel_fn = "$filter_results/varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf";
 
 
     my $outfn = "$job_files_dir/$current_job_file";
@@ -228,8 +229,9 @@ $perl $gvip_dir/dbsnp_filter.pl $filter_results/vs_dbsnp_filter.indel.input
     # varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf    -> used for merge_vcf
 
 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
-bash vcf_filters/run_combined_vcf_filter.sh $dbsnp_filtered_snv_fn varscan $varscan_vcf_filter_config $vcf_filtered_snv_fn 
-bash vcf_filters/run_combined_vcf_filter.sh $dbsnp_filtered_indel_fn varscan $varscan_vcf_filter_config $vcf_filtered_indel_fn 
+export PYTHONPATH="$filter_dir:\$PYTHONPATH"
+bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_snv_fn varscan $varscan_vcf_filter_config $vcf_filtered_snv_fn 
+bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_indel_fn varscan $varscan_vcf_filter_config $vcf_filtered_indel_fn 
 
 
 EOF
