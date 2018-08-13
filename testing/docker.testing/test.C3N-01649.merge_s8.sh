@@ -9,13 +9,10 @@ SAMPLE="C3N-01649"
 
 STEP=8
 
-# From past TinDaisy run
-STRELKA_SNV_VCF="/data/s3_parse_strelka/results/strelka/filter_out/strelka.somatic.snv.all.dbsnp_pass.vcf"
-VARSCAN_INDEL_VCF="/data/s4_parse_varscan/results/varscan/filter_out/varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf"
-VARSCAN_SNV_VCF="/data/s4_parse_varscan/results/varscan/filter_out/varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.vcf"
-# from output of parse_pindel
-PINDEL_VCF="./StrelkaDemo.results/pindel/filter_out/pindel.out.current_final.dbsnp_pass.vcf"
-
+STRELKA_SNV_VCF="./StrelkaDemo.results/strelka/filter_out/strelka.somatic.snv.all.dbsnp_pass.filtered.vcf"
+VARSCAN_INDEL_VCF="./StrelkaDemo.results/varscan/filter_out/varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf"
+VARSCAN_SNV_VCF="./StrelkaDemo.results/varscan/filter_out/varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.filtered.vcf"
+PINDEL_VCF="./StrelkaDemo.results/pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf"
 
 ARGS="\
 --reference_fasta $REFERENCE_FASTA \

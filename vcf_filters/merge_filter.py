@@ -45,8 +45,7 @@ class MergedCallerFilter(vcf.filters.Base):
 
     def __call__(self, record):
         # "caller" is defined by "set" info field
-        assert len(record.INFO['set']) == 1 # assuming that has only one field, need to rework comparison logic if this breaks
-        caller = record.INFO['set'][0]
+        caller = record.INFO['set']
 
         if self.including:
             # keep call only if caller is in callers list
