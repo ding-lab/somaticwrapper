@@ -11,7 +11,7 @@
 # CWL-specific changes
 # * Get rid of unused arguments
 # * pass all input VCFs
-# * Output port: merged/merged.vcf
+# * Output port: merged/merged.filtered.vcf
 
 sub merge_vcf {
     my $sample_full_path = shift;
@@ -31,8 +31,8 @@ sub merge_vcf {
     system("mkdir -p $filter_results");
 
 
-    my $merger_out_tmp = "$filter_results/merged.unfiltered.vcf";
-    my $merger_out = "$filter_results/merged.vcf";
+    my $merger_out_tmp = "$filter_results/merged.vcf";
+    my $merger_out = "$filter_results/merged.filtered.vcf";
 
 
     my $outfn = "$job_files_dir/$current_job_file";
