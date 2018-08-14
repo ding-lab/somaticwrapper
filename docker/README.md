@@ -10,3 +10,9 @@ for testing of workflow.
 
 See also [TinDaisy](https://github.com/ding-lab/tin-daisy) for a workflow wrapper
 which includes SomaticWrapper:CWL
+
+
+## Tags
+
+This was done at some point: 
+`docker tag cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:cwl cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:cwl-v1.0`

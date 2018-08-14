@@ -2,17 +2,17 @@
 
 REFERENCE_FASTA="/image/A_Reference/Homo_sapiens_assembly19.fasta"
 
-OUTDIR="./StrelkaDemo.results"
+OUTDIR="./C3N-01649.results"
 mkdir -p $OUTDIR
 
 SAMPLE="C3N-01649"
 
 STEP=8
 
-STRELKA_SNV_VCF="./StrelkaDemo.results/strelka/filter_out/strelka.somatic.snv.all.dbsnp_pass.filtered.vcf"
-VARSCAN_INDEL_VCF="./StrelkaDemo.results/varscan/filter_out/varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf"
-VARSCAN_SNV_VCF="./StrelkaDemo.results/varscan/filter_out/varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.filtered.vcf"
-PINDEL_VCF="./StrelkaDemo.results/pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf"
+STRELKA_SNV_VCF="$OUTDIR/strelka/filter_out/strelka.somatic.snv.all.dbsnp_pass.filtered.vcf"
+VARSCAN_INDEL_VCF="$OUTDIR/varscan/filter_out/varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf"
+VARSCAN_SNV_VCF="$OUTDIR/varscan/filter_out/varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.filtered.vcf"
+PINDEL_VCF="$OUTDIR/pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf"
 
 ARGS="\
 --reference_fasta $REFERENCE_FASTA \
