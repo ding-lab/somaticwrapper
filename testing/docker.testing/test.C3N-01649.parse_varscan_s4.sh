@@ -1,6 +1,6 @@
 # This is run from within a container typically started with ./start_docker.sh
 
-OUTDIR="./StrelkaDemo.results"
+OUTDIR="./C3N-01649.results"
 mkdir -p $OUTDIR
 
 SAMPLE="C3N-01649"

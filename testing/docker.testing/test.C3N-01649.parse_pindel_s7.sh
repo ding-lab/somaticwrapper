@@ -7,7 +7,7 @@ DBSNP_DB="/image/B_Filter/dbsnp.noCOSMIC.GRCh37.vcf.gz"  # note that this differ
 PINDEL_RAW="/data/s5_run_pindel/results/pindel/pindel_out/pindel-raw.dat"
 PINDEL_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/vcf_filters/pindel-vcf_filter_config.ini"
 
-OUTDIR="./StrelkaDemo.results"
+OUTDIR="./C3N-01649.results"
 mkdir -p $OUTDIR
 
 SAMPLE="C3N-01649"
