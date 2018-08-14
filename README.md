@@ -3,9 +3,7 @@ Detect somatic variants from tumor and normal exome data
 
 SomaticWrapper pipeline is a fully automated and modular software package
 designed for detection of somatic variants from tumor and normal exome data. 
-It was developed from GenomeVIP. Multiple standard
-variant callings are included in the pipeline such as varscan, strelka and
-pindel. 
+It was developed from GenomeVIP. Incorprates varscan, strelka, and pindel for variant calling.
 
 ## Installation
 
@@ -19,10 +17,9 @@ about installation and usage of SomaticWrapper
 ![Somatic Wrapper Strelka Details](docs/SomaticWrapper.v2.Strelka.png)
 ![Somatic Wrapper Varscan Details](docs/SomaticWrapper.v2.Varscan.png)
 
-## Branches
+## CWL branch
 
-`docker` branch has work on version of SomaticWrapper which runs in dockerized container at 
-MGI or DC2 (uses SomaticWrapper.Workflow for help)
+The primary branch used for this work is CWL branch.
 
 `cwl` branch makes changes to make SomaticWrapper operate in CWL environment. Specific changes:
   * all arguments are passed on command line, rather than configuraiton file

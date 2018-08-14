@@ -1,4 +1,4 @@
-Scripts here are used to run Somatic Wrapper directly from within docker container.
+Scripts here are used to start Somatic Wrapper docker container and run Somatic Wrapper directly from within it.
 Provides a test bed using StrelkaDemo test dataset for development and testing
 
 ## Quick start
