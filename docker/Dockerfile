@@ -45,9 +45,9 @@ RUN cd /usr/local/ \
     && make \
     && make install
     
-# Install Pindel
+# Install Pindel.  Using ding-lab branch
 RUN cd /usr/local/ \
-    && git clone --recursive https://github.com/genome/pindel.git  \
+    && git clone --recursive https://github.com/ding-lab/pindel.git \
     && cd /usr/local/pindel/ \
     && ./INSTALL /usr/local/htslib
 
@@ -147,6 +147,16 @@ RUN cd /usr/local \
     && /usr/local/strelka2/configure --prefix=/usr/local/strelka2 \
     && make -C /usr/local/strelka2_build \
     && make install
+
+# Install vcf2maf: https://github.com/mskcc/vcf2maf
+RUN cd /usr/local \
+    && export VCF2MAF_URL=`curl -sL https://api.github.com/repos/mskcc/vcf2maf/releases | grep -m1 tarball_url | cut -d\" -f4` \
+    && curl -L -o mskcc-vcf2maf.tar.gz $VCF2MAF_URL \
+    && tar -zxf mskcc-vcf2maf.tar.gz \
+    && ln -s mskcc-vcf2maf-* mskcc-vcf2maf 
+
+# Note that this creates directory /usr/local/mskcc-vcf2maf-decbf60.
+# TODO: ln -s /usr/local/mskcc-vcf2maf-decbf60 /usr/local/mskcc-vcf2maf
 
 COPY vimrc /root/.vimrc
 
