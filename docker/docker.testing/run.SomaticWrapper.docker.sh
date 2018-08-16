@@ -24,6 +24,9 @@ DBSNP_DB=$DATAD/dbsnp-StrelkaDemo.noCOSMIC.vcf.gz
 CENTROMERE_BED=$DATAD/ucsc-centromere.GRCh37.bed
 #VEP_CACHE_DIR=/home/mwyczalk_test/data/docker/data/D_VEP
 ASSEMBLY="GRCh37"
+STRELKA_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/vcf_filters/vcf_filter_config.ini"
+VARSCAN_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/vcf_filters/vcf_filter_config.ini"
+PINDEL_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/vcf_filters/pindel-vcf_filter_config.ini"
 
 OUTDIR="./StrelkaDemo.results"
 mkdir -p $OUTDIR
@@ -46,10 +49,10 @@ ARGS="\
 --varscan_config $VARSCAN_CONFIG \
 --pindel_config $PINDEL_CONFIG \
 --dbsnp_db $DBSNP_DB \
---nooutput_vep \
+--vep_output vcf \
 --assembly $ASSEMBLY \
 --is_strelka2  \
---nono_delete_temp \
+--no_delete_temp \
 --centromere_bed $CENTROMERE_BED \
 --results_dir $OUTDIR \
 --pindel_raw $OUTDIR/pindel/pindel_out/pindel-raw.dat \
@@ -62,6 +65,9 @@ ARGS="\
 --pindel_raw $OUTDIR/pindel/pindel_out/pindel-raw.dat \
 --pindel_vcf $OUTDIR/pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf \
 --input_vcf $OUTDIR/merged/merged.vcf \
+--strelka_vcf_filter_config $STRELKA_VCF_FILTER_CONFIG \
+--varscan_vcf_filter_config $VARSCAN_VCF_FILTER_CONFIG \
+--pindel_vcf_filter_config $PINDEL_VCF_FILTER_CONFIG \
 "
 
 # final output of step 10 is ./results/merged/merged.vcf (or ./results/vep/output.vcf.vep if --output_vep)

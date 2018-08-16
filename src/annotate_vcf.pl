@@ -1,77 +1,49 @@
-# Annotate VCF is a CWL successor to run_vep.  It converts a given VCF to VEP
-# format (or just annotates vcf).  It operates on just one input file, however,
-# and writes to a given output file.
+# Annotate VCF file, and write output as VCF, VEP, or MAF
 
-# if $cache_dir is defined, use that as path to VEP Cache
-# if $cache_gz is defined, then copy that .tar.gz file to $cache_dir and extract it there
-#   (this is used for a cwl setup where arbitrary paths are not accessible)
+# Annotation is performed using vep directly (if vep_output is 'vcf' or 'vep'), or vcf2maf (vep_output is 'maf'); the
+# latter uses vep as well.  We can use either a local cache or online ('db') lookups (the latter implemented only for vep_output='vcf' or 'vep')..
 
-# Logic of use_vep_db is defined by $cache_dir.  If $cache_dir is set to a value, then use_vep_db = 0.
-#   * also test to see if is a directory.  
-# if use_vep_db is 1, run step in db mode.
-#   this 1) uses online database (so cache isn't installed) 2) does not use tmp files
-#   It is meant to be used for testing and lightweight applications.  Use the cache for
-#   better performance.  See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
-
-# assembly is the assembly argument passed to vep
-# output_vep is a boolean.  Output annotated VEP rather than VCF format.
-# cache_dir defined implies use_vep_db is 0
+#    --vep_cache_dir s: defines location of VEP cache directory and indicates whether to use online VEP DB lookups.  
+#        * if vep_cache_dir is not defined, will perform online VEP DB lookups
+#        * If vep_cache_dir is a directory, it indicates location of VEP cache 
+#        * If vep_cache_dir is a file ending in .tar.gz, will extract its contents into "./vep-cache" and use VEP cache
+#        NOTE: Online VEP database lookups a) uses online database (so cache isn't installed) b) does not use tmp files
+#          It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
+#          See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
+#
+# if $vep_cache_dir is a .tar.gz file, then copy it to $cache_dir="./vep-cache" and extract it there
+#   (assuming it is a .tar.gz version of VEP cache; this is typically used for a cwl setup where arbitrary paths are not accessible)
+#   These contents will subsequently be deleted
 #   Cache installation is done in somaticwrapper/image.setup/D_VEP
 #   See https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
-# 
-# if $cache_gz is defined, it is assumed this is a .tar.gz version of VEP cache.
-#   extract its contents into $cache_dir (./vep-cache if not specified)
-#   It will subsequently be deleted
 #
+# assembly is the assembly argument passed to vep.  Optional
+# vep_output: Defines output format after annotation.  Allowed values: vcf, vep, maf
+# 
 # Output is $results_dir/vep/output.vcf
 
-# helper function
-sub write_vep_input {
-    my $config_fn = shift;
-    my $module = shift;  # e.g. varscan.vep or strelka.vep
-    my $vcf = shift;
-    my $output = shift; 
-    my $vep_cmd = shift;
-    my $cache_dir = shift;   
-    my $REF = shift;
-    my $assembly = shift;
-    my $cache_version = shift;   
-    my $use_vep_db = shift;  # 1 for testing/demo, 0 for production
-    my $output_vep = shift;  # output annotated vep rather than vcf format after merge step.  add suffix 'vep' to output
 
-    my $output_vep_int = 0;
-    if ($output_vep) {
-        $output = "$output.vep";
-        $output_vep_int = 1; 
-    }
-
-    print("Writing to $config_fn\n");
-    open(OUT, ">$config_fn") or die $!;
-    print OUT <<"EOF";
-$module.vcf = $vcf
-$module.output = $output
-$module.vep_cmd = $vep_cmd
-$module.cachedir = $cache_dir
-$module.reffasta = $REF
-$module.assembly = $assembly
-$module.cache_version = $cache_version
-$module.usedb = $use_vep_db  
-$module.output_vep = $output_vep_int
-EOF
-}
 
 sub annotate_vcf {
     my $results_dir = shift;
     my $job_files_dir = shift;
-    my $REF = shift;
+    my $reference = shift;
     my $gvip_dir = shift;
     my $vep_cmd = shift;
     my $assembly = shift;
-    my $cache_version = shift; # 90
-    my $cache_dir = shift;  # if defined, implies use_vep_db = 0
-    my $cache_gz = shift;   
-    my $output_vep = shift;  # if true, output annotated vep after merge step.  If false, output vcf format 
-    my $input_vcf = shift;  # for CWL work, we are passed an input VCF
+    my $cache_version = shift; # e.g., 90
+    my $cache_dir = shift;  
+    my $vep_output = shift;  # Output format following vep annotation.  May be 'vcf', 'vep', 'maf'
+    my $input_vcf = shift;  # Name of input VCF to process
+
+    # assembly and cache_version may be blank; if so, not passed on command line to vep
+
+    my @known_formats = ('vcf', 'vep', 'maf');
+    my $format_OK = 0;
+    foreach my $format (@known_formats) {
+        if ($vep_output =~ $format) { $format_OK = 1; break }
+    }
+    if (not $format_OK) { die("Error: unknown VEP output format (--vep_output): $vep_output\n");}
 
 
     $current_job_file = "j10_vep.sh";
@@ -81,37 +53,65 @@ sub annotate_vcf {
     system("mkdir -p $filter_results");
 
     my $config_fn = "$filter_results/vep.merged.input";
-    my $output_vcf = "$filter_results/output.vcf";
+    my $output_fn;
 
     my $use_vep_db = 1;
+    my $cache_gz;
 
-    # if cache_gz is defined, extract its contents to $cache_dir
-    # if $cache_dir is not defined, defaults to ./vep-cache
-    if ( $cache_gz ) {
-        if (! $cache_dir) {
-            $cache_dir = "./vep-cache";
-        }
+    # if $cache_dir is a .tar.gz file, extract its contents to ./vep-cache
+    # if $cache_dir is defined, confirm it exists
+    # Otherwise, use VEP DB mode
+    if ( $cache_dir =~ /\.tar\.gz/ ) {
+        $cache_gz = $cache_dir;
+        $cache_dir = "./vep-cache";
         if (! -d $cache_dir) {
             mkdir $cache_dir or die "$!\n";
         }
         print STDERR "Extracting VEP Cache tarball $cache_gz into $cache_dir";
         my $rc = system ("tar -zxf $cache_gz --directory $cache_dir");
         die("Exiting ($rc).\n") if $rc != 0;
-    }
-
-    if ( $cache_dir ) {
-        die "\nError: Cache dir $cache_dir does not exist\n" if (! -d $cache_dir);
-        die "\nError: Please specify --cache_version \n" if (! $cache_version);
         $use_vep_db = 0;
-    }
+    } elsif (defined $cache_dir) {
+        die "\nError: Cache dir $cache_dir does not exist\n" if (! -d $cache_dir);
+        $use_vep_db = 0;
+    }    
 
-# Adding final output to vep annotation
-    write_vep_input(
-        $config_fn,          # Config fn
-        "merged.vep",                               # Module
-        $input_vcf,                # VCF (input)
-        $output_vcf,           # output
-        $vep_cmd, $cache_dir, $REF, $assembly, $cache_version, $use_vep_db, $output_vep);
+    # now need to decide if using vcf2maf or vep_annotator.pl
+    my $cmd;
+    if ($vep_output =~ /maf/) {
+        $output_fn = "$filter_results/output.maf";
+
+#      --ncbi-build     NCBI reference assembly of variants MAF (e.g. GRCm38 for mouse) [GRCh37]
+#      --cache-version  Version of offline cache to use with VEP (e.g. 75, 84, 91) [Default: Installed version]
+#      --vep-data       VEP's base cache/plugin directory [~/.vep]
+        die ("--cache_dir must be defined for \"--vep_output maf\"\n") if !($cache_dir);
+
+        my $opts = "--vep-data $cache_dir";
+        if ($assembly) { $opts += "--ncbi-build $assembly"; }
+        if ($cache_version)  { $opts += "--cache-version $cache_version"; }
+
+        $cmd = "$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl $opts --input-vcf $merged_vcf --output-maf $out_maf --ref-fasta $reference ";
+
+    } else {
+        if ($vep_output =~ /vcf/) {
+            $output_fn = "$filter_results/output.vcf";
+        } else {
+            $output_fn = "$filter_results/output.vep";
+        }
+
+        # Adding final output to vep annotation
+        write_vep_input(
+            $config_fn,          # Config fn
+            "merged.vep",                               # Module
+            $input_vcf,                # VCF (input)
+            $output_fn,           # output
+            $vep_cmd, $cache_dir, $reference, $assembly, $cache_version, $use_vep_db, $vep_output =~ /vep/);
+
+        $cmd = <<"EOF" 
+        export JAVA_OPTS=\"-Xms256m -Xmx512m\"
+        $perl $gvip_dir/vep_annotator.pl $config_fn
+EOF
+    }
 
     my $out = "$job_files_dir/$current_job_file";
     print("Writing to $out\n");
@@ -119,9 +119,7 @@ sub annotate_vcf {
     print OUT <<"EOF";
 #!/bin/bash
 
-export JAVA_OPTS=\"-Xms256m -Xmx512m\"
-
-$perl $gvip_dir/vep_annotator.pl $config_fn
+$cmd
 
 # Evaluate return value see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
 rc=\$? 
@@ -144,6 +142,47 @@ EOF
         print STDERR "Deleting $cache_dir\n";
         my $rc = system("rm -rf $cache_dir\n");
         die("Exiting ($rc).\n") if $rc != 0;
+    }
+}
+
+# helper function
+sub write_vep_input {
+    my $config_fn = shift;
+    my $module = shift;  # e.g. varscan.vep or strelka.vep
+    my $vcf = shift;
+    my $output_fn = shift; 
+    my $vep_cmd = shift;
+    my $cache_dir = shift;   
+    my $reference = shift;
+    my $assembly = shift;
+    my $cache_version = shift;   
+    my $use_vep_db = shift;  # 1 for testing/demo, 0 for production
+    my $output_is_vep = shift;  # True if vep_output is "vep"
+
+    # assembly and cache_version are optional; if value is empty, not written to config file
+
+    my $output_vep_int = 0;
+    if ($output_is_vep) {
+        $output_vep_int = 1; 
+    }
+
+    print("Writing to $config_fn\n");
+    open(OUT, ">$config_fn") or die $!;
+    print OUT <<"EOF";
+$module.vcf = $vcf
+$module.output = $output_fn
+$module.vep_cmd = $vep_cmd
+$module.cachedir = $cache_dir
+$module.reffasta = $reference
+$module.usedb = $use_vep_db  
+$module.output_vep = $output_vep_int
+EOF
+
+    if ($assembly) {
+        print OUT "$module.assembly = $assembly\n";
+    }
+    if ($cache_version) {
+        print OUT "$module.cache_version = $cache_version\n";
     }
 }
 
