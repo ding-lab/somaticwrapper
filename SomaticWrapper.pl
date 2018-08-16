@@ -40,17 +40,19 @@ Configuration file parameters [defaults]
     --tumor_bam s:  path to tumor BAM.  Required for all runs
     --normal_bam s: path to normal BAM.  Required for all runs
     --reference_fasta s: path to reference
-    --assembly s: either "GRCh37" or "GRCh38", used for VEP [GRCh37]
-    --vep_cache_version s: Cache version, e.g. '90', used for VEP.  Required if using vep cache
+    --assembly s: either "GRCh37" or "GRCh38", used for annotation (VEP and MAF).  Optional
+    --vep_cache_version s: Cache version, e.g. '90', used for annotation (VEP and MAF).  Optional
     --reference_dict s: path to reference dict file.  Default is reference_fasta with ".dict" appended
     --sw_dir s: Somatic Wrapper installation directory [/usr/local/somaticwrapper]
     --results_dir s: Per-sample analysis results written to results_dir; a relative directory, often same as sample name [.] 
-    --vep_cache_dir s: define location of VEP cache directory. If not defined, will perform online VEP DB lookups.  
-          Online VEP database lookups ("use_vep_db") a) uses online database (so cache isn't installed) b) does not use tmp files
+    --vep_cache_dir s: define location of VEP cache directory and indicate whether to use online VEP DB lookups.  
+        * if vep_cache_dir is not defined, will perform online VEP DB lookups
+        * If vep_cache_dir is a directory, it indicates location of VEP cache 
+        * If vep_cache_dir is a file ending in .tar.gz, will extract its contents into "./vep-cache" and use VEP cache
+        NOTE: Online VEP database lookups a) uses online database (so cache isn't installed) b) does not use tmp files
           It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
-    --vep_cache_gz s: extract contents of .tar.gz vep cache tree into vep_cache_dir, or "./vep-cache" if vep_cache_dir not specified
-    --output_vep : if defined, write final annotated merged file in VEP rather than VCF format
+    --vep_output: Define output format after annotation.  Allowed values: vcf, vep, maf
     --no_delete_temp : if defined, do not delete temp files in run_pindel and parse_pindel
     --strelka_config s: path to strelka.ini file, required for strelka run
     --varscan_config s: path to varscan.ini file, required for varscan run and parse
@@ -92,8 +94,7 @@ my $reference_dict;  # default mapping occurs after reference_fasta known
 my $sw_dir = "/usr/local/somaticwrapper";
 my $results_dir = ".";  
 my $vep_cache_dir;
-my $vep_cache_gz;
-my $output_vep;     # Boolean
+my $vep_output;   
 my $is_strelka2;    # Boolean
 my $no_delete_temp; # Boolean
 my $strelka_config; 
@@ -132,7 +133,6 @@ GetOptions(
     'sw_dir=s' => \$sw_dir,
     'results_dir=s' => \$results_dir,
     'vep_cache_dir=s' => \$vep_cache_dir,
-    'vep_cache_gz=s' => \$vep_cache_gz,
     'strelka_config=s' => \$strelka_config,
     'varscan_config=s' => \$varscan_config,
     'pindel_config=s' => \$pindel_config,
@@ -155,7 +155,7 @@ GetOptions(
     'pindel_vcf=s' => \$pindel_vcf,
     'varscan_indel_vcf=s' => \$varscan_indel_vcf,
     'input_vcf=s' => \$input_vcf,
-    'output_vep!' => \$output_vep,
+    'vep_output=s' => \$vep_output,
     'no_delete_temp!' => \$no_delete_temp,
     'is_strelka2!' => \$is_strelka2,
     'strelka_vcf_filter_config=s' => \$strelka_vcf_filter_config,
@@ -240,13 +240,11 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("pindel_vcf undefined \n") unless $pindel_vcf;
     die("varscan_indel_vcf undefined \n") unless $varscan_indel_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
-
     merge_vcf($results_dir, $job_files_dir, $filter_dir, $reference_fasta, $gatk_jar, $strelka_snv_vcf, $varscan_indel_vcf, $varscan_snv_vcf, $pindel_vcf);
 } elsif (($step_number eq '10') || ($step_number eq 'annotate_vcf')) {
-    die("assembly undefined \n") unless $assembly;
     die("input_vcf undefined \n") unless $input_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    annotate_vcf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $output_vep, $input_vcf)
+    annotate_vcf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_output, $input_vcf)
 } else {
     die("Unknown step number $step_number\n");
 }

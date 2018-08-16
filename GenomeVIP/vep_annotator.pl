@@ -30,6 +30,9 @@ my $vcf_flag="--vcf";
 if( exists($paras{'vep_opts'}) ) { $opts = $paras{'vep_opts'} };
 if( exists($paras{'output_vep'}) && ($paras{'output_vep'}) ) { $vcf_flag = "--symbol" };
 
+# --assembly is optional.  For Cache mode, --cache_version also optional
+if (exists($paras{'assembly'})) { $opts += "--assembly $paras{'assembly'}" }
+
 # db mode 1) uses online database (so cache isn't installed) 2) does not use tmp files
 # It is meant to be used for testing and lightweight applications.  Use the cache for
 # better performance.  See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
@@ -40,7 +43,7 @@ if ($paras{'usedb'}) {
     print STDERR ("Reading: $paras{'vcf'}\n");
     print STDERR ("Writing: $paras{'output'}\n");
  
-    $cmd = "perl $paras{'vep_cmd'} $opts --database --port 3337 --buffer_size 10000  --assembly $paras{'assembly'} --fork 4 --format vcf $vcf_flag -i $paras{'vcf'} -o $paras{'output'} --force_overwrite  --fasta $paras{'reffasta'}";
+    $cmd = "perl $paras{'vep_cmd'} $opts --database --port 3337 --buffer_size 10000  --fork 4 --format vcf $vcf_flag -i $paras{'vcf'} -o $paras{'output'} --force_overwrite  --fasta $paras{'reffasta'}";
 
     print($cmd . "\n");
     my $errcode = system($cmd); 
@@ -48,6 +51,7 @@ if ($paras{'usedb'}) {
 
 } else {
     print STDERR ("VEP Cache mode\n");
+    if (exits($paras{'cache_version'})) { $opts += "--cache_version $paras{'cache_version'}" }
 
     # split off original header
     my (undef, $tmp_orig_calls)  = tempfile();
@@ -58,7 +62,7 @@ if ($paras{'usedb'}) {
     my (undef, $tmp_vep_out) = tempfile();
     if (-s $tmp_orig_calls) {
         # cache_version is something like '90' - seems it needs to be specified
-        $cmd = "perl $paras{'vep_cmd'} $opts --cache_version $paras{'cache_version'}  --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --assembly $paras{'assembly'} --fork 4 --format vcf $vcf_flag -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
+        $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --fork 4 --format vcf $vcf_flag -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
         print($cmd . "\n");
         my $errcode = system($cmd); 
         die ("Error executing: $cmd \n $! \n") if ($errcode);
@@ -67,7 +71,7 @@ if ($paras{'usedb'}) {
         system("touch $tmp_vep_out");
     }
 
-print STDERR "merging headers and stuff \n";
+    print STDERR "merging headers and stuff \n";
 
     # re-merge headers and move
     my (undef, $tmp_merge) = tempfile();
