@@ -28,11 +28,11 @@
 #   See https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
 #
 # assembly is the assembly argument passed to vep.  Optional
-# vep_output: Defines output format after annotation.  Allowed values: vcf, vep, maf
+# vep_output: Defines output format after annotation.  Allowed values: vcf, vep, maf.  Default is vcf
 # 
 # Output is $results_dir/vep/output.vcf
 
-
+my $perl = "/usr/bin/perl";  # this is for docker environment
 
 sub annotate_vcf {
     my $results_dir = shift;
@@ -48,12 +48,16 @@ sub annotate_vcf {
 
     # assembly and cache_version may be blank; if so, not passed on command line to vep
 
-    my @known_formats = ('vcf', 'vep', 'maf');
-    my $format_OK = 0;
-    foreach my $format (@known_formats) {
-        if ($vep_output =~ $format) { $format_OK = 1; break }
+    if ($vep_output) {
+        my @known_formats = ('vcf', 'vep', 'maf');
+        my $format_OK = 0;
+        foreach my $format (@known_formats) {
+            if ($vep_output =~ $format) { $format_OK = 1; break }
+        }
+        if (not $format_OK) { die("Error: unknown VEP output format (--vep_output): $vep_output\n");}
+    } else {
+        $vep_output = "vcf";
     }
-    if (not $format_OK) { die("Error: unknown VEP output format (--vep_output): $vep_output\n");}
 
 
     $current_job_file = "j10_vep.sh";
@@ -77,7 +81,7 @@ sub annotate_vcf {
         if (! -d $cache_dir) {
             mkdir $cache_dir or die "$!\n";
         }
-        print STDERR "Extracting VEP Cache tarball $cache_gz into $cache_dir";
+        print STDERR "Extracting VEP Cache tarball $cache_gz into $cache_dir\n";
         my $rc = system ("tar -zxf $cache_gz --directory $cache_dir");
         die("Exiting ($rc).\n") if $rc != 0;
         $use_vep_db = 0;
@@ -97,10 +101,11 @@ sub annotate_vcf {
         die ("--cache_dir must be defined for \"--vep_output maf\"\n") if !($cache_dir);
 
         my $opts = "--vep-data $cache_dir";
-        if ($assembly) { $opts += "--ncbi-build $assembly"; }
-        if ($cache_version)  { $opts += "--cache-version $cache_version"; }
+        if ($assembly) { $opts = "$opts --ncbi-build $assembly"; }
+        if ($cache_version)  { $opts = "$opts --cache-version $cache_version"; }
 
-        $cmd = "$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl $opts --input-vcf $merged_vcf --output-maf $out_maf --ref-fasta $reference ";
+        my $vep_path = dirname($vep_cmd);
+        $cmd = "$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl $opts --input-vcf $input_vcf --output-maf $output_fn --ref-fasta $reference --filter-vcf 0 --vep-path $vep_path --tmp-dir $filter_results";
 
     } else {
         if ($vep_output =~ /vcf/) {
@@ -153,6 +158,7 @@ EOF
         my $rc = system("rm -rf $cache_dir\n");
         die("Exiting ($rc).\n") if $rc != 0;
     }
+    print STDERR "Final results written to $output_fn\n";
 }
 
 # helper function
