@@ -12,16 +12,19 @@ STEP=10
 MERGED_VCF="$OUTDIR/merged/merged.filtered.vcf"
 
 CACHE_DIR="/image/D_VEP"
+#CACHE_DIR="/image/D_VEP/vep-cache.90_GRCh37.tar.gz"
 
 ARGS="\
 --reference_fasta $REFERENCE_FASTA \
 --input_vcf $MERGED_VCF  \
 --results_dir $OUTDIR \
 --vep_cache_dir $CACHE_DIR \
+--vep_output vcf \
 --vep_cache_version 90 \
 --assembly GRCh37 \
---vep_output maf \
 "
+#--vep_cache_version 90 \
+#--assembly GRCh37 \
 
 # optional:
 # --assembly

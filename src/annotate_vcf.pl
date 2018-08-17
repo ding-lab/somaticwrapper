@@ -71,7 +71,7 @@ sub annotate_vcf {
         if (! -d $cache_dir) {
             mkdir $cache_dir or die "$!\n";
         }
-        print STDERR "Extracting VEP Cache tarball $cache_gz into $cache_dir";
+        print STDERR "Extracting VEP Cache tarball $cache_gz into $cache_dir\n";
         my $rc = system ("tar -zxf $cache_gz --directory $cache_dir");
         die("Exiting ($rc).\n") if $rc != 0;
         $use_vep_db = 0;
@@ -91,10 +91,11 @@ sub annotate_vcf {
         die ("--cache_dir must be defined for \"--vep_output maf\"\n") if !($cache_dir);
 
         my $opts = "--vep-data $cache_dir";
-        if ($assembly) { $opts += "--ncbi-build $assembly"; }
-        if ($cache_version)  { $opts += "--cache-version $cache_version"; }
+        if ($assembly) { $opts = "$opts --ncbi-build $assembly"; }
+        if ($cache_version)  { $opts = "$opts --cache-version $cache_version"; }
 
-        $cmd = "$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl $opts --input-vcf $merged_vcf --output-maf $out_maf --ref-fasta $reference ";
+        my $vep_path = dirname($vep_cmd);
+        $cmd = "$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl $opts --input-vcf $input_vcf --output-maf $output_fn --ref-fasta $reference --filter-vcf 0 --vep-path $vep_path --tmp-dir $filter_results";
 
     } else {
         if ($vep_output =~ /vcf/) {
@@ -147,6 +148,7 @@ EOF
         my $rc = system("rm -rf $cache_dir\n");
         die("Exiting ($rc).\n") if $rc != 0;
     }
+    print STDERR "Final results written to $output_fn\n";
 }
 
 # helper function
