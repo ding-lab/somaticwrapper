@@ -104,6 +104,7 @@ RUN cd /usr/local \
     && wget https://software.broadinstitute.org/gatk/download/auth?package=GATK -O GATK.tar.bz2 \
     && bunzip2 GATK.tar.bz2 \
     && tar -xf GATK.tar \
+    && ln -s GenomeAnalysisTK* GenomeAnalysisTK \
     && wget https://github.com/broadinstitute/picard/releases/download/2.12.1/picard.jar
 
 # DEVELOPMENT 
