@@ -31,7 +31,7 @@ if( exists($paras{'vep_opts'}) ) { $opts = $paras{'vep_opts'} };
 if( exists($paras{'output_vep'}) && ($paras{'output_vep'}) ) { $vcf_flag = "--symbol" };
 
 # --assembly is optional.  For Cache mode, --cache_version also optional
-if (exists($paras{'assembly'})) { $opts += "--assembly $paras{'assembly'}" }
+if (exists($paras{'assembly'})) { $opts = "$opts --assembly $paras{'assembly'}" }
 
 # db mode 1) uses online database (so cache isn't installed) 2) does not use tmp files
 # It is meant to be used for testing and lightweight applications.  Use the cache for
@@ -51,7 +51,7 @@ if ($paras{'usedb'}) {
 
 } else {
     print STDERR ("VEP Cache mode\n");
-    if (exits($paras{'cache_version'})) { $opts += "--cache_version $paras{'cache_version'}" }
+    if (exists($paras{'cache_version'})) { $opts = "$opts --cache_version $paras{'cache_version'}" }
 
     # split off original header
     my (undef, $tmp_orig_calls)  = tempfile();
@@ -76,13 +76,13 @@ if ($paras{'usedb'}) {
     # re-merge headers and move
     my (undef, $tmp_merge) = tempfile();
     $cmd = "grep ^##fileformat $tmp_vep_out > $tmp_merge";
-       system($cmd);
+    system($cmd);
     $cmd = "grep ^# $paras{'vcf'} | grep -v ^##fileformat | grep -v ^#CHROM >> $tmp_merge";
-       system($cmd);
+    system($cmd);
     $cmd = "grep -v ^##fileformat $tmp_vep_out >> $tmp_merge";
-       system($cmd);
+    system($cmd);
     $cmd = "cat $tmp_merge > $paras{'output'}";
-       system($cmd);
+    system($cmd);
 
     #Save other output
     my @suffix=("_summary.html", "_warnings.txt");
@@ -93,6 +93,8 @@ if ($paras{'usedb'}) {
     $cmd = "rm -f $tmp_orig_calls $tmp_vep_out"."*"." ".$tmp_merge;
     system($cmd);
 }
+
+print STDERR ("Written to: $paras{'output'}\n");
 
 1;
 

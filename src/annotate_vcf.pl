@@ -18,11 +18,11 @@
 #   See https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
 #
 # assembly is the assembly argument passed to vep.  Optional
-# vep_output: Defines output format after annotation.  Allowed values: vcf, vep, maf
+# vep_output: Defines output format after annotation.  Allowed values: vcf, vep, maf.  Default is vcf
 # 
 # Output is $results_dir/vep/output.vcf
 
-
+my $perl = "/usr/bin/perl";  # this is for docker environment
 
 sub annotate_vcf {
     my $results_dir = shift;
@@ -38,12 +38,16 @@ sub annotate_vcf {
 
     # assembly and cache_version may be blank; if so, not passed on command line to vep
 
-    my @known_formats = ('vcf', 'vep', 'maf');
-    my $format_OK = 0;
-    foreach my $format (@known_formats) {
-        if ($vep_output =~ $format) { $format_OK = 1; break }
+    if ($vep_output) {
+        my @known_formats = ('vcf', 'vep', 'maf');
+        my $format_OK = 0;
+        foreach my $format (@known_formats) {
+            if ($vep_output =~ $format) { $format_OK = 1; break }
+        }
+        if (not $format_OK) { die("Error: unknown VEP output format (--vep_output): $vep_output\n");}
+    } else {
+        $vep_output = "vcf";
     }
-    if (not $format_OK) { die("Error: unknown VEP output format (--vep_output): $vep_output\n");}
 
 
     $current_job_file = "j10_vep.sh";

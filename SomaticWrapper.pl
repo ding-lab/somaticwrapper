@@ -52,7 +52,7 @@ Configuration file parameters [defaults]
         NOTE: Online VEP database lookups a) uses online database (so cache isn't installed) b) does not use tmp files
           It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
-    --vep_output: Define output format after annotation.  Allowed values: vcf, vep, maf
+    --vep_output: Define output format after annotation.  Allowed values: vcf, vep, maf.  Default: vcf
     --no_delete_temp : if defined, do not delete temp files in run_pindel and parse_pindel
     --strelka_config s: path to strelka.ini file, required for strelka run
     --varscan_config s: path to varscan.ini file, required for varscan run and parse
