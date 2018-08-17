@@ -1,4 +1,14 @@
 # Annotate VCF file, and write output as VCF, VEP, or MAF
+#
+# Required Arguments (from command line):
+# * input_vcf 
+# * reference_fasta 
+# 
+# Optional Arguments
+# * assembly
+# * cache_version
+# * cache_dir
+# * vep_output: vcf, vep, or maf
 
 # Annotation is performed using vep directly (if vep_output is 'vcf' or 'vep'), or vcf2maf (vep_output is 'maf'); the
 # latter uses vep as well.  We can use either a local cache or online ('db') lookups (the latter implemented only for vep_output='vcf' or 'vep')..

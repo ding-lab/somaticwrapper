@@ -45,12 +45,6 @@ RUN cd /usr/local/ \
     && make \
     && make install
     
-# Install Pindel.  Using ding-lab branch
-RUN cd /usr/local/ \
-    && git clone --recursive https://github.com/ding-lab/pindel.git \
-    && cd /usr/local/pindel/ \
-    && ./INSTALL /usr/local/htslib
-
 # Various Python packages
 RUN pip install \
     pyvcf \
@@ -147,6 +141,12 @@ RUN cd /usr/local \
     && /usr/local/strelka2/configure --prefix=/usr/local/strelka2 \
     && make -C /usr/local/strelka2_build \
     && make install
+
+# Install Pindel.  Using ding-lab branch
+RUN cd /usr/local/ \
+    && git clone --recursive https://github.com/ding-lab/pindel.git \
+    && cd /usr/local/pindel/ \
+    && ./INSTALL /usr/local/htslib
 
 # Install vcf2maf: https://github.com/mskcc/vcf2maf
 RUN cd /usr/local \
