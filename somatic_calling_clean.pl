@@ -108,15 +108,15 @@ my $ref_name="";
 
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
-      "step=i" => \$step_number,
-      "srg=i" => \$status_rg,
-      "sre=i" => \$status_rerun,	
-      "rdir=s" => \$run_dir,
-	  "ref=s"  => \$h37_REF,
-	  "log=s"  => \$log_dir,
-      "refname=s"  => \$ref_name,
-      "wgs=i"  => \$s_wgs,
-   	  "help" => \$help, 
+	"step=i" => \$step_number,
+	"srg=i" => \$status_rg,
+	"sre=i" => \$status_rerun,
+	"rdir=s" => \$run_dir,
+	"ref=s"  => \$h37_REF,
+	"log=s"  => \$log_dir,
+	"refname=s"  => \$ref_name,
+	"wgs=i"  => \$s_wgs,
+	"help" => \$help, 
 	);
  
 ##########################################################################################
@@ -174,11 +174,12 @@ my $HOME = $ENV{HOME};
 my $current_job_file = "";
 my $sample_full_path = "";
 my $sample_name = "";
+my $sub_com = "";
 
 ### Print user provided arguments for each run
 
 print "run dir=",$run_dir,"\n";
-print "run dir=",$log_dir,"\n";
+print "log dir=",$log_dir,"\n";
 print "step num=",$step_number,"\n";
 print "status rerun=",$status_rerun,"\n";
 print "status readgroup=",$status_rg,"\n";
@@ -432,7 +433,7 @@ sub sub_varscan{
     print VARSCAN "STATUSDIR=".$sample_full_path."/status\n";
     print VARSCAN "RESULTSDIR=".$sample_full_path."/varscan_results\n";
     print VARSCAN "RUNDIR=".$sample_full_path."\n";
-    print VARSCAN "CONFDIR=".$varscan_confdir."\n"
+    print VARSCAN "CONFDIR=".$varscan_confdir."\n";
 	print VARSCAN "export VARSCAN_DIR=".$VARSCAN_DIR."\n";
 	print VARSCAN "export SAMTOOLS_DIR=".$SAMTOOLS_DIR."\n";
     print VARSCAN "export JAVA_HOME=$java_dir\n";
@@ -557,17 +558,12 @@ sub sub_pindel{
     print PINDEL "then\n";
     print PINDEL "mkdir \${myRUNDIR}\/status\n";
     print PINDEL "fi\n";
-    print PINDEL "if [ $status_rerun -eq 1 ]\n";
-    print PINDEL "  then\n";
-    print PINDEL "rm \${localstatus}\n";
-    print PINDEL "fi\n";
-    print PINDEL "if [ ! -f  \${localstatus} ]\n";
-    print PINDEL "then\n";
     print PINDEL "echo \"$IN_bam_T\t500\t$sample_name.T\" > \${CONFIG}\n";
     print PINDEL "echo \"$IN_bam_N\t500\t$sample_name.N\" >> \${CONFIG}\n";
-    print PINDEL "$pindel -T 4 -f $h37_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere\n";  
-    print PINDEL "touch \${localstatus}\n";
-	print PINDEL "fi\n";
+    print PINDEL "for chr in {1..22} X \n";
+    print PINDEL "do \n";
+    print PINDEL "nohup $pindel -T 4 -c \$chr -f $h37_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"."_\${chr}"." -m 6 -w 1 -J $f_centromere > \${myRUNDIR}"."/$sample_name"."_\${chr}_pindel.log"." & \n" ;
+    print PINDEL "done \n";
 	close PINDEL;
 	
 	my $sh_file=$job_files_dir."/".$current_job_file;
@@ -1035,7 +1031,6 @@ sub sub_vcf_2_maf{
     open(MAF, ">$job_files_dir/$current_job_file") or die $!;
     
     print MAF "#!/bin/bash\n";
-    print MAF "#BSUB -w \"$hold_job_file\"","\n";
     print MAF "F_VCF_1=".$sample_full_path."/merged.filtered.vcf\n";
 	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".vcf\n";
     print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.vcf\n";
