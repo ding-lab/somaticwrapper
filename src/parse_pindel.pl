@@ -88,6 +88,7 @@ EOF
 #    pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf  -> this is input into dbSnP filter
 #    pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail.vcf  
 # 2. rename headers of pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf to be "NORMAL" and "TUMOR" 
+#    Also add "FORMAT" column which new version of pindel2vcf misses
 # 3. Run dbSnP filter
 #    pindel.out.current_final.dbsnp_pass.vcf
 #    pindel.out.current_final.dbsnp_pass.vcf.idx
@@ -109,10 +110,13 @@ EOF
 echo Running pindel_filter.v0.5.pl
 $perl $gvip_dir/pindel_filter.v0.5.pl $filter_results/pindel_filter.input
 
-# Reheader output of pindel_filter to have sample names "NORMAL" and "TUMOR"
+# Reheader output of pindel_filter to have sample names "NORMAL" and "TUMOR" and include FORMAT column
+# this corrects some bugs in pindel2vcf output
 TMP=$filter_out.tmp
 mv $filter_out \$TMP
-awk 'BEGIN{FS="\\t";OFS="\\t"}{if (\$1 == "#CHROM") print \$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, "NORMAL", "TUMOR"; else print}' \$TMP > $filter_out
+
+# #CHROM  POS ID  REF ALT QUAL    FILTER  INFO    FORMAT  NORMAL  TUMOR
+awk 'BEGIN{FS="\\t";OFS="\\t"}{if (\$1 == "#CHROM") print "#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "NORMAL", "TUMOR"; else print}' \$TMP > $filter_out
 
 export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 

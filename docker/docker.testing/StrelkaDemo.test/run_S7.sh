@@ -38,14 +38,12 @@ ARGS="\
 BIN="/usr/local/somaticwrapper/SomaticWrapper.pl"
 perl $BIN $ARGS $STEP
 
-echo Doing pindel2vcf FORMAT column bugfix
-TMP="results/pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.badheader.vcf"
-DAT="results/pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf"
-mv -v $DAT $TMP
-echo Reheadering $TMP 
-reheader_pindel $TMP  > $DAT
-rm -v $TMP
-echo Result: $DAT
-
+#echo Doing pindel2vcf FORMAT column bugfix
+#TMP="results/pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.badheader.vcf"
+#DAT="results/pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf"
+#mv -v $DAT $TMP
+#echo Reheadering $TMP 
+#reheader_pindel $TMP  > $DAT
+#rm -v $TMP
 
 # Output: results/pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf
