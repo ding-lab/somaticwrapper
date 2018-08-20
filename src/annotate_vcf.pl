@@ -9,6 +9,8 @@
 # * cache_version
 # * cache_dir
 # * vep_output: vcf, vep, or maf
+# * gnomad: path to gnomAD database.  Passed to vep as --af_gnomad.  Not compatible with vcf2maf.pl (vep_output=maf)
+# * exac: path to ExAC database.  Passed to vep as --af_exac, passed to vcf2maf.pl as --filter-vcf
 
 # Annotation is performed using vep directly (if vep_output is 'vcf' or 'vep'), or vcf2maf (vep_output is 'maf'); the
 # latter uses vep as well.  We can use either a local cache or online ('db') lookups (the latter implemented only for vep_output='vcf' or 'vep')..
@@ -29,6 +31,12 @@
 #
 # assembly is the assembly argument passed to vep.  Optional
 # vep_output: Defines output format after annotation.  Allowed values: vcf, vep, maf.  Default is vcf
+# Additional annotation can be specified with exac and gnomad arguments.  These are passed to VEP (for vep_output = vcf or vep)
+# as --af_exac and --af_gnomad, respectively 
+#   https://useast.ensembl.org/info/docs/tools/vep/script/vep_example.html#gnomad
+# 
+#   TODO: this remains to be implemented.  Need to test these flags, both with cache and online db.  Functionality may be
+#   different than vcf2maf.  Perhaps better to run these annotations as individual steps.
 # 
 # Output is $results_dir/vep/output.vcf
 
