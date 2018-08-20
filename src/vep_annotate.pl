@@ -1,4 +1,4 @@
-# Annotate VCF file, and write output as VCF, VEP, or MAF
+# Annotate VCF file using vcf and write output as VCF or VEP
 #
 # Required Arguments (from command line):
 # * input_vcf 
@@ -8,13 +8,13 @@
 # * assembly
 # * cache_version
 # * cache_dir
-# * vep_output: vcf, vep, or maf
-# * gnomad: path to gnomAD database.  Passed to vep as --af_gnomad.  Not compatible with vcf2maf.pl (vep_output=maf)
-# * exac: path to ExAC database.  Passed to vep as --af_exac, passed to vcf2maf.pl as --filter-vcf
-
-# Annotation is performed using vep directly (if vep_output is 'vcf' or 'vep'), or vcf2maf (vep_output is 'maf'); the
-# latter uses vep as well.  We can use either a local cache or online ('db') lookups (the latter implemented only for vep_output='vcf' or 'vep')..
-
+# * vep_output: vcf, vep
+# * af_gnomad: path to gnomAD database.  Passed to vep as --af_gnomad.  
+# * af_exac: path to ExAC database.  Passed to vep as --af_exac
+#
+# Annotation is performed using vep.  We can use either a local cache or online
+# ('db') lookups (the latter implemented only for vep_output='vcf' or 'vep')..
+#
 #    --vep_cache_dir s: defines location of VEP cache directory and indicates whether to use online VEP DB lookups.  
 #        * if vep_cache_dir is not defined, will perform online VEP DB lookups
 #        * If vep_cache_dir is a directory, it indicates location of VEP cache 
@@ -31,18 +31,18 @@
 #
 # assembly is the assembly argument passed to vep.  Optional
 # vep_output: Defines output format after annotation.  Allowed values: vcf, vep, maf.  Default is vcf
-# Additional annotation can be specified with exac and gnomad arguments.  These are passed to VEP (for vep_output = vcf or vep)
-# as --af_exac and --af_gnomad, respectively 
+# Additional annotation can be specified with af_exac and af_gnomad arguments, which are passed to vep directly
 #   https://useast.ensembl.org/info/docs/tools/vep/script/vep_example.html#gnomad
 # 
-#   TODO: this remains to be implemented.  Need to test these flags, both with cache and online db.  Functionality may be
+# This is not fully implemented and will need additional testing.
+#   TODO: Need to test these flags, both with cache and online db.  Functionality may be
 #   different than vcf2maf.  Perhaps better to run these annotations as individual steps.
 # 
 # Output is $results_dir/vep/output.vcf
 
 my $perl = "/usr/bin/perl";  # this is for docker environment
 
-sub annotate_vcf {
+sub vep_annotate {
     my $results_dir = shift;
     my $job_files_dir = shift;
     my $reference = shift;
@@ -53,6 +53,8 @@ sub annotate_vcf {
     my $cache_dir = shift;  
     my $vep_output = shift;  # Output format following vep annotation.  May be 'vcf', 'vep', 'maf'
     my $input_vcf = shift;  # Name of input VCF to process
+    my $af_exac = shift;  
+    my $af_gnomad = shift;  
 
     # assembly and cache_version may be blank; if so, not passed on command line to vep
 
@@ -90,6 +92,7 @@ sub annotate_vcf {
             mkdir $cache_dir or die "$!\n";
         }
         print STDERR "Extracting VEP Cache tarball $cache_gz into $cache_dir\n";
+        # This is a preferred way to make system calls - check return value and raise error if necessary
         my $rc = system ("tar -zxf $cache_gz --directory $cache_dir");
         die("Exiting ($rc).\n") if $rc != 0;
         $use_vep_db = 0;
@@ -100,41 +103,25 @@ sub annotate_vcf {
 
     # now need to decide if using vcf2maf or vep_annotator.pl
     my $cmd;
-    if ($vep_output =~ /maf/) {
-        $output_fn = "$filter_results/output.maf";
 
-#      --ncbi-build     NCBI reference assembly of variants MAF (e.g. GRCm38 for mouse) [GRCh37]
-#      --cache-version  Version of offline cache to use with VEP (e.g. 75, 84, 91) [Default: Installed version]
-#      --vep-data       VEP's base cache/plugin directory [~/.vep]
-        die ("--cache_dir must be defined for \"--vep_output maf\"\n") if !($cache_dir);
-
-        my $opts = "--vep-data $cache_dir";
-        if ($assembly) { $opts = "$opts --ncbi-build $assembly"; }
-        if ($cache_version)  { $opts = "$opts --cache-version $cache_version"; }
-
-        my $vep_path = dirname($vep_cmd);
-        $cmd = "$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl $opts --input-vcf $input_vcf --output-maf $output_fn --ref-fasta $reference --filter-vcf 0 --vep-path $vep_path --tmp-dir $filter_results";
-
+    if ($vep_output =~ /vcf/) {
+        $output_fn = "$filter_results/output.vcf";
     } else {
-        if ($vep_output =~ /vcf/) {
-            $output_fn = "$filter_results/output.vcf";
-        } else {
-            $output_fn = "$filter_results/output.vep";
-        }
-
-        # Adding final output to vep annotation
-        write_vep_input(
-            $config_fn,          # Config fn
-            "merged.vep",                               # Module
-            $input_vcf,                # VCF (input)
-            $output_fn,           # output
-            $vep_cmd, $cache_dir, $reference, $assembly, $cache_version, $use_vep_db, $vep_output =~ /vep/);
-
-        $cmd = <<"EOF" 
-        export JAVA_OPTS=\"-Xms256m -Xmx512m\"
-        $perl $gvip_dir/vep_annotator.pl $config_fn
-EOF
+        $output_fn = "$filter_results/output.vep";
     }
+
+    # Adding final output to vep annotation
+    write_vep_input(
+        $config_fn,          # Config fn
+        "merged.vep",                               # Module
+        $input_vcf,                # VCF (input)
+        $output_fn,           # output
+        $vep_cmd, $cache_dir, $reference, $assembly, $cache_version, $use_vep_db, $vep_output =~ /vep/, $af_exac, $af_gnomad);
+
+    $cmd = <<"EOF" 
+    export JAVA_OPTS=\"-Xms256m -Xmx512m\"
+    $perl $gvip_dir/vep_annotator.pl $config_fn
+EOF
 
     my $out = "$job_files_dir/$current_job_file";
     print("Writing to $out\n");
@@ -182,6 +169,8 @@ sub write_vep_input {
     my $cache_version = shift;   
     my $use_vep_db = shift;  # 1 for testing/demo, 0 for production
     my $output_is_vep = shift;  # True if vep_output is "vep"
+    my $af_exac = shift;  
+    my $af_gnomad = shift;  
 
     # assembly and cache_version are optional; if value is empty, not written to config file
 
@@ -202,12 +191,11 @@ $module.usedb = $use_vep_db
 $module.output_vep = $output_vep_int
 EOF
 
-    if ($assembly) {
-        print OUT "$module.assembly = $assembly\n";
-    }
-    if ($cache_version) {
-        print OUT "$module.cache_version = $cache_version\n";
-    }
+    # optional parameters
+    print OUT "$module.assembly = $assembly\n" if ($assembly);
+    print OUT "$module.cache_version = $cache_version\n" if ($cache_version);
+    print OUT "$module.af_exac = $af_exac\n" if ($af_exac);
+    print OUT "$module.af_gnomad = $af_gnomad\n" if ($af_gnomad);
 }
 
 1;

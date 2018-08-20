@@ -32,6 +32,11 @@ if( exists($paras{'output_vep'}) && ($paras{'output_vep'}) ) { $vcf_flag = "--sy
 
 # --assembly is optional.  For Cache mode, --cache_version also optional
 if (exists($paras{'assembly'})) { $opts = "$opts --assembly $paras{'assembly'}" }
+# add af_exac and af_gnomad as optional parameters
+if (exists($paras{'af_exac'})) { $opts = "$opts --af_exac $paras{'af_exac'}" }
+if (exists($paras{'af_gnomad'})) { $opts = "$opts --af_gnomad $paras{'af_gnomad'}" }
+
+
 
 # db mode 1) uses online database (so cache isn't installed) 2) does not use tmp files
 # It is meant to be used for testing and lightweight applications.  Use the cache for

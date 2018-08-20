@@ -18,6 +18,7 @@ class MergedCallerFilter(vcf.filters.Base):
         parser.add_argument('--include', help='Retain only calls with given caller(s); comma-separated list')
         parser.add_argument('--exclude', help='Exclude all calls with given caller(s); comma-separated list')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
+        parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
 
     def __init__(self, args):
 
@@ -32,13 +33,16 @@ class MergedCallerFilter(vcf.filters.Base):
             self.including = False
             self.callers = args.exclude.split(',') 
 
-        # below becomes Description field in VCF
-        if self.including:
-            self.__doc__ = "Retain calls where 'set' INFO field includes one of " + args.include
-        else:
-            self.__doc__ = "Exclude calls where 'set' INFO field includes any of " + args.exclude
-
         self.debug = args.debug
+        self.bypass = args.bypass
+
+        # below becomes Description field in VCF
+        if self.bypass:
+            self.__doc__ = "merge_filter.py: Bypassing filter, retaining all reads"
+        elif self.including:
+            self.__doc__ = "merge_filter.py: Retain calls where 'set' INFO field includes one of " + args.include
+        else:
+            self.__doc__ = "merge_filter.py: Exclude calls where 'set' INFO field includes any of " + args.exclude
 
     def filter_name(self):
         return self.name
@@ -46,6 +50,10 @@ class MergedCallerFilter(vcf.filters.Base):
     def __call__(self, record):
         # "caller" is defined by "set" info field
         caller = record.INFO['set']
+
+        if self.bypass:
+            if (self.debug): eprint("** Bypassing filter, retaining read **" )
+            return
 
         if self.including:
             # keep call only if caller is in callers list

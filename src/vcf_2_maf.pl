@@ -1,89 +1,108 @@
-# note that f_exac is specific to GRCh37
-# This is incomplete:
-# * need to specify vep paths
-# * need to figure out f_exac with GRCh38 issues
-
-# vcf2maf.pl documentation 
-# Usage:
-#      perl vcf2maf.pl --help
-#      perl vcf2maf.pl --input-vcf WD4086.vcf --output-maf WD4086.maf --tumor-id WD4086 --normal-id NB4086
+# Annotate VCF file and write output as MAF, using vcf2maf.pl
+#
+# Required Arguments (from command line):
+# * input_vcf 
+# * reference_fasta 
 # 
-# Options:
-#      --input-vcf      Path to input file in VCF format
-#      --output-maf     Path to output MAF file
-#      --tmp-dir        Folder to retain intermediate VCFs after runtime [Default: Folder containing input VCF]
-#      --tumor-id       Tumor_Sample_Barcode to report in the MAF [TUMOR]
-#      --normal-id      Matched_Norm_Sample_Barcode to report in the MAF [NORMAL]
-#      --vcf-tumor-id   Tumor sample ID used in VCF's genotype columns [--tumor-id]
-#      --vcf-normal-id  Matched normal ID used in VCF's genotype columns [--normal-id]
-#      --custom-enst    List of custom ENST IDs that override canonical selection
-#      --vep-path       Folder containing the vep script [~/vep]
-#      --vep-data       VEP's base cache/plugin directory [~/.vep]
-#      --vep-forks      Number of forked processes to use when running VEP [4]
-#      --buffer-size    Number of variants VEP loads at a time; Reduce this for low memory systems [5000]
-#      --any-allele     When reporting co-located variants, allow mismatched variant alleles too
-#      --ref-fasta      Reference FASTA file [~/.vep/homo_sapiens/91_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.gz]
-#      --filter-vcf     A VCF for FILTER tag common_variant. Set to 0 to disable [~/.vep/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz]
-#      --max-filter-ac  Use tag common_variant if the filter-vcf reports a subpopulation AC higher than this [10]
-#      --species        Ensembl-friendly name of species (e.g. mus_musculus for mouse) [homo_sapiens]
-#      --ncbi-build     NCBI reference assembly of variants MAF (e.g. GRCm38 for mouse) [GRCh37]
-#      --cache-version  Version of offline cache to use with VEP (e.g. 75, 84, 91) [Default: Installed version]
-#      --maf-center     Variant calling center to report in MAF [.]
-#      --retain-info    Comma-delimited names of INFO fields to retain as extra columns in MAF []
-#      --min-hom-vaf    If GT undefined in VCF, minimum allele fraction to call a variant homozygous [0.7]
-#      --remap-chain    Chain file to remap variants to a different assembly before running VEP
-#      --help           Print a brief help message and quit
-#      --man            Print the detailed manual
+# Optional Arguments
+# * assembly
+# * cache_version
+# * cache_dir
+# * exac_vcf: path to ExAC database.  Passed to vcf2maf.pl as --filter-vcf. 0 to disable
 
-# TODO:
-# Merge vcf_2_maf, annotate_vcf:
-#   --Change --output_vep to --output_format, take on values [VCF, VEP, MAF]
-#   --VCF and VEP processed with old annotate_vcf code, vcf_2_maf passed to Cyriac's code
-# Make --cache-version, --assembly (= --ncbi-build) optional for MAF and VCF/VEP output
-# Get rid of --cache_gz
-# change --cache_dir to accept .tar.gz format, in which case it decompresses cache file in default location
+# Annotation is performed using [vcf2maf](https://github.com/mskcc/vcf2maf), which uses vep.
+
+#    --vep_cache_dir s: defines location of VEP cache directory and indicates whether to use online VEP DB lookups.  
+#        * if vep_cache_dir is not defined, error
+#        * If vep_cache_dir is a directory, it indicates location of VEP cache 
+#        * If vep_cache_dir is a file ending in .tar.gz, will extract its contents into "./vep-cache" and use VEP cache
+#        NOTE: Cache required, online VEP database is not available.
+#
+# if $vep_cache_dir is a .tar.gz file, then copy it to $cache_dir="./vep-cache" and extract it there
+#   (assuming it is a .tar.gz version of VEP cache; this is typically used for a cwl setup where arbitrary paths are not accessible)
+#   These contents will subsequently be deleted
+#   Cache installation is done in somaticwrapper/image.setup/D_VEP
+#   See https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
+#
+# assembly is passed as --ncbi-build to vcf2maf.pl
+# Additional annotation can be specified with --exac_vcf argument, which is passed as `--filter-vcf` argument to vcf2maf.pl
+#   Pass value of 0 to disable.
+# see vcf_2_maf.md for additional details
+# 
+# Output is $results_dir/maf/output.maf
 
 
-# vars to set
---input-vcf
---output-maf
---vep-path
---vep-data - same as annotation?
+my $perl = "/usr/bin/perl";  # this is for docker environment
 
-sub vcf_2_maf{
-    my $sample_name = shift;
-    my $sample_full_path = shift;
+sub vcf_2_maf {
+    my $results_dir = shift;
     my $job_files_dir = shift;
-    my $bsub = shift;
-    my $REF = shift;
-    my $perl = shift;
+    my $reference = shift;
     my $gvip_dir = shift;
-    my $f_exac = shift;
-    my $vcf2maf_dir = shift;
-    my $merged_vcf = shift; # this is the output of merge step
+    my $vep_cmd = shift;
+    # assembly and cache_version may be blank; if so, not passed on command line to vep
+    my $assembly = shift;
+    my $cache_version = shift; # e.g., 90
+    my $cache_dir = shift;  
+    my $input_vcf = shift;  # Name of input VCF to process
+    my $exac_vcf = shift;   # passed as --filter-vcf
 
-    $current_job_file = "j9_vcf_2_maf.".$sample_name.".sh";
+    $current_job_file = "j9_vcf_2_maf.sh";
 
-    my $merged_results = "$sample_full_path/merged";
-
-    my $filter_results = "$sample_full_path/maf";
+    my $bsub = "bash";
+    my $filter_results = "$results_dir/maf";
     system("mkdir -p $filter_results");
 
-    my $out_maf = "$filter_results/merged.filtered.maf"; # this is the final output
+    my $config_fn = "$filter_results/output.maf";
+    my $output_fn;
 
-    if (defined $f_exac) {
-        my $exac_filter="--filter-vcf $f_exac";
+    my $cache_gz;
+
+    # if $cache_dir is a .tar.gz file, extract its contents to ./vep-cache
+    # if $cache_dir is defined, confirm it exists
+    if ( $cache_dir =~ /\.tar\.gz/ ) {
+        $cache_gz = $cache_dir;
+        $cache_dir = "./vep-cache";
+        if (! -d $cache_dir) {
+            mkdir $cache_dir or die "$!\n";
+        }
+        print STDERR "Extracting VEP Cache tarball $cache_gz into $cache_dir\n";
+        # This is a preferred way to make system calls - check return value and raise error if necessary
+        my $rc = system ("tar -zxf $cache_gz --directory $cache_dir");
+        die("Exiting ($rc).\n") if $rc != 0;
+    } elsif (defined $cache_dir) {
+        die "\nError: Cache dir $cache_dir does not exist\n" if (! -d $cache_dir);
     } else {
-        my $exac_filter="";
+        die "--cache_dir must be defined\n";
     }
 
-    my $outfn = "$job_files_dir/$current_job_file";
-    print("Writing to $outfn\n");
-    open(OUT, ">$outfn") or die $!;
+    $output_fn = "$filter_results/output.maf";
 
+#      --ncbi-build     NCBI reference assembly of variants MAF (e.g. GRCm38 for mouse) [GRCh37]
+#      --cache-version  Version of offline cache to use with VEP (e.g. 75, 84, 91) [Default: Installed version]
+#      --vep-data       VEP's base cache/plugin directory [~/.vep]
+
+    my $opts = "--vep-data $cache_dir";
+    if ($assembly) { $opts = "$opts --ncbi-build $assembly"; }
+    if ($cache_version)  { $opts = "$opts --cache-version $cache_version"; }
+
+    my $vep_path = dirname($vep_cmd);
+    my $cmd = "$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl $opts --input-vcf $input_vcf --output-maf $output_fn --ref-fasta $reference --filter-vcf $exac_vcf --vep-path $vep_path --tmp-dir $filter_results";
+
+    my $out = "$job_files_dir/$current_job_file";
+    print("Writing to $out\n");
+    open(OUT, ">$out") or die $!;
     print OUT <<"EOF";
 #!/bin/bash
-$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl --input-vcf $merged_vcf --output-maf $out_maf --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $REF $exac_filter
+
+$cmd
+
+# Evaluate return value see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
+rc=\$? 
+if [[ \$rc != 0 ]]; then 
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc; 
+fi
 
 EOF
 
@@ -91,8 +110,17 @@ EOF
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
     print("Executing:\n $bsub_com \n");
 
-    system ( $bsub_com ); 
+    my $return_code = system ( $bsub_com );
+    die("Exiting ($return_code).\n") if $return_code != 0;
 
+    # Clean up by deleting contents of cache_dir - this tends to be big (>10Gb) and unnecessary to keep
+    if ( $cache_gz ) {
+        print STDERR "Deleting $cache_dir\n";
+        my $rc = system("rm -rf $cache_dir\n");
+        die("Exiting ($rc).\n") if $rc != 0;
+    }
+    print STDERR "Final results written to $output_fn\n";
 }
+
 
 1;

@@ -3,12 +3,12 @@
 #   implicitly, pindel, varindel, and strelka-varscan calls are retained
 #
 # Usage:
-#   bash run_merged_filter.sh input.vcf output.vcf [args]
+#   bash run_merged_filter.sh input.vcf output.vcf [args ...]
 # args is optional argument passed to all filters, e.g., --debug
 
-VCF=$1
-OUT=$2
-XARG=$3  # optional argument passed to all filters, may be --debug
+VCF=$1; shift
+OUT=$2; shift
+XARG=$@  # https://stackoverflow.com/questions/1537673/how-do-i-forward-parameters-to-other-command-in-bash-script
 
 export PYTHONPATH="somaticwrapper.cwl/vcf_filters:$PYTHONPATH"
 
