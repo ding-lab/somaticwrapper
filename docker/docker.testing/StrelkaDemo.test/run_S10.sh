@@ -35,3 +35,4 @@ ARGS="\
 BIN="/usr/local/somaticwrapper/SomaticWrapper.pl"
 perl $BIN $ARGS $STEP
 
+# Output: results/maf/output.maf
