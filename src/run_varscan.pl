@@ -169,6 +169,7 @@ EOF
 
     my $return_code = system ( $bsub_com );
     die("Exiting ($return_code).\n") if $return_code != 0;
+    print("Final results: SNV: $snvout.vcf \n             INDEL: $indelout.vcf\n");
 
 }
 

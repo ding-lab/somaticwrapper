@@ -13,7 +13,7 @@ STRELKA_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/vcf_filters/vcf_filter_conf
 VARSCAN_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/vcf_filters/vcf_filter_config.ini"
 PINDEL_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/vcf_filters/pindel-vcf_filter_config.ini"
 
-OUTDIR="./results"
-mkdir -p $OUTDIR
+RESULTS_DIR="results"
+mkdir -p $RESULTS_DIR
 
 SAMPLE="StrelkaDemo"

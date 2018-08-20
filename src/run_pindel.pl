@@ -88,6 +88,8 @@ rm -f pindel_*
 
 fi
 
+echo Final result written to $pindel_out/$step_output_fn
+
 
 EOF
 

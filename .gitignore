@@ -3,3 +3,5 @@
 runtime
 COSMIC_credentials.dat
 StrelkaDemo.results/
+results/
+tmp/

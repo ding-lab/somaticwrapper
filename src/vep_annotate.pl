@@ -101,9 +101,6 @@ sub vep_annotate {
         $use_vep_db = 0;
     }    
 
-    # now need to decide if using vcf2maf or vep_annotator.pl
-    my $cmd;
-
     if ($vep_output =~ /vcf/) {
         $output_fn = "$filter_results/output.vcf";
     } else {
@@ -118,10 +115,10 @@ sub vep_annotate {
         $output_fn,           # output
         $vep_cmd, $cache_dir, $reference, $assembly, $cache_version, $use_vep_db, $vep_output =~ /vep/, $af_exac, $af_gnomad);
 
-    $cmd = <<"EOF" 
+    my $cmd = <<"EOF1";
     export JAVA_OPTS=\"-Xms256m -Xmx512m\"
     $perl $gvip_dir/vep_annotator.pl $config_fn
-EOF
+EOF1
 
     my $out = "$job_files_dir/$current_job_file";
     print("Writing to $out\n");
