@@ -102,30 +102,30 @@ EOF
 
 # NOTE from Sunantha, how to run per chrom in parallel
 
-ORIG
-echo "$IN_bam_T\t500\t$sample_name.T" > \${CONFIG}
-echo "$IN_bam_N\t500\t$sample_name.N" >> \${CONFIG}
-$pindel -T 4 -f $h37_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere
-
-NEW
-echo "$IN_bam_T\t500\t$sample_name.T" > \${CONFIG}
-echo "$IN_bam_N\t500\t$sample_name.N" >> \${CONFIG}
-for chr in {1..22} X 
-do 
-nohup $pindel -T 4 -c \$chr -f $h37_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"."_\${chr}"." -m 6 -w 1 -J $f_centromere > \${myRUNDIR}"."/$sample_name"."_\${chr}_pindel.log"." & 
-done 
-
-PINDEL options:
-           -c/--chromosome
-           Which chr/fragment. Pindel will process reads for one chromosome each
-           time. ChrName must be the same as in reference sequence and in read
-           file. '-c ALL' will make Pindel loop over all chromosomes. The search
-           for indels and SVs can also be limited to a specific region; -c
-           20:10,000,000 will only look for indels and SVs after position
-           10,000,000 = [10M, end], -c 20:5,000,000-15,000,000 will report
-           indels in the range between and including the bases at position
-           5,000,000 and 15,000,000 = [5M, 15M]. (default ALL)
-
+#ORIG
+#echo "$IN_bam_T\t500\t$sample_name.T" > \${CONFIG}
+#echo "$IN_bam_N\t500\t$sample_name.N" >> \${CONFIG}
+#$pindel -T 4 -f $h37_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere
+#
+#NEW
+#echo "$IN_bam_T\t500\t$sample_name.T" > \${CONFIG}
+#echo "$IN_bam_N\t500\t$sample_name.N" >> \${CONFIG}
+#for chr in {1..22} X 
+#do 
+#nohup $pindel -T 4 -c \$chr -f $h37_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"."_\${chr}"." -m 6 -w 1 -J $f_centromere > \${myRUNDIR}"."/$sample_name"."_\${chr}_pindel.log"." & 
+#done 
+#
+#PINDEL options:
+#           -c/--chromosome
+#           Which chr/fragment. Pindel will process reads for one chromosome each
+#           time. ChrName must be the same as in reference sequence and in read
+#           file. '-c ALL' will make Pindel loop over all chromosomes. The search
+#           for indels and SVs can also be limited to a specific region; -c
+#           20:10,000,000 will only look for indels and SVs after position
+#           10,000,000 = [10M, end], -c 20:5,000,000-15,000,000 will report
+#           indels in the range between and including the bases at position
+#           5,000,000 and 15,000,000 = [5M, 15M]. (default ALL)
+#
 
 
 1;

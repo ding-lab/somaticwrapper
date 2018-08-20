@@ -147,6 +147,20 @@ my $strelka_vcf_filter_config;
 my $varscan_vcf_filter_config; 
 my $pindel_vcf_filter_config;
 
+# parameters below based on Docker image locations.  It would perhaps be useful to define these in a configuration file.
+my $sw_dir = "/usr/local/somaticwrapper";
+my $gvip_dir="$sw_dir/GenomeVIP";
+my $filter_dir="$sw_dir/vcf_filters";
+my $strelka_dir = "/usr/local/strelka";
+my $strelka2_dir = "/usr/local/strelka2";
+my $gatk_jar = "/usr/local/GenomeAnalysisTK/GenomeAnalysisTK.jar";
+my $perl = "/usr/bin/perl";
+my $vep_cmd = "/usr/local/ensembl-vep/vep";
+my $pindel_dir = "/usr/local/pindel";
+my $snpsift_jar = "/usr/local/snpEff/SnpSift.jar";
+my $varscan_jar = "/usr/local/VarScan.jar";
+
+
 GetOptions(
     'tumor_bam=s' => \$tumor_bam,
     'normal_bam=s' => \$normal_bam,
@@ -182,19 +196,6 @@ GetOptions(
 
 die $usage unless @ARGV >= 1;
 my ( $step_number ) = @ARGV;
-
-# parameters below based on Docker image locations.  It would perhaps be useful to define these in a configuration file.
-my $sw_dir = "/usr/local/somaticwrapper";
-my $gvip_dir="$sw_dir/GenomeVIP";
-my $filter_dir="$sw_dir/vcf_filters";
-my $strelka_dir = "/usr/local/strelka";
-my $strelka2_dir = "/usr/local/strelka2";
-my $gatk_jar = "/usr/local/GenomeAnalysisTK/GenomeAnalysisTK.jar";
-my $perl = "/usr/bin/perl";
-my $vep_cmd = "/usr/local/ensembl-vep/vep";
-my $pindel_dir = "/usr/local/pindel";
-my $snpsift_jar = "/usr/local/snpEff/SnpSift.jar";
-my $varscan_jar = "/usr/local/VarScan.jar";
 
 # filter_xargs can be a model for passing other common args along, like --debug
 my $filter_xargs;
