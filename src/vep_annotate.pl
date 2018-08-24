@@ -15,16 +15,16 @@
 # Annotation is performed using vep.  We can use either a local cache or online
 # ('db') lookups (the latter implemented only for vep_output='vcf' or 'vep')..
 #
-#    --vep_cache_dir s: defines location of VEP cache directory and indicates whether to use online VEP DB lookups.  
-#        * if vep_cache_dir is not defined, will perform online VEP DB lookups
-#        * If vep_cache_dir is a directory, it indicates location of VEP cache 
-#        * If vep_cache_dir is a file ending in .tar.gz, will extract its contents into "./vep-cache" and use VEP cache
-#        NOTE: Online VEP database lookups a) uses online database (so cache isn't installed) b) does not use tmp files
-#          It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
-#          See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
+#    VEP Cache logic:
+#    * If cache_dir is defined, it indicates location of VEP cache 
+#    * if cache_dir is not defined, and cache_gz is defined, extract cache_gz contents into "./vep-cache" and use VEP cache
+#    * if neither cache_dir nor cache_gz defined, will perform online VEP DB lookups
+#    NOTE: Online VEP database lookups a) uses online database (so cache isn't installed) b) does not use tmp files
+#    It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
+#    See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
 #
-# if $vep_cache_dir is a .tar.gz file, then copy it to $cache_dir="./vep-cache" and extract it there
-#   (assuming it is a .tar.gz version of VEP cache; this is typically used for a cwl setup where arbitrary paths are not accessible)
+# if extracting cache_gz, then copy it to $cache_dir="./vep-cache" and extract it there
+#   (cache_gz is a .tar.gz version of VEP cache; this is typically used for a cwl setup where arbitrary paths are not accessible)
 #   These contents will subsequently be deleted
 #   Cache installation is done in somaticwrapper/image.setup/D_VEP
 #   See https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
@@ -51,6 +51,7 @@ sub vep_annotate {
     my $assembly = shift;
     my $cache_version = shift; # e.g., 90
     my $cache_dir = shift;  
+    my $cache_gz = shift;  
     my $vep_output = shift;  # Output format following vep annotation.  May be 'vcf', 'vep', 'maf'
     my $input_vcf = shift;  # Name of input VCF to process
     my $af_exac = shift;  
@@ -80,13 +81,14 @@ sub vep_annotate {
     my $output_fn;
 
     my $use_vep_db = 1;
-    my $cache_gz;
 
-    # if $cache_dir is a .tar.gz file, extract its contents to ./vep-cache
     # if $cache_dir is defined, confirm it exists
-    # Otherwise, use VEP DB mode
-    if ( $cache_dir =~ /\.tar\.gz/ ) {
-        $cache_gz = $cache_dir;
+    # else if $cache_dir is a .tar.gz file, extract its contents to ./vep-cache
+    # else, use VEP DB mode
+    if (defined $cache_dir) {
+        die "\nError: Cache dir $cache_dir does not exist\n" if (! -d $cache_dir);
+        $use_vep_db = 0;
+    } elsif ( defined $cache_gz and $cache_gz =~ /\.tar\.gz/ ) {
         $cache_dir = "./vep-cache";
         if (! -d $cache_dir) {
             mkdir $cache_dir or die "$!\n";
@@ -96,10 +98,9 @@ sub vep_annotate {
         my $rc = system ("tar -zxf $cache_gz --directory $cache_dir");
         die("Exiting ($rc).\n") if $rc != 0;
         $use_vep_db = 0;
-    } elsif (defined $cache_dir) {
-        die "\nError: Cache dir $cache_dir does not exist\n" if (! -d $cache_dir);
-        $use_vep_db = 0;
-    }    
+    } else {
+        print STDERR "Using online VEP DB\n";
+    }
 
     if ($vep_output =~ /vcf/) {
         $output_fn = "$filter_results/output.vcf";

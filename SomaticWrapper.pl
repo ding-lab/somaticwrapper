@@ -94,10 +94,12 @@ Required and optional arguments per step
     --results_dir s: Per-sample analysis results location. Often same as sample name [.] 
     --assembly s: either "GRCh37" or "GRCh38", used to identify cache file. Optional if not ambigous 
     --vep_cache_version s: Cache version, e.g. '90', used to identify cache file.  Optional if not ambiguous
-    --vep_cache_dir s: location of VEP cache directory, indicator whether to use online VEP DB lookups.  
-        * if vep_cache_dir is not defined, will perform online VEP DB lookups
-        * If vep_cache_dir is a directory, it indicates location of VEP cache 
-        * If vep_cache_dir is a file ending in .tar.gz, will extract its contents into "./vep-cache" and use VEP cache
+    --vep_cache_gz: is a file ending in .tar.gz containing VEP cache tarball
+    --vep_cache_dir s: location of VEP cache directory
+        VEP Cache logic:
+        * If vep_cache_dir is defined, it indicates location of VEP cache 
+        * if vep_cache_dir is not defined, and vep_cache_gz is defined, extract vep_cache_gz contents into "./vep-cache" and use VEP cache
+        * if neither vep_cache_dir nor vep_cache_gz defined, will perform online VEP DB lookups
         NOTE: Online VEP database lookups a) uses online database (so cache isn't installed) b) does not use tmp files
           It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
@@ -108,10 +110,13 @@ Required and optional arguments per step
     --results_dir s: Per-sample analysis results location. Often same as sample name [.] 
     --assembly s: either "GRCh37" or "GRCh38", used to identify cache file. Optional if not ambigous 
     --vep_cache_version s: Cache version, e.g. '90', used to identify cache file.  Optional if not ambiguous
+    --vep_cache_gz: is a file ending in .tar.gz containing VEP cache tarball
     --vep_cache_dir s: location of VEP cache directory
-        * if vep_cache_dir is not defined, error.
-        * If vep_cache_dir is a directory, it indicates location of VEP cache 
-        * If vep_cache_dir is a file ending in .tar.gz, will extract its contents into "./vep-cache" and use VEP cache
+        VEP Cache logic:
+        * If vep_cache_dir is defined, it indicates location of VEP cache 
+        * if vep_cache_dir is not defined, and vep_cache_gz is defined, extract vep_cache_gz contents into "./vep-cache" and use VEP cache
+        * if neither vep_cache_dir nor vep_cache_gz defined, error.  vcf_2_maf does not support online vep_cache lookups
+    --vep_output: Define output format after annotation.  Allowed values: vcf, vep.  [vcf]
 
 Note that logic of boolean arguments can be reversed with "no" prefix, e.g. --nois_strelka2 
 OUT
@@ -169,6 +174,7 @@ GetOptions(
     'vep_cache_version=s' => \$vep_cache_version,
     'results_dir=s' => \$results_dir,
     'vep_cache_dir=s' => \$vep_cache_dir,
+    'vep_cache_gz=s' => \$vep_cache_gz,
     'strelka_config=s' => \$strelka_config,
     'varscan_config=s' => \$varscan_config,
     'pindel_config=s' => \$pindel_config,
@@ -264,14 +270,14 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("varscan_indel_vcf undefined \n") unless $varscan_indel_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
     merge_vcf($results_dir, $job_files_dir, $filter_dir, $reference_fasta, $gatk_jar, $strelka_snv_vcf, $varscan_indel_vcf, $varscan_snv_vcf, $pindel_vcf, $filter_xargs);
-} elsif (($step_number eq '10') || ($step_number eq 'vcf_2_bam')) {
-    die("input_vcf undefined \n") unless $input_vcf;
-    die("reference_fasta undefined \n") unless $reference_fasta;
-    vcf_2_maf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_output, $input_vcf)
 } elsif (($step_number eq '9') || ($step_number eq 'vep_annotate')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    vep_annotate($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_output, $input_vcf)
+    vep_annotate($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $vep_output, $input_vcf, "af_exec", "af_gnomad")
+} elsif (($step_number eq '10') || ($step_number eq 'vcf_2_bam')) {
+    die("input_vcf undefined \n") unless $input_vcf;
+    die("reference_fasta undefined \n") unless $reference_fasta;
+    vcf_2_maf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $vep_output, $input_vcf, "exac_vcf")
 } else {
     die("Unknown step number $step_number\n");
 }

@@ -8,17 +8,18 @@
 # * assembly
 # * cache_version
 # * cache_dir
+# * cache_gz
 # * exac_vcf: path to ExAC database.  Passed to vcf2maf.pl as --filter-vcf. 0 to disable
 
 # Annotation is performed using [vcf2maf](https://github.com/mskcc/vcf2maf), which uses vep.
+#    --cache_gz: is a file ending in .tar.gz containing VEP cache tarball
+#    --cache_dir s: location of VEP cache directory
+#        VEP Cache logic:
+#        * If cache_dir is defined, it indicates location of VEP cache 
+#        * if cache_dir is not defined, and cache_gz is defined, extract cache_gz contents into "./vep-cache" and use VEP cache
+#        * if neither cache_dir nor cache_gz defined, error.  vcf_2_maf does not support online cache lookups
 
-#    --vep_cache_dir s: defines location of VEP cache directory and indicates whether to use online VEP DB lookups.  
-#        * if vep_cache_dir is not defined, error
-#        * If vep_cache_dir is a directory, it indicates location of VEP cache 
-#        * If vep_cache_dir is a file ending in .tar.gz, will extract its contents into "./vep-cache" and use VEP cache
-#        NOTE: Cache required, online VEP database is not available.
-#
-# if $vep_cache_dir is a .tar.gz file, then copy it to $cache_dir="./vep-cache" and extract it there
+# if $cache_gz file exists, then copy it to $cache_dir="./vep-cache" and extract it there
 #   (assuming it is a .tar.gz version of VEP cache; this is typically used for a cwl setup where arbitrary paths are not accessible)
 #   These contents will subsequently be deleted
 #   Cache installation is done in somaticwrapper/image.setup/D_VEP
@@ -44,6 +45,7 @@ sub vcf_2_maf {
     my $assembly = shift;
     my $cache_version = shift; # e.g., 90
     my $cache_dir = shift;  
+    my $cache_gz = shift;  
     my $input_vcf = shift;  # Name of input VCF to process
     my $exac_vcf = shift;   # passed as --filter-vcf
 
@@ -53,15 +55,13 @@ sub vcf_2_maf {
     my $filter_results = "$results_dir/maf";
     system("mkdir -p $filter_results");
 
-    my $config_fn = "$filter_results/output.maf";
-    my $output_fn;
+    $output_fn = "$filter_results/output.maf";
 
-    my $cache_gz;
-
-    # if $cache_dir is a .tar.gz file, extract its contents to ./vep-cache
     # if $cache_dir is defined, confirm it exists
-    if ( $cache_dir =~ /\.tar\.gz/ ) {
-        $cache_gz = $cache_dir;
+    # if $cache_dir is not defined, and $cache_gz is a .tar.gz file, extract its contents to ./vep-cache
+    if (defined $cache_dir) {
+        die "\nError: Cache dir $cache_dir does not exist\n" if (! -d $cache_dir);
+    } elsif ( defined $cache_gz and $cache_gz =~ /\.tar\.gz/ ) {
         $cache_dir = "./vep-cache";
         if (! -d $cache_dir) {
             mkdir $cache_dir or die "$!\n";
@@ -70,13 +70,10 @@ sub vcf_2_maf {
         # This is a preferred way to make system calls - check return value and raise error if necessary
         my $rc = system ("tar -zxf $cache_gz --directory $cache_dir");
         die("Exiting ($rc).\n") if $rc != 0;
-    } elsif (defined $cache_dir) {
-        die "\nError: Cache dir $cache_dir does not exist\n" if (! -d $cache_dir);
     } else {
-        die "--cache_dir must be defined\n";
+        die "--cache_dir or --cache_gz must be defined\n";
     }
 
-    $output_fn = "$filter_results/output.maf";
 
 #      --ncbi-build     NCBI reference assembly of variants MAF (e.g. GRCm38 for mouse) [GRCh37]
 #      --cache-version  Version of offline cache to use with VEP (e.g. 75, 84, 91) [Default: Installed version]
