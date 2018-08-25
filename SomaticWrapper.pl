@@ -104,6 +104,8 @@ Required and optional arguments per step
           It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
     --vep_output: Define output format after annotation.  Allowed values: vcf, vep.  [vcf]
+    --exac:  ExAC database to pass as --af_exac for annotation
+    --gnomad: gnomAD database to pass as --af_gnomad for annotation
 10 vcf_2_maf:
     --input_vcf s: VCF file to be annotated with vep_annotate.  Required
     --reference_fasta s: path to reference.  Required
@@ -117,6 +119,7 @@ Required and optional arguments per step
         * if vep_cache_dir is not defined, and vep_cache_gz is defined, extract vep_cache_gz contents into "./vep-cache" and use VEP cache
         * if neither vep_cache_dir nor vep_cache_gz defined, error.  vcf_2_maf does not support online vep_cache lookups
     --vep_output: Define output format after annotation.  Allowed values: vcf, vep.  [vcf]
+    --exac:  ExAC database to pass as --f_exac for annotation
 
 Note that logic of boolean arguments can be reversed with "no" prefix, e.g. --nois_strelka2 
 OUT
@@ -130,6 +133,7 @@ my $vep_cache_version;
 my $reference_fasta;
 my $results_dir = ".";  
 my $vep_cache_dir;
+my $vep_cache_gz;
 my $vep_output;   
 my $is_strelka2;    # Boolean
 my $bypass;    # Boolean
@@ -151,6 +155,8 @@ my $input_vcf;
 my $strelka_vcf_filter_config; 
 my $varscan_vcf_filter_config; 
 my $pindel_vcf_filter_config;
+my $exac;
+my $gnomad;
 
 # parameters below based on Docker image locations.  It would perhaps be useful to define these in a configuration file.
 my $sw_dir = "/usr/local/somaticwrapper";
@@ -198,6 +204,8 @@ GetOptions(
     'strelka_vcf_filter_config=s' => \$strelka_vcf_filter_config,
     'varscan_vcf_filter_config=s' => \$varscan_vcf_filter_config,
     'pindel_vcf_filter_config=s' => \$pindel_vcf_filter_config,
+    'exac=s' => \$exac,
+    'gnomad=s' => \$gnomad,
 ) or die "Error parsing command line args.\n$usage\n";
 
 die $usage unless @ARGV >= 1;
@@ -273,11 +281,11 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
 } elsif (($step_number eq '9') || ($step_number eq 'vep_annotate')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    vep_annotate($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $vep_output, $input_vcf, "af_exec", "af_gnomad")
+    vep_annotate($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $vep_output, $input_vcf, $exac, $gnomad);
 } elsif (($step_number eq '10') || ($step_number eq 'vcf_2_bam')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    vcf_2_maf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $vep_output, $input_vcf, "exac_vcf")
+    vcf_2_maf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $vep_output, $input_vcf, $exac);
 } else {
     die("Unknown step number $step_number\n");
 }

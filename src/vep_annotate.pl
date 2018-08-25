@@ -114,7 +114,7 @@ sub vep_annotate {
         "merged.vep",                               # Module
         $input_vcf,                # VCF (input)
         $output_fn,           # output
-        $vep_cmd, $cache_dir, $reference, $assembly, $cache_version, $use_vep_db, $vep_output =~ /vep/, $af_exac, $af_gnomad);
+        $vep_cmd, $cache_dir, $reference, $assembly, $cache_version, $use_vep_db, $vep_output =~ /vep/ ? 1 : 0, $af_exac, $af_gnomad);
 
     my $cmd = <<"EOF1";
     export JAVA_OPTS=\"-Xms256m -Xmx512m\"
@@ -194,6 +194,7 @@ EOF
     print OUT "$module.cache_version = $cache_version\n" if ($cache_version);
     print OUT "$module.af_exac = $af_exac\n" if ($af_exac);
     print OUT "$module.af_gnomad = $af_gnomad\n" if ($af_gnomad);
+
 }
 
 1;
