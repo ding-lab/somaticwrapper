@@ -82,9 +82,14 @@ sub vcf_2_maf {
     my $opts = "--vep-data $cache_dir";
     if ($assembly) { $opts = "$opts --ncbi-build $assembly"; }
     if ($cache_version)  { $opts = "$opts --cache-version $cache_version"; }
+    if ($exac_vcf) { 
+        $opts = "$opts --filter-vcf $exac_vcf"; 
+    } else {
+        $opts = "$opts --filter-vcf \"\" "; 
+    }
 
     my $vep_path = dirname($vep_cmd);
-    my $cmd = "$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl $opts --input-vcf $input_vcf --output-maf $output_fn --ref-fasta $reference --filter-vcf $exac_vcf --vep-path $vep_path --tmp-dir $filter_results";
+    my $cmd = "$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl $opts --input-vcf $input_vcf --output-maf $output_fn --ref-fasta $reference --vep-path $vep_path --tmp-dir $filter_results";
 
     my $out = "$job_files_dir/$current_job_file";
     print("Writing to $out\n");

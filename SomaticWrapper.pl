@@ -118,7 +118,6 @@ Required and optional arguments per step
         * If vep_cache_dir is defined, it indicates location of VEP cache 
         * if vep_cache_dir is not defined, and vep_cache_gz is defined, extract vep_cache_gz contents into "./vep-cache" and use VEP cache
         * if neither vep_cache_dir nor vep_cache_gz defined, error.  vcf_2_maf does not support online vep_cache lookups
-    --vep_output: Define output format after annotation.  Allowed values: vcf, vep.  [vcf]
     --exac:  ExAC database to pass as --f_exac for annotation
 
 Note that logic of boolean arguments can be reversed with "no" prefix, e.g. --nois_strelka2 
@@ -285,7 +284,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
 } elsif (($step_number eq '10') || ($step_number eq 'vcf_2_bam')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    vcf_2_maf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $vep_output, $input_vcf, $exac);
+    vcf_2_maf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $input_vcf, $exac);
 } else {
     die("Unknown step number $step_number\n");
 }
