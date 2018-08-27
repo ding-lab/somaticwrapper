@@ -228,7 +228,8 @@ if ($bypass) {
 # Defining skip allows for optional skipping of steps in CWL workflow.
 # Does not generate an error
 if ($skip) {
-    print("Skipping step $step_number: $skip\n");
+    print STDERR "Step $step_number is skipped: $skip\n";
+    print STDERR "Stopping\n";
     exit 0;
 }
 
