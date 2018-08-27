@@ -40,7 +40,7 @@ sub merge_vcf {
 
 
     my $outfn = "$job_files_dir/$current_job_file";
-    print("Writing to $outfn\n");
+    print STDERR "Writing to $outfn\n";
     open(OUT, ">$outfn") or die $!;
 
     print OUT <<"EOF";
@@ -73,7 +73,7 @@ EOF
 
     close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    print("Executing:\n $bsub_com \n");
+    print STDERR "Executing:\n $bsub_com \n";
 
     my $return_code = system ( $bsub_com );
     die("Exiting ($return_code).\n") if $return_code != 0;

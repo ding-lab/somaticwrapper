@@ -33,7 +33,7 @@ sub parse_strelka {
 # create strelka_dbsnp_filter.snv.input
     my $dbsnp_filtered_fn = "$filter_results/strelka.somatic.snv.all.dbsnp_pass.vcf";
     my $dbsnp_config = "$filter_results/strelka_dbsnp_filter.snv.input";
-    print("Writing to $dbsnp_config\n");
+    print STDERR "Writing to $dbsnp_config\n";
     open(OUT, ">$dbsnp_config") or die $!;
     print OUT <<"EOF";
 streka.dbsnp.snv.annotator = $snpsift_jar
@@ -46,7 +46,7 @@ EOF
 
 # Create run script
     my $outfn = "$job_files_dir/$current_job_file";
-    print("Writing to $outfn\n");
+    print STDERR "Writing to $outfn\n";
     open(OUT, ">$outfn") or die $!;
 
     my $vcf_filtered_fn = "$filter_results/strelka.somatic.snv.all.dbsnp_pass.filtered.vcf";
@@ -75,7 +75,7 @@ bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn strelka $strelka_
 EOF
     close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    print("Executing:\n $bsub_com \n");
+    print STDERR "Executing:\n $bsub_com \n";
 
     my $return_code = system ( $bsub_com );
     die("Exiting ($return_code).\n") if $return_code != 0;

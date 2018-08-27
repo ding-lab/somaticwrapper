@@ -92,7 +92,7 @@ sub vcf_2_maf {
     my $cmd = "$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl $opts --input-vcf $input_vcf --output-maf $output_fn --ref-fasta $reference --vep-path $vep_path --tmp-dir $filter_results";
 
     my $out = "$job_files_dir/$current_job_file";
-    print("Writing to $out\n");
+    print STDERR "Writing to $out\n";
     open(OUT, ">$out") or die $!;
     print OUT <<"EOF";
 #!/bin/bash
@@ -110,7 +110,7 @@ EOF
 
     close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    print("Executing:\n $bsub_com \n");
+    print STDERR "Executing:\n $bsub_com \n";
 
     my $return_code = system ( $bsub_com );
     die("Exiting ($return_code).\n") if $return_code != 0;

@@ -57,7 +57,7 @@ sub parse_pindel {
     die "$pindel_config does not exist\n" unless (-f $pindel_config);
 
     my $out = "$filter_results/pindel_filter.input";
-    print("Copying $pindel_config to $out and appending\n");
+    print STDERR "Copying $pindel_config to $out and appending\n";
     system("cp $pindel_config $out");
 
     open(OUT, ">>$out") or die $!;
@@ -71,7 +71,7 @@ EOF
 ## dbSnP Filter
     my $dbsnp_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.vcf";
     my $out = "$filter_results/pindel_dbsnp_filter.indel.input";
-    print("Writing to $out\n");
+    print STDERR "Writing to $out\n";
     open(OUT, ">$out") or die $!;
     print OUT <<"EOF";
 pindel.dbsnp.indel.annotator = $snpsift_jar
@@ -102,7 +102,7 @@ EOF
     my $vcf_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.filtered.vcf";
 
     my $outfn = "$job_files_dir/$current_job_file";
-    print("Writing to $outfn\n");
+    print STDERR "Writing to $outfn\n";
     open(OUT, ">$outfn") or die $!;
     print OUT <<"EOF";
 #!/bin/bash
@@ -146,7 +146,7 @@ EOF
 
     close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    print("Executing:\n $bsub_com \n");
+    print STDERR "Executing:\n $bsub_com \n";
 
     my $return_code = system ( $bsub_com );
     die("Exiting ($return_code).\n") if $return_code != 0;

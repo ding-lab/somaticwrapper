@@ -35,7 +35,7 @@ sub run_strelka {
     my $expected_out;
 
     my $outfn = "$job_files_dir/$current_job_file";
-    print("Writing to $outfn\n");
+    print STDERR "Writing to $outfn\n";
     open(OUT, ">$outfn") or die $!;
 
 #
@@ -81,7 +81,7 @@ EOF
     }
     my $bsub_com = "$bsub < $outfn\n";
 
-    print($bsub_com."\n");
+    print STDERR $bsub_com."\n";
     my $return_code = system ( $bsub_com );
     die("Exiting ($return_code).\n") if $return_code != 0;
 

@@ -215,13 +215,13 @@ my $job_files_dir="$results_dir/runtime";  # OUTPUT PORT
 system("mkdir -p $job_files_dir");
 
 #print("Using reference $reference_fasta\n");
-print("SomaticWrapper dir: $sw_dir \n");
-print("Analysis dir: $results_dir\n");
-print("Run script dir: $job_files_dir\n");
+print STDERR "SomaticWrapper dir: $sw_dir \n";
+print STDERR "Analysis dir: $results_dir\n";
+print STDERR "Run script dir: $job_files_dir\n";
 
 # so far, only merge_filter has bypass implemented
 if ($bypass) {
-    print("Running filter bypass (if implemented).  All reads retained\n");
+    print STDERR "Running filter bypass (if implemented.  All reads retained\n");
     $filter_xargs = "$filter_xargs --bypass"; 
 }
 
@@ -240,10 +240,10 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("reference_fasta undefined \n") unless $reference_fasta;
     my $strelka_bin;
     if ($is_strelka2) {
-        print("Running Strelka 2\n");
+        print STDERR "Running Strelka 2\n";
         $strelka_bin="$strelka2_dir/bin/configureStrelkaSomaticWorkflow.py";
     } else {
-        print("Running Strelka 1\n");
+        print STDERR "Running Strelka 1\n";
         $strelka_bin="$strelka_dir/bin/configureStrelkaWorkflow.pl";
     }
     run_strelka($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $strelka_bin, $reference_fasta, $strelka_config, $is_strelka2);

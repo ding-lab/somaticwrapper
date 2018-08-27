@@ -101,7 +101,7 @@ sub parse_varscan{
 
     my $bsub = "bash";
     my $filter_results = "$sample_full_path/varscan/filter_out";
-    print("Filter results: $filter_results\n");
+    print STDERR "Filter results: $filter_results\n";
     system("mkdir -p $filter_results");
 
     # VarScan is pathological in that all output data is written to the same directory as input data, and
@@ -133,7 +133,7 @@ sub parse_varscan{
     # $dbsnp_filtered_snv_fn is the output of dbsnp filter of SNV calls
     my $dbsnp_filtered_snv_fn = "$filter_results/varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.vcf";
     my $out = "$filter_results/vs_dbsnp_filter.snv.input";
-    print("Writing to $out\n");
+    print STDERR "Writing to $out\n";
     open(OUT, ">$out") or die $!;
     print OUT <<"EOF";
 varscan.dbsnp.snv.annotator = $snpsift_jar
@@ -147,7 +147,7 @@ EOF
     # $dbsnp_filtered_indel_fn is the output of dbsnp filter of SNV calls
     my $dbsnp_filtered_indel_fn = "$filter_results/varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf";
     my $out = "$filter_results/vs_dbsnp_filter.indel.input";
-    print("Writing to $out\n");
+    print STDERR "Writing to $out\n";
     open(OUT, ">$out") or die $!;
     print OUT <<"EOF";
 varscan.dbsnp.indel.annotator = $snpsift_jar
@@ -168,7 +168,7 @@ EOF
 
 
     my $outfn = "$job_files_dir/$current_job_file";
-    print("Writing to $outfn\n");
+    print STDERR "Writing to $outfn\n";
     open(OUT, ">$outfn") or die $!;
 
     print OUT <<"EOF";
@@ -238,7 +238,7 @@ EOF
 
     close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    print("Executing:\n $bsub_com \n");
+    print STDERR "Executing:\n $bsub_com \n";
 
     my $return_code = system ( $bsub_com );
     die("Exiting ($return_code).\n") if $return_code != 0;

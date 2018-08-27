@@ -26,7 +26,7 @@ sub get_config_params {
     my $config_fn = shift;
     my $DEBUG=shift;
 
-    print ("Reading configuration file: $config_fn\n");
+    print STDERR "Reading configuration file: $config_fn\n";
 
     open( my $fh, '<', $config_fn ) or die "Can't open config file $config_fn: $!";
 
@@ -103,7 +103,7 @@ sub run_varscan{
     # Using HERE docs: https://stackoverflow.com/questions/17479354/how-to-use-here-doc-to-print-lines-to-file
 
     my $outfn = "$job_files_dir/$current_job_file";
-    print("Writing to $outfn\n");
+    print STDERR "Writing to $outfn\n";
     open(OUT, ">$outfn") or die $!;
 
 
@@ -165,11 +165,11 @@ EOF
     close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
 
-    print("Executing:\n $bsub_com \n");
+    print STDERR "Executing:\n $bsub_com \n";
 
     my $return_code = system ( $bsub_com );
     die("Exiting ($return_code).\n") if $return_code != 0;
-    print("Final results: SNV: $snvout.vcf \n             INDEL: $indelout.vcf\n");
+    print STDERR "Final results: SNV: $snvout.vcf \n             INDEL: $indelout.vcf\n";
 
 }
 
