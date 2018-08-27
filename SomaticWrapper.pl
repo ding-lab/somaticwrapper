@@ -221,7 +221,7 @@ print STDERR "Run script dir: $job_files_dir\n";
 
 # so far, only merge_filter has bypass implemented
 if ($bypass) {
-    print STDERR "Running filter bypass (if implemented.  All reads retained\n");
+    print STDERR "Running filter bypass (if implemented.  All reads retained\n";
     $filter_xargs = "$filter_xargs --bypass"; 
 }
 
