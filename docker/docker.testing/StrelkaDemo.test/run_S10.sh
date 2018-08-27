@@ -16,11 +16,12 @@ STEP="vcf_2_maf"
 #        * If vep_cache_dir is a directory, it indicates location of VEP cache 
 #        * If vep_cache_dir is a file ending in .tar.gz, will extract its contents into "./vep-cache" and use VEP cache
 
-INPUT_VCF=""  # get output of step 8
+INPUT_VCF="results/merged/merged.filtered.vcf"  
 
 if [ -z $VEP_CACHE_DIR ]; then
     echo VEP_CACHE_DIR is not defined.  This step does not work with StrelkaDemo.
-    exit 1
+    # Getopt::Long does not seem to handle spaces in arguments well.  Passing awkward error message
+    SKIP="--skip VEP_CACHE.not.defined"
 fi
 
 ARGS="\
@@ -30,6 +31,7 @@ ARGS="\
 --assembly $ASSEMBLY \
 --vep_cache_version $VEP_CACHE_VERSION \
 --vep_cache_dir $VEP_CACHE_DIR \
+$SKIP \
 "
 
 BIN="/usr/local/somaticwrapper/SomaticWrapper.pl"

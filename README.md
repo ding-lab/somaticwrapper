@@ -42,6 +42,8 @@ The script `run_vep` has been replaced by a more CWL-friendly version, `annotate
 takes one VCF file as input and writes an annotated VCF (or VEP) file. As such, this "step" may be used
 to process any number of files by placing it in their workflow
 
+VEP Cache GZ file may be obtained [here](ftp://ftp.ensembl.org/pub/current_variation/VEP/) (e.g., [homo_sapiens_vep_93_GRCh38.tar.gz](ftp://ftp.ensembl.org/pub/current_variation/VEP/homo_sapiens_vep_93_GRCh38.tar.gz) )
+
 ## Authors
 
 * Song Cao
