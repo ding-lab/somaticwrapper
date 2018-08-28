@@ -14,6 +14,19 @@
 #   if it is defined, must exist
 # will delete temporary files (pindel_D, etc) unless no_delete_temp is true
 
+# pindel_chrom is an optional argument which defines which chromosome Pindel should process; 
+# it is passed verbatim to pindel -c argument, which is described as,
+#
+#   -c/--chromosome
+#   Which chr/fragment. Pindel will process reads for one chromosome each
+#   time. ChrName must be the same as in reference sequence and in read
+#   file. '-c ALL' will make Pindel loop over all chromosomes. The search
+#   for indels and SVs can also be limited to a specific region; -c
+#   20:10,000,000 will only look for indels and SVs after position
+#   10,000,000 = [10M, end], -c 20:5,000,000-15,000,000 will report
+#   indels in the range between and including the bases at position
+#   5,000,000 and 15,000,000 = [5M, 15M]. (default ALL)
+
 sub run_pindel {
     my $IN_bam_T = shift;
     my $IN_bam_N = shift;
@@ -23,6 +36,7 @@ sub run_pindel {
     my $pindel_dir = shift;
     my $f_centromere = shift;
     my $no_delete_temp = shift;
+    my $pindel_chrom = shift;
 
     if (! $no_delete_temp) {
         $no_delete_temp = 0; # avoid empty variables
@@ -59,6 +73,9 @@ EOF
 
 
     my $pindel_args = " -T 4 -m 6 -w 1 ";
+    if ($pindel_chrom) {
+        $pindel_args = " $pindel_args -c $pindel_chrom ";
+    }
 
 # This step the original invocation from parse_pindel
 #echo Collecting results in $pindel_results

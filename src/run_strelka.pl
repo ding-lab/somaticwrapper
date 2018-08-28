@@ -3,6 +3,8 @@
     # Varscan 1 results: $strelka_out/results/passed.somatic.snvs.vcf
     # Varscan 2 results: $strelka_out/results/variants/somatic.snvs.vcf.gz
 
+# Optional arg manta_vcf is explained in best practice here; https://github.com/Illumina/strelka/blob/master/docs/userGuide/README.md#configuration
+# implemented only for is_strelka2
 sub run_strelka {
     my $IN_bam_T = shift;
     my $IN_bam_N = shift;
@@ -12,6 +14,7 @@ sub run_strelka {
     my $ref = shift;
     my $strelka_config = shift;
     my $is_strelka2 = shift;    # accommodates differences in how strelka v2 is called
+    my $manta_vcf = shift;    
 
     my $bsub = "bash";
     $current_job_file = "j1_streka.sh"; 
@@ -29,8 +32,11 @@ sub run_strelka {
     # currently strelka_flags used only for strelka2
     my $strelka_flags = "";
     if ($params{'is_exome'}) {
-        $strelka_flags .= "--exome";
-   }
+        $strelka_flags .= " --exome ";
+    }
+    if ($manta_vcf) {
+        $strelka_flags .= " --indelCandidates $manta_vcf ";
+    }
 
     my $expected_out;
 

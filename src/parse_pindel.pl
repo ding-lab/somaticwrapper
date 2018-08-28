@@ -1,6 +1,11 @@
 
 # principal output used in merging: pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf
 
+# if apply_filter is 0, skip filtering for CvgVafStrand and Homopolymer in pindel_filter, and just output VCF file
+
+# TODO: add pindel.filter.apply_filter = true to pindel_filter input
+# TODO: make dbsnp_db optional; if does not exist, skip this filtering
+
 # CWL changes:
 # * genomevip_labeling removed
 # * Unnecessary copy operation removed (pindel.out.current_final.Somatic.vcf)
@@ -23,6 +28,7 @@ sub parse_pindel {
     my $pindel_raw_in = shift; # NEW
     my $no_delete_temp = shift;
     my $pindel_vcf_filter_config = shift;
+    my $apply_filter = shift;
 
     if (! $no_delete_temp) {
         $no_delete_temp = 0; # avoid empty variables
@@ -47,10 +53,16 @@ sub parse_pindel {
     system ("ln -fs $pindel_raw_in $filter_results "); 
     my $pindel_raw=$filter_results . "/" . basename($pindel_raw_in) ;
 
-    my $outlist="$filter_results/pindel.out.filelist";
-    #my $current_final="$filter_results/pindel.out.current_final.Somatic.vcf";
     # This is the principal result of pindel_filter
-    my $filter_out="$pindel_raw.CvgVafStrand_pass.Homopolymer_pass.vcf";
+    my $apply_filter_str;
+    my $filter_out;
+    if ($apply_filter) {
+        $filter_out="$pindel_raw.CvgVafStrand_pass.Homopolymer_pass.vcf";
+        $apply_filter_str = "pindel.filter.apply_filter = true"
+    } else {
+        $filter_out="$pindel_raw.CvgVafStrand_pass.Homopolymer_pass.vcf";  # I don't know what this will be.  Fix this to implement filter skipping correctly
+        $apply_filter_str = "pindel.filter.apply_filter = false"
+    }
 
 ## Pindel Filter - below is input into pindel_filter.v0.5
 # lines below are added to data from $pindel_config
@@ -66,9 +78,11 @@ pindel.filter.pindel2vcf = $pindel_dir/pindel2vcf
 pindel.filter.variants_file = $pindel_raw
 pindel.filter.REF = $REF
 pindel.filter.date = 000000
+$apply_filter_str
 EOF
 
 ## dbSnP Filter
+# TODO: skip this step if $dbsnp_db not defined.  Not yet implemented
     my $dbsnp_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.vcf";
     my $out = "$filter_results/pindel_dbsnp_filter.indel.input";
     print STDERR "Writing to $out\n";
