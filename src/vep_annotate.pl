@@ -8,6 +8,9 @@
 # * assembly
 # * cache_version
 # * cache_dir
+# * cache_gz
+# * preserve_cache_gz
+
 # * vep_output: vcf, vep
 # * af_gnomad: path to gnomAD database.  Passed to vep as --af_gnomad.  
 # * af_exac: path to ExAC database.  Passed to vep as --af_exac
@@ -25,7 +28,7 @@
 #
 # if extracting cache_gz, then copy it to $cache_dir="./vep-cache" and extract it there
 #   (cache_gz is a .tar.gz version of VEP cache; this is typically used for a cwl setup where arbitrary paths are not accessible)
-#   These contents will subsequently be deleted
+#   These contents will subsequently be deleted, unless preserve_cache_gz is true
 #   Cache installation is done in somaticwrapper/image.setup/D_VEP
 #   See https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
 #
@@ -52,6 +55,7 @@ sub vep_annotate {
     my $cache_version = shift; # e.g., 90
     my $cache_dir = shift;  
     my $cache_gz = shift;  
+    my $preserve_cache_gz = shift;  # NEW: don't delete cache at end of step if true
     my $vep_output = shift;  # Output format following vep annotation.  May be 'vcf', 'vep', 'maf'
     my $input_vcf = shift;  # Name of input VCF to process
     my $af_exac = shift;  
@@ -147,9 +151,13 @@ EOF
 
     # Clean up by deleting contents of cache_dir - this tends to be big (>10Gb) and unnecessary to keep
     if ( $cache_gz ) {
-        print STDERR "Deleting $cache_dir\n";
-        my $rc = system("rm -rf $cache_dir\n");
-        die("Exiting ($rc).\n") if $rc != 0;
+        if ( $preserve_cache_gz ) {
+            print STDERR "Not deleting $cache_dir \n";
+        } else {
+            print STDERR "Deleting $cache_dir\n";
+            my $rc = system("rm -rf $cache_dir\n");
+            die("Exiting ($rc).\n") if $rc != 0;
+        }
     }
     print STDERR "Final results written to $output_fn\n";
 }
