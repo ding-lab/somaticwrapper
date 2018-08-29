@@ -37,9 +37,25 @@
 # Additional annotation can be specified with af_exac and af_gnomad arguments, which are passed to vep directly
 #   https://useast.ensembl.org/info/docs/tools/vep/script/vep_example.html#gnomad
 # 
-# This is not fully implemented and will need additional testing.
-#   TODO: Need to test these flags, both with cache and online db.  Functionality may be
-#   different than vcf2maf.  Perhaps better to run these annotations as individual steps.
+# Note on multiple annotation, from http://useast.ensembl.org/info/docs/tools/vep/script/vep_other.html#pick
+# VEP documentation writes,
+#       By default VEP is configured to provide annotation on every genomic feature
+#       that each input variant overlaps. This means that if a variant overlaps a
+#       gene with multiple alternate splicing variants (transcripts), then a block of
+#       annotation for each of these transcripts is reported in the output. In the
+#       default VEP output format each of these blocks is written on a single line of
+#       output; in VCF output format the blocks are separated by commas in the INFO
+#       field.
+#       Wherever possible we would discourage users from summarising data in this
+#       way. Summarising inevitably involves data loss, and invariably at some point
+#       this will lead to the loss of biologically relevant information. For example,
+#       if your variant overlaps both a regulatory feature and a transcript and you
+#       use one of the flags below, the overlap with the regulatory feature will be
+#       lost in your output, when in some cases this may be a clue to the "real"
+#       functional effect of your variant. For these reasons we encourage users to
+#       use one of the flagging options (--flag_pick, --flag_pick_allele or
+#       --flag_pick_allele_gene) and to   post-filter results.
+# As a result, we add the --flag_pick flag to vep_opts, then post-filter according to the PICK field
 # 
 # Output is $results_dir/vep/output.vcf
 
@@ -195,6 +211,7 @@ $module.cachedir = $cache_dir
 $module.reffasta = $reference
 $module.usedb = $use_vep_db  
 $module.output_vep = $output_vep_int
+$module.vep_opts = --flag_pick
 EOF
 
     # optional parameters
