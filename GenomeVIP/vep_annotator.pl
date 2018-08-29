@@ -32,11 +32,6 @@ if( exists($paras{'output_vep'}) && ($paras{'output_vep'}) ) { $vcf_flag = "--sy
 
 # --assembly is optional.  For Cache mode, --cache_version also optional
 if (exists($paras{'assembly'})) { $opts = "$opts --assembly $paras{'assembly'}" }
-# add af_exac and af_gnomad as optional parameters
-if (exists($paras{'af_exac'})) { $opts = "$opts --af_exac $paras{'af_exac'}" }
-if (exists($paras{'af_gnomad'})) { $opts = "$opts --af_gnomad $paras{'af_gnomad'}" }
-
-
 
 # db mode 1) uses online database (so cache isn't installed) 2) does not use tmp files
 # It is meant to be used for testing and lightweight applications.  Use the cache for
@@ -67,7 +62,7 @@ if ($paras{'usedb'}) {
     my (undef, $tmp_vep_out) = tempfile();
     if (-s $tmp_orig_calls) {
         # cache_version is something like '90' - seems it needs to be specified
-        my $opts = "$opts --af --af_gnomad";
+        my $opts = "$opts --af --max_af --af_1kg --af_esp --af_gnomad";
         $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --fork 4 --format vcf $vcf_flag -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
         print($cmd . "\n");
         my $errcode = system($cmd); 

@@ -9,8 +9,11 @@ SAMPLE="C3N-01649"
 
 STEP=9
 
-#MERGED_VCF="$OUTDIR/merged/merged.filtered.vcf"
+# In general we want to use the data in the /data directory
 MERGED_VCF="/data/s8_merge_vcf/results/merged/merged.filtered.vcf"
+
+# However, currently we moved merged.filtered.vcf here explicitly for testing
+MERGED_VCF="C3N-01649.results/old-s8/merged.filtered.vcf"
 
 CACHE_DIR="/image/D_VEP"
 CACHE_GZ="/image/D_VEP/vep-cache.90_GRCh37.tar.gz"
