@@ -61,12 +61,13 @@ if ($paras{'usedb'}) {
     # split off original header
     my (undef, $tmp_orig_calls)  = tempfile();
     $cmd="/bin/grep -v ^# $paras{'vcf'} > $tmp_orig_calls";
-       system($cmd);
+    system($cmd);
 
     # run vep if input VCF not empty
     my (undef, $tmp_vep_out) = tempfile();
     if (-s $tmp_orig_calls) {
         # cache_version is something like '90' - seems it needs to be specified
+        my $opts = "$opts --af --af_gnomad";
         $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --fork 4 --format vcf $vcf_flag -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
         print($cmd . "\n");
         my $errcode = system($cmd); 

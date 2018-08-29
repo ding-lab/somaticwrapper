@@ -3,14 +3,6 @@
 Goal: reproduce filtering by `vaf_filter_v1.2.pl` using python script
 Part of effort to reproduce SomaticWrapper functionality with TinDaisy
 
-## Development notes
-
-Using vcf_filter.py from pyvcf seems to work:
-```
-vcf_filter.py --no-filtered varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.vcf dps --depth-per-sample 100
-```
-It does not work on the merged filtered vcf for some reason.
-
 ## Understanding merging
 
 Merge step, implemented in `somaticwrapper.cwl/src/merge_vcf.pl`, uses the following [CombineVariants] step,

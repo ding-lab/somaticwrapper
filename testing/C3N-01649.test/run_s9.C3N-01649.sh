@@ -9,7 +9,8 @@ SAMPLE="C3N-01649"
 
 STEP=9
 
-MERGED_VCF="$OUTDIR/merged/merged.filtered.vcf"
+#MERGED_VCF="$OUTDIR/merged/merged.filtered.vcf"
+MERGED_VCF="/data/s8_merge_vcf/results/merged/merged.filtered.vcf"
 
 CACHE_DIR="/image/D_VEP"
 CACHE_GZ="/image/D_VEP/vep-cache.90_GRCh37.tar.gz"
@@ -44,9 +45,9 @@ ARGS="\
 --results_dir $OUTDIR \
 --vep_cache_version 90 \
 --assembly GRCh37 \
---vep_cache_gz $CACHE_GZ \
+--vep_cache_dir $CACHE_DIR \
 "
-#--vep_cache_dir $CACHE_DIR \
+#--vep_cache_gz $CACHE_GZ \
 #--vep_output vcf \
 #--vep_cache_version 90 \
 #--assembly GRCh37 \

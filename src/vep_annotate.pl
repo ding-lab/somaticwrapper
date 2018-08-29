@@ -22,7 +22,7 @@
 #    * If cache_dir is defined, it indicates location of VEP cache 
 #    * if cache_dir is not defined, and cache_gz is defined, extract cache_gz contents into "./vep-cache" and use VEP cache
 #    * if neither cache_dir nor cache_gz defined, will perform online VEP DB lookups
-#    NOTE: Online VEP database lookups a) uses online database (so cache isn't installed) b) does not use tmp files
+#    Online VEP database lookups a) uses online database (so cache isn't installed) b) does not use tmp files
 #    It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
 #    See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
 #
