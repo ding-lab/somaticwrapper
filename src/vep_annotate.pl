@@ -107,6 +107,10 @@ sub vep_annotate {
         print STDERR "Using online VEP DB\n";
     }
 
+    # Check to make sure filter config files exist
+    die "AF filter config $af_filter_config does not exist\n" unless (-e $af_filter_config);
+    die "Classification filter config $classification_filter_config does not exist\n" unless (-e $classification_filter_config);
+
     my $vep_output_fn = "$filter_results/output.unfiltered.vcf";
     my $filtered_output_fn = "$filter_results/output.vcf";
 
