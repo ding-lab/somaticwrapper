@@ -11,12 +11,8 @@
 # * cache_gz
 # * preserve_cache_gz
 
-# * vep_output: vcf, vep
-# * af_gnomad: path to gnomAD database.  Passed to vep as --af_gnomad.  
-# * af_exac: path to ExAC database.  Passed to vep as --af_exac
-#
 # Annotation is performed using vep.  We can use either a local cache or online
-# ('db') lookups (the latter implemented only for vep_output='vcf' or 'vep')..
+# ('db') lookups 
 #
 #    VEP Cache logic:
 #    * If cache_dir is defined, it indicates location of VEP cache 
@@ -33,12 +29,8 @@
 #   See https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html
 #
 # assembly is the assembly argument passed to vep.  Optional
-# vep_output: Defines output format after annotation.  Allowed values: vcf, vep, maf.  Default is vcf
-# Additional annotation can be specified with af_exac and af_gnomad arguments, which are passed to vep directly
-#   https://useast.ensembl.org/info/docs/tools/vep/script/vep_example.html#gnomad
 # 
-# Note on multiple annotation, from http://useast.ensembl.org/info/docs/tools/vep/script/vep_other.html#pick
-# VEP documentation writes,
+# We use --flag_pick to handle multiple annotation. From http://useast.ensembl.org/info/docs/tools/vep/script/vep_other.html#pick
 #       By default VEP is configured to provide annotation on every genomic feature
 #       that each input variant overlaps. This means that if a variant overlaps a
 #       gene with multiple alternate splicing variants (transcripts), then a block of
@@ -57,6 +49,9 @@
 #       --flag_pick_allele_gene) and to   post-filter results.
 # As a result, we add the --flag_pick flag to vep_opts, then post-filter according to the PICK field
 # 
+# filter_xargs are strings which will be passed directly to merge_filter. --debug and --bypass may be passed this way
+#   --bypass is an optional flag which if set will bypass the filter and retain all reaads
+
 # Output is $results_dir/vep/output.vcf
 
 my $perl = "/usr/bin/perl";  # this is for docker environment
@@ -72,23 +67,13 @@ sub vep_annotate {
     my $cache_dir = shift;  
     my $cache_gz = shift;  
     my $preserve_cache_gz = shift;  # NEW: don't delete cache at end of step if true
-    my $vep_output = shift;  # Output format following vep annotation.  May be 'vcf', 'vep', 'maf'
     my $input_vcf = shift;  # Name of input VCF to process
-    my $af_exac = shift;  
-    my $af_gnomad = shift;  
+    my $af_filter_config = shift;
+    my $classification_filter_config = shift;
+    my $filter_xargs = shift;
 
     # assembly and cache_version may be blank; if so, not passed on command line to vep
-
-    if ($vep_output) {
-        my @known_formats = ('vcf', 'vep', 'maf');
-        my $format_OK = 0;
-        foreach my $format (@known_formats) {
-            if ($vep_output =~ $format) { $format_OK = 1; break }
-        }
-        if (not $format_OK) { die("Error: unknown VEP output format (--vep_output): $vep_output\n");}
-    } else {
-        $vep_output = "vcf";
-    }
+    # We now require all output to be vcf format (not vep), so that VCF filtering can take place 
 
 
     $current_job_file = "j10_vep.sh";
@@ -98,7 +83,6 @@ sub vep_annotate {
     system("mkdir -p $filter_results");
 
     my $config_fn = "$filter_results/vep.merged.input";
-    my $output_fn;
 
     my $use_vep_db = 1;
 
@@ -122,25 +106,18 @@ sub vep_annotate {
         print STDERR "Using online VEP DB\n";
     }
 
-    if ($vep_output =~ /vcf/) {
-        $output_fn = "$filter_results/output.vcf";
-    } else {
-        $output_fn = "$filter_results/output.vep";
-    }
+    my $vep_output_fn = "$filter_results/output.unfiltered.vcf";
+    my $filtered_output_fn = "$filter_results/output.vcf";
 
     # annotating merged output with VEP annotation
     # followed by AF (allele frequency) and Consequence filter
+    # Output is always VCF format
     write_vep_input(
         $config_fn,          # Config fn
         "merged.vep",                               # Module
         $input_vcf,                # VCF (input)
-        $output_fn,           # output
-        $vep_cmd, $cache_dir, $reference, $assembly, $cache_version, $use_vep_db, $vep_output =~ /vep/ ? 1 : 0, $af_exac, $af_gnomad);
-
-    my $cmd = <<"EOF1";
-    export JAVA_OPTS=\"-Xms256m -Xmx512m\"
-    $perl $gvip_dir/vep_annotator.pl $config_fn
-EOF1
+        $vep_output_fn,           # output
+        $vep_cmd, $cache_dir, $reference, $assembly, $cache_version, $use_vep_db, 0);
 
     my $out = "$job_files_dir/$current_job_file";
     print STDERR "Writing to $out\n";
@@ -148,14 +125,21 @@ EOF1
     print OUT <<"EOF";
 #!/bin/bash
 
-$cmd
+export JAVA_OPTS=\"-Xms256m -Xmx512m\"
+$perl $gvip_dir/vep_annotator.pl $config_fn
 
-# Evaluate return value see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
 rc=\$? 
 if [[ \$rc != 0 ]]; then 
     >&2 echo Fatal error \$rc: \$!.  Exiting.
     exit \$rc; 
 fi
+
+echo Unfiltered VEP-annotated VCF written to $vep_output_fn
+
+echo Filtering by AF and classification
+export PYTHONPATH="$filter_dir:\$PYTHONPATH"
+
+bash $filter_dir/run_combined_af_classification_filter.sh $vep_output_fn $af_filter_config $classification_filter_config $filtered_output_fn $filter_xargs
 
 EOF
 
@@ -176,7 +160,7 @@ EOF
             die("Exiting ($rc).\n") if $rc != 0;
         }
     }
-    print STDERR "Final results written to $output_fn\n";
+    print STDERR "Final results written to $filtered_output_fn\n";
 }
 
 # helper function
@@ -192,8 +176,6 @@ sub write_vep_input {
     my $cache_version = shift;   
     my $use_vep_db = shift;  # 1 for testing/demo, 0 for production
     my $output_is_vep = shift;  # True if vep_output is "vep"
-    my $af_exac = shift;  
-    my $af_gnomad = shift;  
 
     # assembly and cache_version are optional; if value is empty, not written to config file
 
@@ -218,8 +200,6 @@ EOF
     # optional parameters
     print OUT "$module.assembly = $assembly\n" if ($assembly);
     print OUT "$module.cache_version = $cache_version\n" if ($cache_version);
-    print OUT "$module.af_exac = $af_exac\n" if ($af_exac);
-    print OUT "$module.af_gnomad = $af_gnomad\n" if ($af_gnomad);
 
 }
 

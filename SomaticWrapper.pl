@@ -101,9 +101,9 @@ All steps:
         NOTE: Online VEP database lookups a) uses online database (so cache isn't installed) b) does not use tmp files
           It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
-    --vep_output: Define output format after annotation.  Allowed values: vcf, vep.  [vcf]
-    --exac:  ExAC database to pass as --af_exac for annotation
-    --gnomad: gnomAD database to pass as --af_gnomad for annotation
+    --af_filter_config s: configuration file for af (allele frequency) filter
+    --classification_filter_config s: configuration file for classification filter
+    --bypass: Bypass filter by retaining all reads
 10 vcf_2_maf:
     --input_vcf s: VCF file to be annotated with vep_annotate.  Required
     --reference_fasta s: path to reference.  Required
@@ -130,7 +130,6 @@ my $reference_fasta;
 my $results_dir = ".";  
 my $vep_cache_dir;
 my $vep_cache_gz;
-my $vep_output;   
 my $is_strelka2;    # Boolean
 my $bypass;    # Boolean
 my $no_delete_temp; # Boolean
@@ -151,8 +150,9 @@ my $input_vcf;
 my $strelka_vcf_filter_config; 
 my $varscan_vcf_filter_config; 
 my $pindel_vcf_filter_config;
+my $af_filter_config;
+my $classification_filter_config;
 my $exac;
-my $gnomad;
 my $skip;
 my $pindel_chrom;
 my $manta_vcf;
@@ -196,15 +196,15 @@ GetOptions(
     'pindel_vcf=s' => \$pindel_vcf,
     'varscan_indel_vcf=s' => \$varscan_indel_vcf,
     'input_vcf=s' => \$input_vcf,
-    'vep_output=s' => \$vep_output,
     'no_delete_temp!' => \$no_delete_temp,
     'is_strelka2!' => \$is_strelka2,
     'bypass!' => \$bypass,
     'strelka_vcf_filter_config=s' => \$strelka_vcf_filter_config,
     'varscan_vcf_filter_config=s' => \$varscan_vcf_filter_config,
     'pindel_vcf_filter_config=s' => \$pindel_vcf_filter_config,
+    'af_filter_config=s' => \$af_filter_config,
+    'classification_filter_config=s' => \$classification_filter_config,
     'exac=s' => \$exac,
-    'gnomad=s' => \$gnomad,
     'skip=s' => \$skip,
     'pindel_chrom=s' => \$pindel_chrom,
     'manta_vcf=s' => \$manta_vcf,
@@ -293,7 +293,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
     my $preserve_cache_gz = 0;  # get rid of uncompressed cache directory if expanded from .tar.gz
-    vep_annotate($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $preserve_cache_gz, $vep_output, $input_vcf, $exac, $gnomad);
+    vep_annotate($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $preserve_cache_gz, $input_vcf, $af_filter_config, $classification_filter_config, $filter_xargs);
 } elsif (($step_number eq '10') || ($step_number eq 'vcf_2_maf')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
