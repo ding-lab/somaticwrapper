@@ -172,7 +172,7 @@ my $java_dir="/gscuser/scao/tools/jre1.8.0_121";
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $f_ref_annot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
 my $h37_REF_bai=$h37_REF.".fai";
-#my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
+my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 
 opendir(DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
 my @sample_dir_list = readdir DH;
@@ -194,14 +194,14 @@ if ($step_number < 9) {
                 $current_job_file="";
                 if($step_number==0)
                 {  
-# run strelka ##	
-			   &bsub_strelka();
+# run mutect ##	
+			   &bsub_mutect();
 # run varscan ##
 				   &bsub_varscan();
 ## run pindel ##
 					&bsub_pindel();
 ## parse strelka ##
-				   &bsub_parse_strelka();
+				   &bsub_parse_mutect();
 ## parse varscan ##
 				   &bsub_parse_varscan();
 ## parse pindel ##
@@ -212,7 +212,7 @@ if ($step_number < 9) {
 				   &bsub_vcf_2_maf();
 				}
                  elsif ($step_number == 1) {
-                    &bsub_strelka();
+                    &bsub_mutect();
                 } elsif ($step_number == 2) {
                     &bsub_varscan(1);
                 } 
@@ -331,11 +331,15 @@ if ($step_number == 0) {
 exit;
 
 
-sub bsub_strelka{
+
+sub bsub_mutect{
     #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
-    $current_job_file = "j1_streka_".$sample_name.".sh"; 
-	my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-	my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+    my @chrlist=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","X","Y");
+
+  	$current_job_file = "j1_mutect_".$sample_name.".sh";
+    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
+    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+
     if (! -e $IN_bam_T) {#make sure there is a input fasta file 
         print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         print "Warning: Died because there is no input bam file for bwa:\n";
@@ -343,113 +347,179 @@ sub bsub_strelka{
         die "Please check command line argument!", $normal, "\n\n";
 
     }
+
     if (! -s $IN_bam_T) {#make sure input fasta file is not empty
         print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         die "Warning: Died because $IN_bam_T is empty!", $normal, "\n\n";
     }
-	if (! -e $IN_bam_N) {#make sure there is a input fasta file 
+
+    if (! -e $IN_bam_N) {#make sure there is a input fasta file 
         print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         print "Warning: Died because there is no input bam file for bwa:\n";
         print "File $IN_bam_N does not exist!\n";
         die "Please check command line argument!", $normal, "\n\n";
 
     }
+
     if (! -s $IN_bam_N) {#make sure input fasta file is not empty
         print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
     }
+
+	my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+
+    `rm $lsf_out`;
+	`rm $lsf_err`; 
+
+    open(MUTECT, ">$job_files_dir/$current_job_file") or die $!;
+    print MUTECT "#!/bin/bash\n";
+    #print MUTECT "#BSUB -n 1\n";
+    #print MUTECT "#BSUB -R \"rusage[mem=30000]\"","\n";
+    #print MUTECT "#BSUB -M 30000000\n";
+    #print MUTECT "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
+    #print MUTECT "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
+    #print MUTECT "#BSUB -J $current_job_file\n";
+    #print MUTECT "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print MUTECT "#BSUB -q long\n";
+    #print MUTECT "#BSUB -q research-hpc\n";
+    #print MUTECT "scr_t0=\`date \+\%s\`\n";
+    print MUTECT "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
+    print MUTECT "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
+	print MUTECT "TBAM_rg=".$sample_full_path."/".$sample_name.".T.rg.bam\n";
+    print MUTECT "NBAM_rg=".$sample_full_path."/".$sample_name.".N.rg.bam\n";
+    print MUTECT "TBAM_rg_bai=".$sample_full_path."/".$sample_name.".T.rg.bam.bai\n";
+    print MUTECT "NBAM_rg_bai=".$sample_full_path."/".$sample_name.".N.rg.bam.bai\n";
+	print MUTECT "fcov=".$sample_full_path."/mutect/mutect.coverage\n";
+    print MUTECT "fstat=".$sample_full_path."/mutect/mutect.status\n";
+    print MUTECT "myRUNDIR=".$sample_full_path."/mutect\n";
+    #print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
+    print MUTECT "filtervcf=".$sample_full_path."/mutect/mutect.filtered.vcf\n";
+    #print MUTECT "filtervcfsnv=".$sample_full_path."/mutect/mutect.filter.snv.vcf\n";
+    #print MUTECT "filtervcfindel=".$sample_full_path."/mutect/mutect.filter.indel.vcf\n";
+    print MUTECT "RUNDIR=".$sample_full_path."\n";
+    print MUTECT "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
+    print MUTECT "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+    print MUTECT "export JAVA_HOME=$java_dir\n";
+    print MUTECT "export JAVA_OPTS=\"-Xmx10g\"\n";
+    print MUTECT "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
+    print MUTECT "if [ ! -d \${myRUNDIR} ]\n";
+    print MUTECT "then\n";
+    print MUTECT "mkdir \${myRUNDIR}\n";
+    print MUTECT "fi\n";
+   # print MUTECT "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+   # print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
+   # print MUTECT "else\n";
+ 	#java_dir=/gscuser/scao/tools/jre1.8.0_121
+    print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
+    #print MUTECT "fi\n";
+    print MUTECT "if [ $status_rg -eq 0 ]\n";
+    print MUTECT "then\n";	
+	print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${NBAM} O=\${NBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
+    print MUTECT "samtools index \${NBAM_rg}\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${TBAM} O=\${TBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
+    print MUTECT "samtools index \${TBAM_rg}\n";
+	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";
+#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --vcf \${rawvcf}\n";
+    #print MUTECT "java  \${JAVA_OPTS} -jar $mutect --analysis_type MuTect --reference_sequence $h37_REF -B:dbsnp,VCF $DB_SNP -B:cosmic,VCF $DB_COSMIC --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out /data/patient/example_MuTect.call_stats.txt --vcf \${rawvcf}\n";
+#  	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor \${TBAM_rg} -I:normal \${NBAM_rg}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";
+   #print MUTECT "$gatkexe4 -T MuTect2 -R $h37_REF --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+   #print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
+
+	foreach my $chr (@chrlist)
+    {
+    	my $chr1=$chr;
+    	if($chr_status==1) { $chr1="chr".$chr; }
+		print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.$chr.vcf\n";
+		print MUTECT '  if [ ! -s $rawvcf ]',"\n";
+    	print MUTECT "  then\n";
+		print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3 -T MuTect2 -nct 4  -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+	    print MUTECT "  fi\n";
+	} 
+
+	print MUTECT "rm \${NBAM_rg}\n";
+    print MUTECT "rm \${NBAM_rg_bai}\n";
+	print MUTECT "rm \${TBAM_rg}\n";
+    print MUTECT "rm \${TBAM_rg_bai}\n";
+	print MUTECT "else\n";
+#	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
+ #   print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
+	foreach my $chr (@chrlist)
+    {
+	my $chr1=$chr;
+    if($chr_status==1) { $chr1="chr".$chr; }
+	print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.$chr.vcf\n";	
+	print MUTECT '  if [ ! -s $rawvcf ]',"\n"; 
+    print MUTECT "  then\n";
+	print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3  -T MuTect2 -nct 4 -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+ 	print MUTECT "  fi\n"; 
+	}
+
+	print MUTECT "fi\n";
+
+   	foreach my $chr (@chrlist)
+    {
+	print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.$chr.vcf\n";
+	print MUTECT "filtervcf=".$sample_full_path."/mutect/mutect.raw.filtered.$chr.vcf\n";
+	print MUTECT "filtervcfsnv=".$sample_full_path."/mutect/mutect.filter.snv.$chr.vcf\n";
+    print MUTECT "filtervcfindel=".$sample_full_path."/mutect/mutect.filter.indel.$chr.vcf\n";	
+	print MUTECT "     ".$run_script_path."filter_mutect.pl \${rawvcf} \${filtervcf}\n";
+	print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
+    print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
+	}
+
+	#print MUTECT "     ".$run_script_path."merge_mutect.pl $sample_full_path\n";	
+  
+  close MUTECT;
+
+    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
+ 	my $sh_file=$job_files_dir."/".$current_job_file;
+    if($q_name eq "research-hpc")
+    {
+    $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }    
+	else 
+	{        
+	$bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";                                
+    }
+    print $bsub_com;
+
+    system ( $bsub_com );
+}
+
+
+sub bsub_parse_mutect{
+
+    my ($step_by_step) = @_;
+    if ($step_by_step) {
+        $hold_job_file = "";
+    }else{
+        $hold_job_file = $current_job_file;
+    }
+
+    $current_job_file = "j4_parse_mutect.".$sample_name.".sh";
+
+    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
+    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
     `rm $lsf_err`;
-	#`rm $current_job_file`;
-
-    open(STREKA, ">$job_files_dir/$current_job_file") or die $!;
-    print STREKA "#!/bin/bash\n";
-    #print STREKA "#BSUB -n 1\n";
-    #print STREKA "#BSUB -R \"rusage[mem=30000]\"","\n";
-    #print STREKA "#BSUB -M 30000000\n";
-    #print STREKA "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    #print STREKA "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    #print STREKA "#BSUB -J $current_job_file\n";
-    #print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print STREKA "#BSUB -q long\n";
-    #print STREKA "#BSUB -q research-hpc\n";
-	#print STREKA "#BSUB -q long\n";
-	#print STREKA "scr_t0=\`date \+\%s\`\n";
-    print STREKA "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print STREKA "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print STREKA "myRUNDIR=".$sample_full_path."/strelka\n";
-	print STREKA "STATUSDIR=".$sample_full_path."/status\n";
-    print STREKA "RESULTSDIR=".$sample_full_path."/results\n";
-	print STREKA "SG_DIR=".$sample_full_path."/strelka\n"; 
-	print STREKA "RUNDIR=".$sample_full_path."\n";
-	print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
-	print STREKA "STRELKA_VCF=".$sample_full_path."/strelka/strelka_out/results/passed.somatic.snvs.vcf"."\n";   
-	print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
- 	print STREKA "TASK_STATUS=".$sample_full_path."/strelka/strelka_out/task.complete"."\n";
-	print STREKA "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-	print STREKA "export JAVA_HOME=$java_dir\n";
-	print STREKA "export JAVA_OPTS=\"-Xmx10g\"\n";
-	print STREKA "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-	print STREKA "if [ ! -d \${myRUNDIR} ]\n";
-	print STREKA "then\n";
-	print STREKA "mkdir \${myRUNDIR}\n";
-	print STREKA "fi\n";
-	### re-run, then delete task.complete file ###
-	print STREKA "if [ $status_rerun -eq 1 ]\n";
-    print STREKA "  then\n";
-    print STREKA "rm \${TASK_STATUS}\n";
-    print STREKA "fi\n";
-
-    print STREKA "if [ ! -f \${STRELKA_VCF} ]\n";
-    print STREKA "  then\n";
-    print STREKA "rm \${TASK_STATUS}\n";
-    print STREKA "fi\n";
-
-    print STREKA "if [ ! -f  \${TASK_STATUS} ]\n";
-	print STREKA "then\n";
-	print STREKA "if [ -d \${STRELKA_OUT} ]\n";
-    print STREKA "then\n";
-    print STREKA "rm -rf \${STRELKA_OUT}\n";
-    print STREKA "fi\n";
-	print STREKA "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n"; 
-   	print STREKA "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-	print STREKA "else\n";
-   	print STREKA "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-	print STREKA "fi\n";
-	#print STREKA "put_cmd=\"ln -s\"\n";
-	#print STREKA "del_cmd=\"rm -f\"\n";
-	#print STREKA "del_local=\"rm -f\"\n";
-	#print STREKA "statfile=incomplete.strelka\n";
-	#print STREKA "localstatus=".$sample_full_path."/status/\$statfile\n";
-	#print STREKA "touch \$localstatus\n";
-    print STREKA ". $script_dir/set_envvars\n";
-#   	print STREKA ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
-   # print STREKA 	
-    print STREKA "if [ $s_wgs -eq 1 ]\n";
-    print STREKA "  then\n";
-    print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config $script_dir/strelka.ini.wgs --output-dir \$STRELKA_OUT\n";
-  	print STREKA "else\n";	
-	print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config $script_dir/strelka.ini --output-dir \$STRELKA_OUT\n";
-	print STREKA "fi\n";
-	print STREKA "cd \$STRELKA_OUT\n";
-	print STREKA "make -j 16\n";
-	print STREKA "touch \${TASK_STATUS}\n";
-	print STREKA "fi\n";
-    close STREKA;
-    my $sh_file=$job_files_dir."/".$current_job_file;
-
-	if($q_name eq "research-hpc")
-	{
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err sh $sh_file\n";     }
-	else { 
-	    $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err sh $sh_file\n"; 
-	}
-	print $bsub_com;
-    system ($bsub_com);
+    open(PM, ">$job_files_dir/$current_job_file") or die $!;
+    print PM "#!/bin/bash\n";
+    print PM "     ".$run_script_path."merge_mutect.pl $sample_full_path\n";   
+  	close PM;
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    #system ( $bsub_com );
+    my $sh_file=$job_files_dir."/".$current_job_file;
+    if($q_name eq "research-hpc")
+    {
+    $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
+    else
+    {
+    $bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";
+    }
+    print $bsub_com;
+    system ( $bsub_com );
+
 }
 
 sub bsub_varscan{
@@ -595,148 +665,6 @@ sub bsub_varscan{
 
 }
 
-
-sub bsub_parse_strelka{
-
-    my ($step_by_step) = @_;
-    if ($step_by_step) {
-        $hold_job_file = "";
-    }else{
-        $hold_job_file = $current_job_file;
-    }
-
-
-    $current_job_file = "j4_parse_strelka".$sample_name.".sh";
-
-    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
-    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
-    `rm $lsf_out`;
-    `rm $lsf_err`;
-
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-
-    open(STREKAP, ">$job_files_dir/$current_job_file") or die $!;
-
-    print STREKAP "#!/bin/bash\n";
-    #print STREKAP "#BSUB -n 1\n";
-    #print STREKAP "#BSUB -R \"rusage[mem=30000]\"","\n";
-    #print STREKAP "#BSUB -M 30000000\n";
-    #print STREKAP "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    #print STREKAP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    #print STREKAP "#BSUB -J $current_job_file\n";
-	#print STREKAP "#BSUB -w \"$hold_job_file\"","\n";
-    #print STREKAP "#BSUB -q long\n";
-   # print STREKAP "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print STREKAP "#BSUB -q ding-lab\n";
-    #print STREKAP "#BSUB -q research-hpc\n";
-    #print STREKAP "scr_t0=\`date \+\%s\`\n";
-    print STREKAP "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print STREKAP "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print STREKAP "myRUNDIR=".$sample_full_path."/strelka\n";
-    print STREKAP "STATUSDIR=".$sample_full_path."/status\n";
-    print STREKAP "RESULTSDIR=".$sample_full_path."/results\n";
-    print STREKAP "SG_DIR=".$sample_full_path."/strelka\n";
-    print STREKAP "RUNDIR=".$sample_full_path."\n";
-    print STREKAP "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
-	print STREKAP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print STREKAP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-    print STREKAP "export JAVA_HOME=$java_dir\n";
-    print STREKAP "export JAVA_OPTS=\"-Xmx10g\"\n";
-    print STREKAP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    print STREKAP "cat > \${myRUNDIR}/strelka_out/results/strelka_dbsnp_filter.snv.input <<EOF\n";
-    print STREKAP "streka.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-    print STREKAP "streka.dbsnp.snv.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
-    print STREKAP "streka.dbsnp.snv.rawvcf = ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
-    print STREKAP "streka.dbsnp.snv.mode = filter\n";
-    print STREKAP "streka.dbsnp.snv.passfile  = ./strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
-    print STREKAP "streka.dbsnp.snv.dbsnpfile = ./strelka.somatic.snv.all.gvip.dbsnp_present.vcf\n";
-    print STREKAP "EOF\n";
-	print STREKAP "cat > \${myRUNDIR}/strelka_out/results/strelka_dbsnp_filter.indel.input <<EOF\n";
-   	print STREKAP "streka.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-    print STREKAP "streka.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
-    print STREKAP "streka.dbsnp.indel.rawvcf = ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";
-    print STREKAP "streka.dbsnp.indel.mode = filter\n";
-    print STREKAP "streka.dbsnp.indel.passfile  = ./strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
-    print STREKAP "streka.dbsnp.indel.dbsnpfile = ./strelka.somatic.indel.all.gvip.dbsnp_present.vcf\n";
-	print STREKAP "EOF\n";
-	print STREKAP "FP_BAM=\`awk \'{if(NR==1){print \$1}}\' \${RUNDIR}/varscan/bamfilelist.inp\`\n";
-	print STREKAP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_fpfilter.snv.input <<EOF\n";
-	print STREKAP "strelka.fpfilter.snv.bam_readcount = /gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount\n";
-	print STREKAP "strelka.fpfilter.snv.bam_file = $IN_bam_T\n";
-	print STREKAP "strelka.fpfilter.snv.REF = $h37_REF\n"; 
-	print STREKAP "strelka.fpfilter.snv.variants_file = \${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
-	print STREKAP "strelka.fpfilter.snv.passfile = \${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp_pass.vcf\n";
-	print STREKAP "strelka.fpfilter.snv.failfile = \${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp_fail.vcf\n";
-	print STREKAP "strelka.fpfilter.snv.rc_in = \${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.rc.in.vcf\n";
-	print STREKAP "strelka.fpfilter.snv.rc_out = \${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.rc.out.vcf\n";
-	print STREKAP "strelka.fpfilter.snv.fp_out = \${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp.out.vcf\n";
-	print STREKAP "strelka.fpfilter.snv.min_mapping_qual = 0\n";
-	print STREKAP "strelka.fpfilter.snv.min_base_qual = 15\n";
-	print STREKAP "strelka.fpfilter.snv.min_num_var_supporting_reads = 4\n";
-	print STREKAP "strelka.fpfilter.snv.min_var_allele_freq = 0.05\n";
-	print STREKAP "strelka.fpfilter.snv.min_avg_rel_read_position = 0.10\n";
-	print STREKAP "strelka.fpfilter.snv.min_avg_rel_dist_to_3prime_end = 0.10\n";
-	print STREKAP "strelka.fpfilter.snv.min_var_strandedness = 0.01\n";
-	print STREKAP "strelka.fpfilter.snv.min_allele_depth_for_testing_strandedness = 5\n";
-	print STREKAP "strelka.fpfilter.snv.min_ref_allele_avg_base_qual = 30\n";
-	print STREKAP "strelka.fpfilter.snv.min_var_allele_avg_base_qual = 30\n";
-	print STREKAP "strelka.fpfilter.snv.max_rel_read_length_difference = 0.25\n";
-	print STREKAP "strelka.fpfilter.snv.max_mismatch_qual_sum_for_var_reads = 150\n";
-	print STREKAP "strelka.fpfilter.snv.max_avg_mismatch_qual_sum_difference = 150\n";
-    print STREKAP "strelka.fpfilter.snv.min_ref_allele_avg_mapping_qual = 30\n";
-    print STREKAP "strelka.fpfilter.snv.min_var_allele_avg_mapping_qual = 30\n";
-    print STREKAP "strelka.fpfilter.snv.max_avg_mapping_qual_difference = 50\n";
-    print STREKAP "EOF\n";
-	print STREKAP "cd \${STRELKA_OUT}/results\n";
-	print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.snvs.vcf ./strelka.somatic.snv.all.gvip.vcf\n";
-    print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.indels.vcf ./strelka.somatic.indel.all.gvip.vcf\n";
-	print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.snvs.vcf ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
-    print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.indels.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";    print STREKAP "strekasnvout=\${STRELKA_OUT}/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
-	print STREKAP "strekaindelout=\${STRELKA_OUT}/results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
-    print STREKAP "statfile=complete.streka_parser\n";
-    print STREKAP "localstatus=\${STRELKA_OUT}\/\${statfile}\n";
-    #print STREKAP "if [ ! -d \${myRUNDIR}\/status ]\n";
-    #print STREKAP "then\n";
-    #print STREKAP "mkdir \${myRUNDIR}\/status\n";
-    #print STREKAP "fi\n";
-    ## re-run, then remove complete.vs_som_parser ###
-    print STREKAP "if [ $status_rerun -eq 1 ]\n";
-    print STREKAP "  then\n";
-    print STREKAP "rm \${localstatus}\n";
-    print STREKAP "fi\n";
-    print STREKAP "if [ ! -f  \${localstatus} ]\n";
-	print STREKAP "then\n"; 
-	## dbsnp filtering ###
-    print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.snv.input\n";
-    print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.indel.input\n";
-    ## false positive filtering ##
-	print STREKAP "     ".$run_script_path."snv_filter.pl ./strelka_fpfilter.snv.input\n";
-    print STREKAP '      grep "Error occurred during initialization of VM" ${strekasnvout}',"\n";
-    print STREKAP '      CHECK=$?',"\n";
-    print STREKAP '      while [ ${CHECK} -eq 0 ]',"\n";
-    print STREKAP "      do\n";
-	print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.snv.input\n";
-    print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.indel.input\n";
-    print STREKAP "     ".$run_script_path."snv_filter.pl ./strelka_fpfilter.snv.input\n";  
-    print STREKAP '      grep "Error occurred during initialization of VM" ${strekasnvout}',"\n";
-    print STREKAP '          CHECK=$?',"\n";
-    print STREKAP "      done\n";
-    print STREKAP "touch \${localstatus}\n";
-	print STREKAP "  fi\n";
-	close STREKAP;
-    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    #system ( $bsub_com ); 
-
- my $sh_file=$job_files_dir."/".$current_job_file;
-
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err sh $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
-}
 sub bsub_parse_varscan{
 
     my ($step_by_step) = @_;
