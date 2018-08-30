@@ -35,5 +35,14 @@ DEPTH_FILTER_ARGS="read_depth $XARG $CONFIG $CALLER_ARG"
 
 $VAF_FILTER $VCF $VAF_FILTER_ARGS | $LENGTH_FILTER - $LENGTH_FILTER_ARGS | $DEPTH_FILTER - $DEPTH_FILTER_ARGS > $OUT
 
+# Evaluate return value for chain of pipes; see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
+rcs=${PIPESTATUS[*]};
+for rc in ${rcs}; do
+    if [[ $rc != 0 ]]; then
+        >&2 echo Fatal error.  Exiting.
+        exit $rc;
+    fi;
+done
+
 >&2 echo Written to $OUT
 

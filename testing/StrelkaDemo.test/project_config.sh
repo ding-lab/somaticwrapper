@@ -1,4 +1,9 @@
-DATAD="/data"
+# pass root of data directory as first argument, or use /data by default
+if [ -z $1 ]; then
+    DATAD="/data"
+else
+    DATAD=$1
+fi
 TUMOR_BAM=$DATAD/StrelkaDemoCase.T.bam
 NORMAL_BAM=$DATAD/StrelkaDemoCase.N.bam
 REFERENCE_FASTA=$DATAD/demo20.fa
@@ -9,9 +14,11 @@ DBSNP_DB=$DATAD/dbsnp-StrelkaDemo.noCOSMIC.vcf.gz
 CENTROMERE_BED=$DATAD/ucsc-centromere.GRCh37.bed
 #VEP_CACHE_DIR=/home/mwyczalk_test/data/docker/data/D_VEP
 ASSEMBLY="GRCh37"
-STRELKA_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/vcf_filters/vcf_filter_config.ini"
-VARSCAN_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/vcf_filters/vcf_filter_config.ini"
-PINDEL_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/vcf_filters/pindel-vcf_filter_config.ini"
+STRELKA_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/params/vcf_filter_config.ini"
+VARSCAN_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/params/vcf_filter_config.ini"
+PINDEL_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/params/pindel-vcf_filter_config.ini"
+AF_FILTER_CONFIG="/usr/local/somaticwrapper/params/af_filter_config.ini"
+CLASS_FILTER_CONFIG="/usr/local/somaticwrapper/params/classification_filter_config.ini"
 
 RESULTS_DIR="results"
 mkdir -p $RESULTS_DIR

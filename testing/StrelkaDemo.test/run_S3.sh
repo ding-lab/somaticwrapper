@@ -1,4 +1,6 @@
-source project_config.sh
+DATAD="/usr/local/somaticwrapper/testing/StrelkaDemo.dat"
+source project_config.sh $DATAD
+
 STEP="parse_strelka"
 
 #3 parse_strelka:

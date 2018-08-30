@@ -1,4 +1,5 @@
-source project_config.sh
+DATAD="/usr/local/somaticwrapper/testing/StrelkaDemo.dat"
+source project_config.sh $DATAD
 
 # This step is not implemented for StrelkaDemo because 
 # vcf2maf.pl requires a VEP cache, which is in general not installed for the demo

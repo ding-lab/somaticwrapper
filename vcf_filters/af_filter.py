@@ -25,6 +25,8 @@ import sys
 # optional command line parameters
 # --debug
 # --config config.ini
+# --bypass
+# --dump
 #
 # Note that the input_vcf file will in general be specified twice, once as input into vcf_filter.py
 # and once as input into this filter directly.
@@ -37,6 +39,8 @@ class AFFilter(VEPFilter):
     @classmethod
     def customize_parser(self, parser):
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
+        parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
+        parser.add_argument('--dump', action="store_true", default=False, help='Dump out CSQ dictionary for each read')
         parser.add_argument('--config', type=str, help='Optional configuration file')
         parser.add_argument('--input_vcf', type=str, help='Input VCF filename', required=True)
         parser.add_argument('--max_af', type=int, help='Retain calls with AF < max_af')
@@ -47,6 +51,8 @@ class AFFilter(VEPFilter):
 
         # These will not be set from config file (though could be)
         self.debug = args.debug
+        self.bypass = args.bypass
+        self.dump = args.dump
 
         # Read arguments from config file first, if present.
         # Then read from command line args, if defined
@@ -57,19 +63,28 @@ class AFFilter(VEPFilter):
         self.set_args(config, args, "af_field")
         self.set_args(config, args, "max_af", arg_type="float")
 
-        if self.af_field not in self.CSQ_headers:
+        if self.af_field not in self.CSQ_headers and not self.bypass:
             raise Exception( "CSQ field %s not found in %s" % (self.af_field, args.input_vcf) )
 
         # below becomes Description field in VCF
-        self.__doc__ = "Retain calls where %s < %f " % (self.af_field, self.max_af)
+        if self.bypass:
+            self.__doc__ = "Bypassing filter, retaining all reads"
+        else:
+            self.__doc__ = "Retain calls where %s < %f " % (self.af_field, self.max_af)
 
     def filter_name(self):
         return self.name
 
     def __call__(self, record):
 
+        if self.bypass:
+            if (self.debug): eprint("** Bypassing filter, retaining read **" )
+            return
+
         # CSQ has all VCF CSQ INFO entries as dictionary
         CSQ = self.parse_CSQ(record)
+        if self.dump:
+            eprint("CSQ: " + str(CSQ) )
 
         if CSQ[self.af_field]:
             af = float(CSQ[self.af_field])

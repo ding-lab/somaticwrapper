@@ -25,5 +25,15 @@ CLASS_FILTER_ARGS="classification $XARG --config $CLASS_CONFIG --input_vcf $VCF"
 
 $AF_FILTER $VCF $AF_FILTER_ARGS | $CLASS_FILTER - $CLASS_FILTER_ARGS > $OUT
 
+# Evaluate return value for chain of pipes; see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
+rcs=${PIPESTATUS[*]};
+for rc in ${rcs}; do
+    if [[ $rc != 0 ]]; then
+        >&2 echo Fatal error.  Exiting.
+        exit $rc;
+    fi;
+done
+
+
 >&2 echo Written to $OUT
 

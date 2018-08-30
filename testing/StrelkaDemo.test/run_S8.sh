@@ -1,4 +1,5 @@
-source project_config.sh
+DATAD="/usr/local/somaticwrapper/testing/StrelkaDemo.dat"
+source project_config.sh $DATAD
 
 STEP="merge_vcf"
 #8 merge_vcf:

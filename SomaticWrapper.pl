@@ -293,7 +293,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
     my $preserve_cache_gz = 0;  # get rid of uncompressed cache directory if expanded from .tar.gz
-    vep_annotate($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $preserve_cache_gz, $input_vcf, $af_filter_config, $classification_filter_config, $filter_xargs);
+    vep_annotate($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $filter_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $preserve_cache_gz, $input_vcf, $af_filter_config, $classification_filter_config, $filter_xargs);
 } elsif (($step_number eq '10') || ($step_number eq 'vcf_2_maf')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;

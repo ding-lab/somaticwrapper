@@ -1,4 +1,5 @@
-source project_config.sh
+DATAD="/usr/local/somaticwrapper/testing/StrelkaDemo.dat"
+source project_config.sh $DATAD
 
 # Bugfix to new pindel2vcf, which leaves off "FORMAT" column header.  Simply adding it on.  Hopefully real fix will be available soon
 function reheader_pindel {

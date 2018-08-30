@@ -42,6 +42,8 @@ if ($paras{'usedb'}) {
     print STDERR ("VEP DB Query mode\n");
     print STDERR ("Reading: $paras{'vcf'}\n");
     print STDERR ("Writing: $paras{'output'}\n");
+
+    # Cannot use --max_af and other AF-related args here
  
     $cmd = "perl $paras{'vep_cmd'} $opts --database --port 3337 --buffer_size 10000  --fork 4 --format vcf $vcf_flag -i $paras{'vcf'} -o $paras{'output'} --force_overwrite  --fasta $paras{'reffasta'}";
 

@@ -61,6 +61,7 @@ sub vep_annotate {
     my $job_files_dir = shift;
     my $reference = shift;
     my $gvip_dir = shift;
+    my $filter_dir = shift;
     my $vep_cmd = shift;
     my $assembly = shift;
     my $cache_version = shift; # e.g., 90
