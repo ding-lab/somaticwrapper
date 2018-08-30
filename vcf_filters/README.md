@@ -85,8 +85,46 @@ git clone -b cwl https://github.com/ding-lab/somaticwrapper somaticwrapper.cwl
 VAF defined as (number of reads supporting variant)/(number of reads supporting variant and number of reads supporting reference) 
 See also [here](https://www.biostars.org/p/226897/).
 
+## Classification filter
 
-
+In SomaticWrapper post-processing step [generate_final_report.pl](https://github.com/ding-lab/somaticwrapper/blob/master/generate_final_report.pl)
+the following Variant Classifications are retained:
+```
+    Frame_Shift_Del
+    Frame_Shift_Ins
+    Missense_Mutation
+    Nonsense_Mutation
+    Nonstop_Mutation
+    Silent
+    Splice_Site
+    In_Frame_Ins
+    In_Frame_Del
+```
+Based on [vcf2maf.pl](https://github.com/mskcc/vcf2maf/blob/master/vcf2maf.pl#L917), this corresponds to the following values of the VEP CSQ "Consequences" field
+(see `retained_classification.txt` details): 
+```
+    NMD_transcript_variant
+    coding_sequence_variant
+    conservative_missense_variant
+    disruptive_inframe_deletion
+    disruptive_inframe_insertion
+    exon_loss_variant
+    frameshift_variant
+    incomplete_terminal_codon_variant
+    inframe_deletion
+    inframe_insertion
+    missense_variant
+    protein_altering_variant
+    rare_amino_acid_variant
+    splice_acceptor_variant
+    splice_donor_variant
+    stop_gained
+    stop_lost
+    stop_retained_variant
+    synonymous_variant
+    transcript_ablation
+```
+The goal of ClassificationFilter is to retain only calls with these Consequence fields in a VEP-generaged VCF.  
 
 ## Past Python work
 
@@ -136,21 +174,3 @@ scp mwyczalk_test@10.22.24.1:/diskmnt/Projects/Users/hsun/beta_tinDaisy/compare/
 ```
 
 
-# Analysis
-
-## `set` values from sw.merged.vcf
-```
-grep -v "^#" sw.merged.vcf | cut -f 8 | tr ';' '\n' | grep "set=" | sort | uniq -c
- 254 set=pindel
-  24 set=strelka
-   9 set=strelka-varscan
-  88 set=varindel
-1554 set=varscan
-```
-
-```
-grep -v "^#" origdata/sw.merged.filtered.vcf | cut -f 8 | tr ';' '\n' | grep "set=" | sort | uniq -c
-  15 set=pindel
-   3 set=strelka-varscan
-  40 set=varindel
-```

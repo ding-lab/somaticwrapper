@@ -3,7 +3,7 @@ import sys
 import vcf.filters
 
 # filter to include or exclude calls based on their caller, as defined by INFO field "set"
-# TODO: base on example in depth_filter.py.  get rid of eprint below and update import fields
+# TODO: base on ConfigFileFilter (like depth_filter.py).  get rid of eprint below and update import fields
 
 # Portable printing to stderr, from https://stackoverflow.com/questions/5574702/how-to-print-to-stderr-in-python-2
 def eprint(*args, **kwargs):

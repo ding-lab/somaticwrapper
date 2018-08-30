@@ -1,0 +1,41 @@
+# these are the effects that Song retains, and their classification from vcf2maf.pl:
+Frame_Shift_Del
+    return "Frame_Shift_Del" if(( $effect eq 'frameshift_variant' or ( $effect eq 'protein_altering_variant' and !$inframe )) and $var_type eq 'DEL' );
+Frame_Shift_Ins
+    return "Frame_Shift_Ins" if(( $effect eq 'frameshift_variant' or ( $effect eq 'protein_altering_variant' and !$inframe )) and $var_type eq 'INS' );
+Missense_Mutation
+    return "Missense_Mutation" if( $effect =~ /^(missense_variant|coding_sequence_variant|conservative_missense_variant|rare_amino_acid_variant)$/ );
+Nonsense_Mutation
+    return "Nonsense_Mutation" if( $effect eq 'stop_gained' );
+Nonstop_Mutation
+    return "Nonstop_Mutation" if( $effect eq 'stop_lost' );
+Silent
+    return "Silent" if( $effect =~ /^(incomplete_terminal_codon_variant|synonymous_variant|stop_retained_variant|NMD_transcript_variant)$/ );
+Splice_Site
+    splice_acceptor_variant|splice_donor_variant|transcript_ablation|exon_loss_variant
+In_Frame_Ins
+    return "In_Frame_Ins" if( $effect =~ /^(inframe_insertion|disruptive_inframe_insertion)$/ or ( $effect eq 'protein_altering_variant' and $inframe and $var_type eq 'INS' ));
+In_Frame_Del
+    return "In_Frame_Del" if( $effect =~ /^(inframe_deletion|disruptive_inframe_deletion)$/ or ( $effect eq 'protein_altering_variant' and $inframe and $var_type eq 'DEL' ));
+
+As a result, the list of VEP Consequence values that are to be retained are:
+    NMD_transcript_variant
+    coding_sequence_variant
+    conservative_missense_variant
+    disruptive_inframe_deletion
+    disruptive_inframe_insertion
+    exon_loss_variant
+    frameshift_variant
+    incomplete_terminal_codon_variant
+    inframe_deletion
+    inframe_insertion
+    missense_variant
+    protein_altering_variant
+    rare_amino_acid_variant
+    splice_acceptor_variant
+    splice_donor_variant
+    stop_gained
+    stop_lost
+    stop_retained_variant
+    synonymous_variant
+    transcript_ablation
