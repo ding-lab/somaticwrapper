@@ -13,7 +13,7 @@ DEPTH_FILTER_LOCAL="depth_filter.py"  # filter module
 LENGTH_FILTER_LOCAL="length_filter.py"  # filter module
 
 MAIN_FILTER="vcf_filter.py --no-filtered" # Assuming in path
-CONFIG="--config vcf_filter_config.ini"
+CONFIG="--config ../params/vcf_filter_config.ini"
 
 # arguments to depth filter
 DEPTH_ARGS="read_depth --debug"

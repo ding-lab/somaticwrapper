@@ -14,7 +14,7 @@ MAIN_FILTER="vcf_filter.py --no-filtered" # Assuming in path
 # arguments to length filter
 LENGTH_ARGS="indel_length --debug "
 
-CONFIG="--config vcf_filter_config.ini"
+CONFIG="--config ../params/vcf_filter_config.ini"
 
 $MAIN_FILTER --local-script $LENGTH_FILTER_LOCAL $VARSCAN_VCF $LENGTH_ARGS $CONFIG
 

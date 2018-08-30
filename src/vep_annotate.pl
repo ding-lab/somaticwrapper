@@ -128,7 +128,8 @@ sub vep_annotate {
         $output_fn = "$filter_results/output.vep";
     }
 
-    # Adding final output to vep annotation
+    # annotating merged output with VEP annotation
+    # followed by AF (allele frequency) and Consequence filter
     write_vep_input(
         $config_fn,          # Config fn
         "merged.vep",                               # Module

@@ -31,6 +31,6 @@ SNV_VAF_ARGS="vaf --debug" # --debug"
 
 # testing - strelka - OK
 CALLER="--caller strelka"
-CONFIG="--config vcf_filter_config.ini"
+CONFIG="--config ../params/vcf_filter_config.ini"
 $MAIN_FILTER --local-script $VAF_FILTER_LOCAL $STRELKA_VCF $SNV_VAF_ARGS $CALLER $CONFIG
 

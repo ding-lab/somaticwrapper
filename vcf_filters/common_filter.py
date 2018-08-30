@@ -48,7 +48,7 @@ class ConfigFileFilter(vcf.filters.Base):
             if required:
                 raise Exception("Error: %s " % msg)
             else:
-                eprint("Config value %s not defined" % option)
+                if self.debug: eprint("Config value %s not defined" % option)
         # set this attribute even if not defined - it will have value of None
         setattr(self, option, value)
 

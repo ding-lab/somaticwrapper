@@ -7,7 +7,7 @@ VARSCAN_VCF="$DATAD/dat/varscan.short.vcf"
 VARSCAN_INDEL_VCF="$DATAD/origdata/varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf"
 PINDEL_VCF="$DATAD/dat/pindel.short.vcf"
 
-CONFIG="vcf_filter_config.ini"
+CONFIG="../params/vcf_filter_config.ini"
 
 VCF=$STRELKA_VCF
 CALLER="strelka"
@@ -27,7 +27,7 @@ bash run_combined_filter.sh $VCF $CALLER $CONFIG $OUT
 VCF=$PINDEL_VCF
 CALLER="pindel"
 OUT="pindel.test.vcf"
-CONFIG="pindel-vcf_filter_config.ini"
+CONFIG="../params/pindel-vcf_filter_config.ini"
 bash run_combined_filter.sh $VCF $CALLER $CONFIG $OUT 
 
 

@@ -78,14 +78,14 @@ class AFFilter(VEPFilter):
 
         # Pass if empty
         if af is None:
-            eprint("** Passes AF filter (%s is undefined) **" % (self.af_field))
+            if self.debug: eprint("** Passes AF filter (%s is undefined) **" % (self.af_field))
             return
 
         # Reject if af >= max_af
         if af >= self.max_af:
-            if (self.debug): eprint("** Failed %s = %f ** " % (self.af_field, af))
+            if self.debug: eprint("** Failed %s = %f ** " % (self.af_field, af))
             return "%s: %d" % (self.af_field, af)
 
-        if (self.debug):
+        if self.debug:
             eprint("** Passes AF filter (%s = %f) **" % (self.af_field, af))
 
