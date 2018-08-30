@@ -54,47 +54,11 @@ if ($paras{'usedb'}) {
 } else {
     print STDERR ("VEP Cache mode\n");
     if (exists($paras{'cache_version'})) { $opts = "$opts --cache_version $paras{'cache_version'}" }
-
-    # split off original header
-    my (undef, $tmp_orig_calls)  = tempfile();
-    $cmd="/bin/grep -v ^# $paras{'vcf'} > $tmp_orig_calls";
-    system($cmd);
-
-    # run vep if input VCF not empty
-    my (undef, $tmp_vep_out) = tempfile();
-    if (-s $tmp_orig_calls) {
-        # cache_version is something like '90' - seems it needs to be specified
-        my $opts = "$opts --af --max_af --af_1kg --af_esp --af_gnomad";
-        $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --fork 4 --format vcf $vcf_flag -i $tmp_orig_calls -o $tmp_vep_out --force_overwrite  --fasta $paras{'reffasta'}";
-        print($cmd . "\n");
-        my $errcode = system($cmd); 
-        die ("Error executing: $cmd \n $! \n") if ($errcode);
-    } else {
-        print STDERR ("VCF is empty\n");
-        system("touch $tmp_vep_out");
-    }
-
-    print STDERR "merging headers and stuff \n";
-
-    # re-merge headers and move
-    my (undef, $tmp_merge) = tempfile();
-    $cmd = "grep ^##fileformat $tmp_vep_out > $tmp_merge";
-    system($cmd);
-    $cmd = "grep ^# $paras{'vcf'} | grep -v ^##fileformat | grep -v ^#CHROM >> $tmp_merge";
-    system($cmd);
-    $cmd = "grep -v ^##fileformat $tmp_vep_out >> $tmp_merge";
-    system($cmd);
-    $cmd = "cat $tmp_merge > $paras{'output'}";
-    system($cmd);
-
-    #Save other output
-    my @suffix=("_summary.html", "_warnings.txt");
-    foreach (@suffix) {
-        my $file = $tmp_vep_out.$_;   if ( -e $file ) { $cmd = "cat $file > $paras{'output'}".$_; system($cmd); }
-    }
-    # clean up
-    $cmd = "rm -f $tmp_orig_calls $tmp_vep_out"."*"." ".$tmp_merge;
-    system($cmd);
+    my $opts = "$opts --af --max_af --af_1kg --af_esp --af_gnomad";
+    $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --fork 4 --format vcf $vcf_flag -i $paras{'vcf'} -o $paras{'output'} --force_overwrite  --fasta $paras{'reffasta'}";
+    print($cmd . "\n");
+    my $errcode = system($cmd); 
+    die ("Error executing: $cmd \n $! \n") if ($errcode);
 }
 
 print STDERR ("Written to: $paras{'output'}\n");

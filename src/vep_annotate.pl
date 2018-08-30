@@ -199,7 +199,7 @@ $module.cachedir = $cache_dir
 $module.reffasta = $reference
 $module.usedb = $use_vep_db  
 $module.output_vep = $output_vep_int
-$module.vep_opts = --flag_pick
+$module.vep_opts = --flag_pick 
 EOF
 
     # optional parameters
