@@ -1,5 +1,5 @@
-# somaticwrapper version 1.1 ##
-
+# somaticwrapper version 2.1 ##
+### for HG38 ##
 Detect somatic variants from tumor and normal WXS or WGS data
 
 ### Song Cao ###
@@ -10,7 +10,7 @@ SomaticWrapper pipeline is a fully automated and modular software package design
 
 Pipeline version: 1.1
 
-Usage: perl somatic_calling_v1.1.pl --srg --step --sre --rdir --ref --refname --log --q --wgs 
+Usage: perl somatic_calling_v1.1.pl --srg --step --sre --rdir --ref --log --q --wgs 
 
 <rdir> = full path of the folder holding files for this sequence run (user must provide)
 <log> = full path of the folder for saving log file; usually upper folder of rdir
@@ -22,23 +22,19 @@ Usage: perl somatic_calling_v1.1.pl --srg --step --sre --rdir --ref --refname --
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
 <wgs> ==  1 for yes and 0 for no 
 
-with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
+HG38: 
 
-without chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite.fa
 
-mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
-
-hg19: /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta 
 
   [0]  Run all steps
  
-  [1]  Run streka
+  [1]  Run mutect
  
   [2]  Run Varscan
 
   [3] Run Pindel
 
-  [4]  Parse streka result
+  [4]  Parse mutect result
 
   [5]  Parse VarScan result
 

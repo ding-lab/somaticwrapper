@@ -1,5 +1,6 @@
 ######### Song Cao###########
 ## pipeline for somatic variant callings ##
+## for HG38 database ##
 #	somatic_variant_callings.pl #
 ###	updated date: 04/05/2017 ###
 ### updated date: 04/18/2017 ###
@@ -162,12 +163,17 @@ my $bsub_com = "";
 my $sample_full_path = "";
 my $sample_name = "";
 ### absolute paths for STRELKA, PINDEL, GATK
-my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
+my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/mutect/1.0.14/bin";
 my $pindel="/gscuser/scao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/scao/tools/pindel";
 my $picardexe="/gscuser/scao/tools/picard.jar";
 my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
 my $java_dir="/gscuser/scao/tools/jre1.8.0_121";
+
+### dbsnp database, cosmic database ##
+
+my $DB_SNP="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.snp142.GRCh37.mutect.vcf";
+my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicCodingMuts.vcf";
 
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $f_ref_annot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
@@ -200,7 +206,7 @@ if ($step_number < 9) {
 				   &bsub_varscan();
 ## run pindel ##
 					&bsub_pindel();
-## parse strelka ##
+## parse mutect ##
 				   &bsub_parse_mutect();
 ## parse varscan ##
 				   &bsub_parse_varscan();
@@ -218,13 +224,13 @@ if ($step_number < 9) {
                 } 
 				elsif ($step_number == 3) {
 					&bsub_pindel(1);
-                    #&bsub_parse_strelka(1);
+                    #&bsub_parse_mutect(1);
                 } 
 				elsif ($step_number == 4) {
                     #&bsub_parse_varscan(1);
-					&bsub_parse_strelka(1);
+					&bsub_parse_mutect(1);
                 }elsif ($step_number == 5) {
-                  #  &bsub_parse_strelka(1);
+                  #  &bsub_parse_mutect(1);
 					&bsub_parse_varscan(1);
                 }elsif ($step_number == 6) {
                     &bsub_parse_pindel(1);
@@ -484,6 +490,7 @@ sub bsub_mutect{
     print $bsub_com;
 
     system ( $bsub_com );
+
 }
 
 
@@ -974,21 +981,21 @@ sub bsub_pindel{
   #  print VEP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
   #  print VEP "varscan.vep.assembly = GRCh37\n";
   #  print VEP "EOF\n";
-  #	print VEP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.snv.input <<EOF\n";
- # 	print VEP "strelka.vep.vcf = ./strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
- #   print VEP "strelka.vep.output = ./strelka.somatic_snv.current_final.gvip.Somatic.VEP.vcf\n";
-  #	print VEP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
- # 	print VEP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-  #	print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
- #	print VEP "strelka.vep.assembly = GRCh37\n";
+  #	print VEP "cat > \${RUNDIR}/mutect/mutect_out/results/mutect_vep.snv.input <<EOF\n";
+ # 	print VEP "mutect.vep.vcf = ./mutect.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
+ #   print VEP "mutect.vep.output = ./mutect.somatic_snv.current_final.gvip.Somatic.VEP.vcf\n";
+  #	print VEP "mutect.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
+ # 	print VEP "mutect.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
+  #	print VEP "mutect.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
+ #	print VEP "mutect.vep.assembly = GRCh37\n";
  #	print VEP "EOF\n";
-  #  print VEP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.indel.input <<EOF\n";
-  #  print VEP "strelka.vep.vcf = ./strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
-  #  print VEP "strelka.vep.output = ./strelka.somatic_indel.current_final.gvip.Somatic.VEP.vcf\n";
-  #  print VEP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-  #  print VEP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-  #  print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-  #  print VEP "strelka.vep.assembly = GRCh37\n";
+  #  print VEP "cat > \${RUNDIR}/mutect/mutect_out/results/mutect_vep.indel.input <<EOF\n";
+  #  print VEP "mutect.vep.vcf = ./mutect.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
+  #  print VEP "mutect.vep.output = ./mutect.somatic_indel.current_final.gvip.Somatic.VEP.vcf\n";
+  #  print VEP "mutect.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
+  #  print VEP "mutect.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
+  #  print VEP "mutect.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
+  #  print VEP "mutect.vep.assembly = GRCh37\n";
   #  print VEP "EOF\n";
   #  print VEP "cat > \${RUNDIR}/varscan/vs_vep.snv.inital.input <<EOF\n";
   #  print VEP "varscan.vep.vcf = ./varscan.out.som_snv.gvip.vcf\n";
@@ -1006,21 +1013,21 @@ sub bsub_pindel{
   #  print VEP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
   #  print VEP "varscan.vep.assembly = GRCh37\n";
   #  print VEP "EOF\n";
-  #  print VEP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.snv.initial.input <<EOF\n";
-  #  print VEP "strelka.vep.vcf = ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
-  #  print VEP "strelka.vep.output = ./strelka.somatic.snv.strlk_pass.gvip.VEP.vcf\n";
-  #  print VEP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-  #  print VEP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-  #  print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-  #  print VEP "strelka.vep.assembly = GRCh37\n";
+  #  print VEP "cat > \${RUNDIR}/mutect/mutect_out/results/mutect_vep.snv.initial.input <<EOF\n";
+  #  print VEP "mutect.vep.vcf = ./mutect.somatic.snv.strlk_pass.gvip.vcf\n";
+  #  print VEP "mutect.vep.output = ./mutect.somatic.snv.strlk_pass.gvip.VEP.vcf\n";
+  #  print VEP "mutect.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
+  #  print VEP "mutect.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
+  #  print VEP "mutect.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
+  #  print VEP "mutect.vep.assembly = GRCh37\n";
   #  print VEP "EOF\n";
-  #  print VEP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.indel.initial.input <<EOF\n";
-  #  print VEP "strelka.vep.vcf = ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";
- #   print VEP "strelka.vep.output = ./strelka.somatic.indel.strlk_pass.gvip.VEP.vcf\n";
-  #  print VEP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
- #   print VEP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
- #   print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
- #   print VEP "strelka.vep.assembly = GRCh37\n";
+  #  print VEP "cat > \${RUNDIR}/mutect/mutect_out/results/mutect_vep.indel.initial.input <<EOF\n";
+  #  print VEP "mutect.vep.vcf = ./mutect.somatic.indel.strlk_pass.gvip.vcf\n";
+ #   print VEP "mutect.vep.output = ./mutect.somatic.indel.strlk_pass.gvip.VEP.vcf\n";
+  #  print VEP "mutect.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
+ #   print VEP "mutect.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
+ #   print VEP "mutect.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
+ #   print VEP "mutect.vep.assembly = GRCh37\n";
  #   print VEP "EOF\n";
 #    print VEP ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
 #	print VEP "cd \${RUNDIR}/varscan\n";
@@ -1028,11 +1035,11 @@ sub bsub_pindel{
   #  print VEP "     ".$run_script_path."vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";
   #  print VEP "     ".$run_script_path."vep_annotator.pl ./vs_vep.snv.initial.input >& ./vs_vep.snv.initial.log\n";
   #  print VEP "     ".$run_script_path."vep_annotator.pl ./vs_vep.indel.initial.input >& ./vs_vep.indel.initial.log\n";
-  #  print VEP "cd \${RUNDIR}/strelka/strelka_out/results\n";
-  #  print VEP "     ".$run_script_path."vep_annotator.pl ./strelka_vep.snv.input >& ./strelka_vep.snv.log\n";
-  #  print VEP "     ".$run_script_path."vep_annotator.pl ./strelka_vep.indel.input >& ./strelka_vep.indel.log\n";
-  #  print VEP "     ".$run_script_path."vep_annotator.pl ./strelka_vep.snv.initial.input >& ./strelka_vep.snv.initial.log\n";
-  #  print VEP "     ".$run_script_path."vep_annotator.pl ./strelka_vep.indel.initial.input >& ./strelka_vep.indel.initial.log\n";
+  #  print VEP "cd \${RUNDIR}/mutect/mutect_out/results\n";
+  #  print VEP "     ".$run_script_path."vep_annotator.pl ./mutect_vep.snv.input >& ./mutect_vep.snv.log\n";
+  #  print VEP "     ".$run_script_path."vep_annotator.pl ./mutect_vep.indel.input >& ./mutect_vep.indel.log\n";
+  #  print VEP "     ".$run_script_path."vep_annotator.pl ./mutect_vep.snv.initial.input >& ./mutect_vep.snv.initial.log\n";
+  #  print VEP "     ".$run_script_path."vep_annotator.pl ./mutect_vep.indel.initial.input >& ./mutect_vep.indel.initial.log\n";
   #  print VEP "cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF\n";
   #  print VEP "pindel.vep.vcf = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
   #  print VEP "pindel.vep.output = ./pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf\n";
@@ -1211,7 +1218,7 @@ sub bsub_merge_vcf{
     print MERGE "export JAVA_HOME=$java_dir\n";
     print MERGE "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-	print MERGE "STRELKA_VCF="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
+	print MERGE "STRELKA_VCF="."\${RUNDIR}/mutect/mutect_out/results/mutect.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
 	print MERGE "VARSCAN_VCF="."\${RUNDIR}/varscan/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
 	print MERGE "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
 	print MERGE "VARSCAN_INDEL="."\${RUNDIR}/varscan/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
@@ -1225,7 +1232,7 @@ sub bsub_merge_vcf{
     print MERGE "merged.vep.reffasta = $f_ref_annot\n";
     print MERGE "merged.vep.assembly = GRCh37\n";
     print MERGE "EOF\n";
-	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,pindel,varindel\n"; 
+	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:mutect \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority mutect,varscan,pindel,varindel\n"; 
 	#print MERGE "     ".$run_script_path."vaf_filter_hg19.pl \${RUNDIR}\n";
     #print MERGE "if [ $ref_name = $hg19 ]\n";
     #print MERGE "then\n";	
