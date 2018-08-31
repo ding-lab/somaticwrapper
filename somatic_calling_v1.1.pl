@@ -47,16 +47,13 @@ $normal
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
 <wgs> ==  1 for yes and 0 for no 
 
-with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
-without chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite.fa
-mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
-hg19: /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta 
+Hg38: /gscmnt/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.fa
 
 $red 	     [0]  Run all steps
-$green       [1]  Run streka
+$green       [1]  Run mutect
 $green 		 [2]  Run Varscan
 $green       [3]  Run Pindel
-$yellow 	 [4]  Parse streka result
+$yellow 	 [4]  Parse mutect result
 $yellow 	 [5]  Parse VarScan result
 $yellow      [6]  Parse Pindel
 $cyan 	     [7]  Merge vcf files  
@@ -79,6 +76,7 @@ my $run_dir="";
 my $log_dir="";
 my $h37_REF="";
 my $ref_name="";
+my $chr_status=0;
 
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
@@ -172,13 +170,18 @@ my $java_dir="/gscuser/scao/tools/jre1.8.0_121";
 
 ### dbsnp database, cosmic database ##
 
-my $DB_SNP="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.snp142.GRCh37.mutect.vcf";
-my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicCodingMuts.vcf";
+my $DB_SNP="/gscmnt/gc2737/ding/hg38_database/DBSNP/00-All.chr.vcf";
+my $DB_COSMIC="/gscmnt/gc2737/ding/hg38_database/COSMIC/CosmicCodingMuts.chr.vcf";
 
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $f_ref_annot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
 my $h37_REF_bai=$h37_REF.".fai";
 my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
+my $gatkexe3="/gscmnt/gc2525/dinglab/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
+
+my $first_line=`head -n 1 $h37_REF`;
+
+if($first_line=~/^\>chr/) { $chr_status=1; }
 
 opendir(DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
 my @sample_dir_list = readdir DH;
@@ -201,11 +204,11 @@ if ($step_number < 9) {
                 if($step_number==0)
                 {  
 # run mutect ##	
-			   &bsub_mutect();
+			   	   &bsub_mutect();
 # run varscan ##
 				   &bsub_varscan();
 ## run pindel ##
-					&bsub_pindel();
+				   &bsub_pindel();
 ## parse mutect ##
 				   &bsub_parse_mutect();
 ## parse varscan ##
