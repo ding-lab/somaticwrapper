@@ -1,13 +1,11 @@
 # Testing depth filter using pyvcf's exensible vcf_filter.py framework
-
-DATAD="/data"  # this works if running inside of docker
+source common_config.sh
 
 STRELKA_VCF="$DATAD/origdata/strelka.somatic.snv.all.dbsnp_pass.vcf"
 VARSCAN_VCF="$DATAD/dat/varscan.short.vcf"
 VARSCAN_INDEL_VCF="$DATAD/origdata/varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf"
 PINDEL_VCF="$DATAD/dat/pindel.short.vcf"
 
-export PYTHONPATH="somaticwrapper.cwl/vcf_filters:$PYTHONPATH"
 VAF_FILTER_LOCAL="vaf_filter.py"  # filter module
 DEPTH_FILTER_LOCAL="depth_filter.py"  # filter module
 LENGTH_FILTER_LOCAL="length_filter.py"  # filter module

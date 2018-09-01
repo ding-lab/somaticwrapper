@@ -16,6 +16,7 @@ import sys
 # optional command line parameters
 # --debug
 # --config config.ini
+# --bypass
 
 class IndelLengthFilter(ConfigFileFilter):
     'Filter indel variant sites by reference and variant length'
@@ -28,10 +29,12 @@ class IndelLengthFilter(ConfigFileFilter):
         parser.add_argument('--max_length', type=int, help='Retain sites where indel length <= given value. 0 disables test')
         parser.add_argument('--config', type=str, help='Optional configuration file')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
+        parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
 
     def __init__(self, args):
         # These will not be set from config file (though could be)
         self.debug = args.debug
+        self.bypass = args.bypass
 
         # Read arguments from config file first, if present.
         # Then read from command line args, if defined
@@ -44,7 +47,10 @@ class IndelLengthFilter(ConfigFileFilter):
         self.set_args(config, args, "max_length", arg_type="int")
 
         # below becomes Description field in VCF
-        self.__doc__ = "Retain calls where indel length > %d and < %d " % (self.min_length, self.max_length)
+        if self.bypass:
+            self.__doc__ = "Bypassing Indel Length filter, retaining all reads"
+        else:
+            self.__doc__ = "Retain calls where indel length > %d and < %d " % (self.min_length, self.max_length)
         self.debug = args.debug
 
     def filter_name(self):
@@ -61,6 +67,10 @@ class IndelLengthFilter(ConfigFileFilter):
         if (self.debug):
             eprint("Reference, Variant: %s, %s" % (record.REF, record.ALT))
             eprint("Reference, Variant lengths: %d, %d" % (len_REF, len_ALT))
+
+        if self.bypass:
+            if (self.debug): eprint("** Bypassing filter, retaining read **" )
+            return
 
         if len_REF < self.min_length:
             if (self.debug): eprint("** Failed REF min_length = %d **" % len_REF)

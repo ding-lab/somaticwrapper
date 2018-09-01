@@ -4,13 +4,13 @@
 #   bash run_combined_af_classification_filter.sh input.vcf af_config.ini classification_config.ini output.vcf [args]
 # args is optional argument passed to all filters, e.g., --debug
 
-VCF=$1
-AF_CONFIG=$2
-CLASS_CONFIG=$3
-OUT=$4
-XARG=$5  # optional argument passed to all filters, may be --debug
+VCF=$1 ; shift
+AF_CONFIG=$1 ; shift
+CLASS_CONFIG=$1 ; shift
+OUT=$1 ; shift
+XARG="$@"  # optional argument passed to all filters, may be --debug
 
-export PYTHONPATH="somaticwrapper.cwl/vcf_filters:$PYTHONPATH"
+export PYTHONPATH="/usr/local/somaticwrapper/src/vcf_filters:$PYTHONPATH"
 
 MAIN_FILTER="vcf_filter.py --no-filtered" # Assuming in path
 

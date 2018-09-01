@@ -1,15 +1,10 @@
-from __future__ import print_function
+from common_filter import *
 import sys
-import vcf.filters
 
 # filter to include or exclude calls based on their caller, as defined by INFO field "set"
 # TODO: base on ConfigFileFilter (like depth_filter.py).  get rid of eprint below and update import fields
 
-# Portable printing to stderr, from https://stackoverflow.com/questions/5574702/how-to-print-to-stderr-in-python-2
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
-class MergedCallerFilter(vcf.filters.Base):
+class MergedCallerFilter(ConfigFileFilter):
     'Filter variant sites by caller, as defined by INFO field "set".'
 
     name = 'merged_caller'
@@ -39,11 +34,11 @@ class MergedCallerFilter(vcf.filters.Base):
 
         # below becomes Description field in VCF
         if self.bypass:
-            self.__doc__ = "merge_filter.py: Bypassing filter, retaining all reads"
+            self.__doc__ = "Bypassing Merge filter, retaining all reads"
         elif self.including:
-            self.__doc__ = "merge_filter.py: Retain calls where 'set' INFO field includes one of " + args.include
+            self.__doc__ = "Retain calls where 'set' INFO field includes one of " + args.include
         else:
-            self.__doc__ = "merge_filter.py: Exclude calls where 'set' INFO field includes any of " + args.exclude
+            self.__doc__ = "Exclude calls where 'set' INFO field includes any of " + args.exclude
 
     def filter_name(self):
         return self.name

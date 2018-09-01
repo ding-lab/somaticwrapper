@@ -19,6 +19,7 @@ import sys
 # optional command line parameters
 # --debug
 # --config config.ini
+# --bypass
 
 class DepthFilter(ConfigFileFilter):
     'Filter variant sites by read depth'
@@ -34,11 +35,13 @@ class DepthFilter(ConfigFileFilter):
         parser.add_argument('--caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel'], help='Caller type')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
         parser.add_argument('--config', type=str, help='Optional configuration file')
+        parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
 
     def __init__(self, args):
         # These will not be set from config file (though could be)
         self.caller = args.caller
         self.debug = args.debug
+        self.bypass = args.bypass
 
         # Read arguments from config file first, if present.
         # Then read from command line args, if defined
@@ -51,7 +54,10 @@ class DepthFilter(ConfigFileFilter):
         self.set_args(config, args, "normal_name")
 
         # below becomes Description field in VCF
-        self.__doc__ = "Retain calls where read depth in tumor and normal > %d " % (self.min_depth)
+        if self.bypass:
+            self.__doc__ = "Bypassing Depth filter, retaining all reads"
+        else:
+            self.__doc__ = "Retain calls where read depth in tumor and normal > %d " % (self.min_depth)
 
     def filter_name(self):
         return self.name
@@ -94,6 +100,10 @@ class DepthFilter(ConfigFileFilter):
 
         if (self.debug):
             eprint("Normal, Tumor depths: %d, %d" % (depth_N, depth_T))
+
+        if self.bypass:
+            if (self.debug): eprint("** Bypassing filter, retaining read **" )
+            return
 
         if depth_N < self.min_depth:
             if (self.debug): eprint("** Failed NORMAL min_depth = %d ** " % depth_N)

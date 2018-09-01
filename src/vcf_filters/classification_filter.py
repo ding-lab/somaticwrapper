@@ -88,7 +88,7 @@ class ClassificationFilter(VEPFilter):
 
         # below becomes Description field in VCF
         if self.bypass:
-            self.__doc__ = "Bypassing filter, retaining all reads"
+            self.__doc__ = "Bypassing Classification filter, retaining all reads"
         elif self.including:
             self.__doc__ = "Retain calls where INFO CSQ field '%s' (in most significant transcript) includes one of %s" % (self.filter_field, str(self.classifications))
         else:

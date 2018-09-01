@@ -21,6 +21,7 @@ import sys
 # optional command line parameters
 # --debug
 # --config config.ini
+# --bypass
 
 class TumorNormal_VAF(ConfigFileFilter):
     'Filter variant sites by tumor and normal VAF (variant allele frequency)'
@@ -40,11 +41,13 @@ class TumorNormal_VAF(ConfigFileFilter):
         parser.add_argument('--caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel', 'merged'], help='Caller type')
         parser.add_argument('--config', type=str, help='Optional configuration file')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
+        parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
         
     def __init__(self, args):
         # These will not be set from config file (though could be)
         self.caller = args.caller
         self.debug = args.debug
+        self.bypass = args.bypass
 
         # Read arguments from config file first, if present.
         # Then read from command line args, if defined
@@ -58,7 +61,10 @@ class TumorNormal_VAF(ConfigFileFilter):
         self.set_args(config, args, "normal_name")
 
         # below becomes Description field in VCF
-        self.__doc__ = "Retain calls where normal VAF <= %f and tumor VAF >= %f " % (self.max_vaf_germline, self.min_vaf_somatic)
+        if self.bypass:
+            self.__doc__ = "Bypassing Tumor Normal VAF filter, retaining all reads"
+        else:
+            self.__doc__ = "Retain calls where normal VAF <= %f and tumor VAF >= %f " % (self.max_vaf_germline, self.min_vaf_somatic)
             
     def filter_name(self):
         return self.name
@@ -136,6 +142,11 @@ class TumorNormal_VAF(ConfigFileFilter):
 
         if (self.debug):
             eprint("Normal, Tumor vaf: %f, %f" % (vaf_N, vaf_T))
+
+        if self.bypass:
+            if (self.debug): eprint("** Bypassing filter, retaining read **" )
+            return
+
 ##       Original logic, with 2=Tumor
 ##           RETAIN if($rc2var/$r_tot2>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_tot2>=$min_coverage && $r_tot>=$min_coverage)
 ##       Here, logic is reversed.  We return if fail a test

@@ -10,13 +10,13 @@ SAMPLE="C3N-01649"
 STEP=9
 
 # In general we want to use the data in the /data directory
-MERGED_VCF="/data/s8_merge_vcf/results/merged/merged.filtered.vcf"
+#MERGED_VCF="/data/s8_merge_vcf/results/merged/merged.filtered.vcf"
+# However, currently we moved merged.filtered.vcf here explicitly for testing
+MERGED_VCF="C3N-01649.results/old-s8/merged.filtered.vcf"
 
 AF_FILTER_CONFIG="/usr/local/somaticwrapper/params/af_filter_config.ini"
 CLASS_FILTER_CONFIG="/usr/local/somaticwrapper/params/classification_filter_config.ini"
 
-# However, currently we moved merged.filtered.vcf here explicitly for testing
-MERGED_VCF="C3N-01649.results/old-s8/merged.filtered.vcf"
 
 CACHE_DIR="/image/D_VEP"
 CACHE_GZ="/image/D_VEP/vep-cache.90_GRCh37.tar.gz"
@@ -50,6 +50,7 @@ ARGS="\
 --af_filter_config $AF_FILTER_CONFIG \
 --classification_filter_config $CLASS_FILTER_CONFIG \
 "
+#--bypass \
 
 #--vep_cache_gz $CACHE_GZ \
 #--vep_output vcf \

@@ -160,7 +160,7 @@ my $manta_vcf;
 # parameters below based on Docker image locations.  It would perhaps be useful to define these in a configuration file.
 my $sw_dir = "/usr/local/somaticwrapper";
 my $gvip_dir="$sw_dir/GenomeVIP";
-my $filter_dir="$sw_dir/vcf_filters";
+my $filter_dir="$sw_dir/src/vcf_filters";
 my $strelka_dir = "/usr/local/strelka";
 my $strelka2_dir = "/usr/local/strelka2";
 my $gatk_jar = "/usr/local/GenomeAnalysisTK/GenomeAnalysisTK.jar";

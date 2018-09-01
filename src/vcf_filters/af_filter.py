@@ -68,7 +68,7 @@ class AFFilter(VEPFilter):
 
         # below becomes Description field in VCF
         if self.bypass:
-            self.__doc__ = "Bypassing filter, retaining all reads"
+            self.__doc__ = "Bypassing AF filter, retaining all reads"
         else:
             self.__doc__ = "Retain calls where %s < %f " % (self.af_field, self.max_af)
 
