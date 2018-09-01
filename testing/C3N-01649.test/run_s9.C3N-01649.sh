@@ -7,12 +7,12 @@ mkdir -p $OUTDIR
 
 SAMPLE="C3N-01649"
 
-STEP=9
+STEP=vep_annotate
 
 # In general we want to use the data in the /data directory
 #MERGED_VCF="/data/s8_merge_vcf/results/merged/merged.filtered.vcf"
 # However, currently we moved merged.filtered.vcf here explicitly for testing
-MERGED_VCF="C3N-01649.results/old-s8/merged.filtered.vcf"
+MERGED_VCF="C3N-01649.results/merged/merged.filtered.vcf"
 
 AF_FILTER_CONFIG="/usr/local/somaticwrapper/params/af_filter_config.ini"
 CLASS_FILTER_CONFIG="/usr/local/somaticwrapper/params/classification_filter_config.ini"
