@@ -5,6 +5,7 @@
 # where CALLER is one of strelka, varscan, or pindel
 # config.ini is configuration file used by all filters
 # args is optional argument passed to all filters, e.g., --debug
+# If output.vcf is -, write to stdout
 
 VCF=$1 ; shift
 CALLER=$1 ; shift

@@ -1,4 +1,3 @@
-
 # run Allele Frequency and Consequence filters on a VCF
 # Usage:
 #   bash run_combined_af_classification_filter.sh input.vcf af_config.ini classification_config.ini output.vcf [args]
@@ -22,8 +21,16 @@ AF_FILTER_ARGS="af $XARG --config $AF_CONFIG --input_vcf $VCF"
 CLASS_FILTER="vcf_filter.py --no-filtered --local-script classification_filter.py"  # filter module
 CLASS_FILTER_ARGS="classification $XARG --config $CLASS_CONFIG --input_vcf $VCF" 
 
+if [ $OUT == '-' ]; then
+
+$AF_FILTER $VCF $AF_FILTER_ARGS | $CLASS_FILTER - $CLASS_FILTER_ARGS 
+
+else
 
 $AF_FILTER $VCF $AF_FILTER_ARGS | $CLASS_FILTER - $CLASS_FILTER_ARGS > $OUT
+
+fi
+
 
 # Evaluate return value for chain of pipes; see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
 rcs=${PIPESTATUS[*]};
