@@ -6,11 +6,11 @@
 # config.ini is configuration file used by all filters
 # args is optional argument passed to all filters, e.g., --debug
 
-VCF=$1
-CALLER=$2
-CONFIG_FN=$3
-OUT=$4
-XARG=$5  # optional argument passed to all filters, may be --debug
+VCF=$1 ; shift
+CALLER=$1 ; shift
+CONFIG_FN=$1 ; shift
+OUT=$1 ; shift
+XARG="$@"  # optional argument passed to all filters, may be --debug
 
 CALLER_ARG="--caller $CALLER"
 
@@ -33,7 +33,16 @@ LENGTH_FILTER_ARGS="indel_length $XARG $CONFIG"
 DEPTH_FILTER="vcf_filter.py --no-filtered --local-script depth_filter.py"  # filter module
 DEPTH_FILTER_ARGS="read_depth $XARG $CONFIG $CALLER_ARG" 
 
+if [ $OUT == '-' ]; then
+
+$VAF_FILTER $VCF $VAF_FILTER_ARGS | $LENGTH_FILTER - $LENGTH_FILTER_ARGS | $DEPTH_FILTER - $DEPTH_FILTER_ARGS 
+
+else
+
 $VAF_FILTER $VCF $VAF_FILTER_ARGS | $LENGTH_FILTER - $LENGTH_FILTER_ARGS | $DEPTH_FILTER - $DEPTH_FILTER_ARGS > $OUT
+
+fi
+
 
 # Evaluate return value for chain of pipes; see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
 rcs=${PIPESTATUS[*]};

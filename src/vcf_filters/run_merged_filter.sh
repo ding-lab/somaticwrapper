@@ -5,10 +5,11 @@
 # Usage:
 #   bash run_merged_filter.sh input.vcf output.vcf [args ...]
 # args is optional argument passed to all filters, e.g., --debug
+# If output.vcf is -, write to stdout
 
 VCF=$1; shift
 OUT=$1; shift
-XARG=$@  # https://stackoverflow.com/questions/1537673/how-do-i-forward-parameters-to-other-command-in-bash-script
+XARG="$@"  # https://stackoverflow.com/questions/1537673/how-do-i-forward-parameters-to-other-command-in-bash-script
 
 if [ -z $OUT ]; then
 echo Output VCF not specified.  Quitting.
@@ -20,7 +21,15 @@ export PYTHONPATH="/usr/local/somaticwrapper/vcf_filters:$PYTHONPATH"
 MERGE_FILTER="vcf_filter.py --no-filtered --local-script merge_filter.py"  # filter module
 MERGE_FILTER_ARGS="merged_caller --exclude strelka,varscan $XARG " 
 
-$MERGE_FILTER $VCF $MERGE_FILTER_ARGS > $OUT
+if [ $OUT == '-' ]; then
+
+    $MERGE_FILTER $VCF $MERGE_FILTER_ARGS 
+
+else
+
+    $MERGE_FILTER $VCF $MERGE_FILTER_ARGS > $OUT
+
+fi
 
 # Evaluate return value for chain of pipes; see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
 rcs=${PIPESTATUS[*]};

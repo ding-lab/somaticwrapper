@@ -48,22 +48,22 @@ class MergedCallerFilter(ConfigFileFilter):
         caller = record.INFO['set']
 
         if self.bypass:
-            if (self.debug): eprint("** Bypassing filter, retaining read **" )
+            if (self.debug): eprint("** Bypassing %s filter, retaining read **" % self.name )
             return
 
         if self.including:
             # keep call only if caller is in callers list
             if caller not in self.callers:
-                if (self.debug): eprint("** Failed: %s not in %s **" % (caller, str(self.callers)))
+                if (self.debug): eprint("** FAIL: %s not in %s **" % (caller, str(self.callers)))
                 return "unknown " + caller
             else:
-                if (self.debug): eprint("** Passes: %s in %s **" % (caller, str(self.callers)))
+                if (self.debug): eprint("** PASS: %s in %s **" % (caller, str(self.callers)))
                 return
         else:                 
             # keep call only if caller is not in callers list
             if caller in self.callers:
-                if (self.debug): eprint("** Failed: %s is in %s **" % (caller, str(self.callers)))
+                if (self.debug): eprint("** FAIL: %s is in %s **" % (caller, str(self.callers)))
                 return "excluding " + caller
             else:
-                if (self.debug): eprint("** Passes: %s not in %s **" % (caller, str(self.callers)))
+                if (self.debug): eprint("** PASS: %s not in %s **" % (caller, str(self.callers)))
                 return

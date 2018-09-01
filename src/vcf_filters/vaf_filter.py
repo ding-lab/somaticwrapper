@@ -144,7 +144,7 @@ class TumorNormal_VAF(ConfigFileFilter):
             eprint("Normal, Tumor vaf: %f, %f" % (vaf_N, vaf_T))
 
         if self.bypass:
-            if (self.debug): eprint("** Bypassing filter, retaining read **" )
+            if (self.debug): eprint("** Bypassing %s filter, retaining read **" % self.name )
             return
 
 ##       Original logic, with 2=Tumor
@@ -152,12 +152,12 @@ class TumorNormal_VAF(ConfigFileFilter):
 ##       Here, logic is reversed.  We return if fail a test
         if vaf_T < self.min_vaf_somatic:
             if (self.debug):
-                eprint("** Failed vaf_T < min_vaf_somatic **")
+                eprint("** FAIL vaf_T < min_vaf_somatic **")
             return "VAF_T: %f" % vaf_T
         if vaf_N >= self.max_vaf_germline:
             if (self.debug):
-                eprint("** Failed vaf_N >= max_vaf_germline **")
+                eprint("** FAIL vaf_N >= max_vaf_germline **")
             return "VAF_N: %f" % vaf_N
         if (self.debug):
-            eprint("** Passes VAF filter **")
+            eprint("** PASS VAF filter **")
 

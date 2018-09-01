@@ -102,16 +102,16 @@ class DepthFilter(ConfigFileFilter):
             eprint("Normal, Tumor depths: %d, %d" % (depth_N, depth_T))
 
         if self.bypass:
-            if (self.debug): eprint("** Bypassing filter, retaining read **" )
+            if (self.debug): eprint("** Bypassing %s filter, retaining read **" % self.name )
             return
 
         if depth_N < self.min_depth:
-            if (self.debug): eprint("** Failed NORMAL min_depth = %d ** " % depth_N)
+            if (self.debug): eprint("** FAIL NORMAL min_depth = %d ** " % depth_N)
             return "depth_N: %d" % depth_N
         if depth_T < self.min_depth:
-            if (self.debug): eprint("** Failed TUMOR min_depth = %d ** " % depth_T)
+            if (self.debug): eprint("** FAIL TUMOR min_depth = %d ** " % depth_T)
             return "depth_T: %d" % depth_T
 
         if (self.debug):
-            eprint("** Passes read depth filter **")
+            eprint("** PASS read depth filter **")
 

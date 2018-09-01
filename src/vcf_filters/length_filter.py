@@ -69,24 +69,24 @@ class IndelLengthFilter(ConfigFileFilter):
             eprint("Reference, Variant lengths: %d, %d" % (len_REF, len_ALT))
 
         if self.bypass:
-            if (self.debug): eprint("** Bypassing filter, retaining read **" )
+            if (self.debug): eprint("** Bypassing %s filter, retaining read **" % self.name )
             return
 
         if len_REF < self.min_length:
-            if (self.debug): eprint("** Failed REF min_length = %d **" % len_REF)
+            if (self.debug): eprint("** FAIL REF min_length = %d **" % len_REF)
             return "len_REF: %f" % len_REF
         if len_ALT < self.min_length:
-            if (self.debug): eprint("** Failed ALT min_length = %d **" % len_ALT)
+            if (self.debug): eprint("** FAIL ALT min_length = %d **" % len_ALT)
             return "len_ALT: %f" % len_ALT
 
         if self.max_length is not 0:
             if len_REF > self.max_length:
-                if (self.debug): eprint("** Failed REF max_length = %d **" % len_REF)
+                if (self.debug): eprint("** FAIL REF max_length = %d **" % len_REF)
                 return "len_REF: %f" % len_REF
             if len_ALT > self.max_length:
-                if (self.debug): eprint("** Failed ALT max_length = %d **" % len_ALT)
+                if (self.debug): eprint("** FAIL ALT max_length = %d **" % len_ALT)
                 return "len_ALT: %f" % len_ALT
 
         if (self.debug):
-            eprint("** Passes length filter **")
+            eprint("** PASS length filter **")
 

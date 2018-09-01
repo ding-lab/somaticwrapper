@@ -1,17 +1,12 @@
-# Testing pyvcf's exensible vcf_flter.py framework
-# looking at merged data.  Here, pindel samples != (strelka, varscan) samples
+# Testing merge filter wrapper
+# run_merged_filter.sh exists as a wrapper script so it can easily be called from workflow
+source common_config.sh
 
-DATAD="/data"  # this works if running inside of docker
+VCF="$DATAD/root/s8_merge_vcf/results/merged/merged.vcf"
 
-VCF="$DATAD/dat/td2.merged.short.vcf"
-OUT="test.merged.vcf"
+OUT="-"
 
-bash run_merged_filter.sh $VCF $OUT
 
-#export PYTHONPATH="somaticwrapper.cwl/vcf_filters:$PYTHONPATH"
-#VAF_FILTER_LOCAL="merge_filter.py"  # filter module
-#MAIN_FILTER="vcf_filter.py --no-filtered" # Assuming in path
-## Arguments to VAF filter
-#SNV_VAF_ARGS="merged_caller --debug --include strelka-varscan" # --debug"
-#$MAIN_FILTER --local-script $VAF_FILTER_LOCAL $MERGED_VCF $SNV_VAF_ARGS 
+RUN="../../src/vcf_filters/run_merged_filter.sh"
+bash $RUN $VCF $OUT --debug
 

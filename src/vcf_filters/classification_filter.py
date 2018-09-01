@@ -113,7 +113,7 @@ class ClassificationFilter(VEPFilter):
             eprint("VALUES: " + str(CSQ_values))
 
         if self.bypass:
-            if (self.debug): eprint("** Bypassing filter, retaining read **" )
+            if (self.debug): eprint("** Bypassing %s filter, retaining read **" % self.name )
             return
 
         # Evaluate intersection of the two lists, CSQ_values and include/exclude list ("classifications")
@@ -124,15 +124,15 @@ class ClassificationFilter(VEPFilter):
 
         if self.including: # keep call if observed value(s) in list
             if len(intersection) == 0:
-                if (self.debug): eprint("** Failed: %s not in %s **" % report )
+                if (self.debug): eprint("** FAIL: %s not in %s **" % report )
                 return " %s not in %s **" % report
             else:
-                if (self.debug): eprint("** Passes: %s is in %s **" % report )
+                if (self.debug): eprint("** PASS: %s is in %s **" % report )
                 return
         else:                 
             if len(intersection) > 0: # discard call if observed value(w) in list
-                if (self.debug): eprint("** Failed: %s is in %s **" % report )
+                if (self.debug): eprint("** FAIL: %s is in %s **" % report )
                 return " %s in %s **" % report
             else:
-                if (self.debug): eprint("** Passes: %s not in %s **" % report )
+                if (self.debug): eprint("** PASS: %s not in %s **" % report )
                 return

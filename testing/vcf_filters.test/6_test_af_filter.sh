@@ -1,4 +1,4 @@
-# Testing depth filter using pyvcf's exensible vcf_filter.py framework
+# Testing AF filter using pyvcf's exensible vcf_filter.py framework
 source common_config.sh
 
 # Note: require the --flag_pick flag when running vep

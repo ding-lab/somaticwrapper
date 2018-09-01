@@ -78,7 +78,7 @@ class AFFilter(VEPFilter):
     def __call__(self, record):
 
         if self.bypass:
-            if (self.debug): eprint("** Bypassing filter, retaining read **" )
+            if (self.debug): eprint("** Bypassing %s filter, retaining read **" % self.name )
             return
 
         # CSQ has all VCF CSQ INFO entries as dictionary
@@ -93,14 +93,14 @@ class AFFilter(VEPFilter):
 
         # Pass if empty
         if af is None:
-            if self.debug: eprint("** Passes AF filter (%s is undefined) **" % (self.af_field))
+            if self.debug: eprint("** PASS (%s is undefined) **" % (self.af_field))
             return
 
         # Reject if af >= max_af
         if af >= self.max_af:
-            if self.debug: eprint("** Failed %s = %f ** " % (self.af_field, af))
+            if self.debug: eprint("** FAIL %s = %f ** " % (self.af_field, af))
             return "%s: %d" % (self.af_field, af)
 
         if self.debug:
-            eprint("** Passes AF filter (%s = %f) **" % (self.af_field, af))
+            eprint("** PASS (%s = %f) **" % (self.af_field, af))
 
