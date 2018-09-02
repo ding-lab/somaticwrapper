@@ -28,7 +28,7 @@ sub parse_pindel {
     my $pindel_raw_in = shift; # NEW
     my $no_delete_temp = shift;
     my $pindel_vcf_filter_config = shift;
-    my $apply_filter = shift;
+    my $bypass = shift;
 
     if (! $no_delete_temp) {
         $no_delete_temp = 0; # avoid empty variables
@@ -50,27 +50,28 @@ sub parse_pindel {
     $pindel_raw_in = `readlink -f $pindel_raw_in`;
     chomp $pindel_raw_in;
 
-    system ("ln -fs $pindel_raw_in $filter_results "); 
+    my $errcode = system ("ln -fs $pindel_raw_in $filter_results "); 
+    die ("Error executing: $cmd \n $! \n") if ($errcode);
+
     my $pindel_raw=$filter_results . "/" . basename($pindel_raw_in) ;
+    my $filter_out="$pindel_raw.CvgVafStrand_pass.Homopolymer_pass.vcf";
 
     # This is the principal result of pindel_filter
-    my $apply_filter_str;
-    my $filter_out;
-    if ($apply_filter) {
-        $filter_out="$pindel_raw.CvgVafStrand_pass.Homopolymer_pass.vcf";
-        $apply_filter_str = "pindel.filter.apply_filter = true"
+    my $bypass_str;
+    if ($bypass) {
+        $bypass_str = "pindel.filter.skip_filter1 = true\npindel.filter.skip_filter2 = true";
     } else {
-        $filter_out="$pindel_raw.CvgVafStrand_pass.Homopolymer_pass.vcf";  # I don't know what this will be.  Fix this to implement filter skipping correctly
-        $apply_filter_str = "pindel.filter.apply_filter = false"
+        $bypass_str = "";
     }
 
-## Pindel Filter - below is input into pindel_filter.v0.5
+## Pindel Filter - below is input into pindel_filter.pl
 # lines below are added to data from $pindel_config
     die "$pindel_config does not exist\n" unless (-f $pindel_config);
 
     my $out = "$filter_results/pindel_filter.input";
     print STDERR "Copying $pindel_config to $out and appending\n";
-    system("cp $pindel_config $out");
+    $errcode = system("cp $pindel_config $out");
+    die ("Error executing: $cmd \n $! \n") if ($errcode);
 
     open(OUT, ">>$out") or die $!;
     print OUT <<"EOF";
@@ -78,7 +79,7 @@ pindel.filter.pindel2vcf = $pindel_dir/pindel2vcf
 pindel.filter.variants_file = $pindel_raw
 pindel.filter.REF = $REF
 pindel.filter.date = 000000
-$apply_filter_str
+$bypass_str
 EOF
 
 ## dbSnP Filter
@@ -123,23 +124,31 @@ EOF
 
 echo Running pindel_filter
 $perl $gvip_dir/pindel_filter.pl $filter_results/pindel_filter.input
-
-# Reheader output of pindel_filter to have sample names "NORMAL" and "TUMOR" and include FORMAT column
-# this corrects some bugs in pindel2vcf output
-TMP=$filter_out.tmp
-mv $filter_out \$TMP
-
-# #CHROM  POS ID  REF ALT QUAL    FILTER  INFO    FORMAT  NORMAL  TUMOR
-awk 'BEGIN{FS="\\t";OFS="\\t"}{if (\$1 == "#CHROM") print "#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "NORMAL", "TUMOR"; else print}' \$TMP > $filter_out
-
-export JAVA_OPTS=\"-Xms256m -Xmx10g\"
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
 
 echo Running dbsnp_filter.pl
+export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/pindel_dbsnp_filter.indel.input
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 
 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
 bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn pindel $pindel_vcf_filter_config $vcf_filtered_fn
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 
 if [[ $no_delete_temp == 1 ]]; then
 

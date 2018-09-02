@@ -67,8 +67,8 @@ sub run_pindel {
     print STDERR "Writing to $config_fn\n";
     open(OUT, ">$config_fn") or die $!;
     print OUT <<"EOF";
-$IN_bam_T\t500\tpindel.T
-$IN_bam_N\t500\tpindel.N
+$IN_bam_T\t500\tTUMOR
+$IN_bam_N\t500\tNORMAL
 EOF
 
 
@@ -90,9 +90,19 @@ EOF
 #!/bin/bash
 
 $pindel_dir/pindel -f $REF -i $config_fn -o $pindel_out/pindel $pindel_args $centromere_arg
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
 
 cd $pindel_out 
 grep ChrID pindel_D pindel_SI pindel_INV pindel_TD > $step_output_fn
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
 
 if [[ $no_delete_temp == 1 ]]; then
 

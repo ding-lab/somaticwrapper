@@ -185,6 +185,12 @@ echo \'APPLYING PROCESS FILTER TO SOMATIC SNVS:\' # &> $log_file
     # varscan.out.som_snv.Germline.hc.vcf    
     # varscan.out.som_snv.Germline.vcf       
 java \${JAVA_OPTS} -jar $varscan_jar processSomatic $snv_raw $somatic_snv_params /varscan # &>> $log_file
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 
 echo \'APPLYING PROCESS FILTER TO SOMATIC INDELS:\' # &>> $log_file
 # Script below creates:
@@ -195,6 +201,12 @@ echo \'APPLYING PROCESS FILTER TO SOMATIC INDELS:\' # &>> $log_file
     # varscan.out.som_indel.Somatic.hc.vcf     -> used for Indel SnP Filter below 
     # varscan.out.som_indel.Somatic.vcf        
 java \${JAVA_OPTS} -jar $varscan_jar processSomatic $indel_raw   $somatic_indel_params  # &>> $log_file
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 
 
 ### Somatic Filter filters SNV based on indel
@@ -204,6 +216,12 @@ echo \'APPLYING SOMATIC FILTER:\' # &>> $log_file
 # Script below creates:
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf   -> used for SNV dbSnP 
 java \${JAVA_OPTS} -jar $varscan_jar somaticFilter  $thissnvorig $somatic_filter_params  --indel-file  $indel_raw --output-file  $somsnvpass  # &>> $log_file   
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 
 ### dbSnP Filter
 
@@ -215,6 +233,12 @@ java \${JAVA_OPTS} -jar $varscan_jar somaticFilter  $thissnvorig $somatic_filter
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.vcf     -> used for vcf_filter.py
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_anno.vcf   
 $perl $gvip_dir/dbsnp_filter.pl  $filter_results/vs_dbsnp_filter.snv.input
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 
 # 2) indel
 # Script below reads
@@ -224,6 +248,12 @@ $perl $gvip_dir/dbsnp_filter.pl  $filter_results/vs_dbsnp_filter.snv.input
     # varscan.out.som_indel.Somatic.hc.dbsnp_pass.vcf    -> used for vcf_filter.py
     # varscan.out.som_indel.Somatic.hc.dbsnp_anno.vcf    
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/vs_dbsnp_filter.indel.input
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.filtered.vcf     -> used for merge_vcf
     # varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf    -> used for merge_vcf
@@ -231,7 +261,19 @@ $perl $gvip_dir/dbsnp_filter.pl $filter_results/vs_dbsnp_filter.indel.input
 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
 bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_snv_fn varscan $varscan_vcf_filter_config $vcf_filtered_snv_fn 
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_indel_fn varscan $varscan_vcf_filter_config $vcf_filtered_indel_fn 
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 
 
 EOF

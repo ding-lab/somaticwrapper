@@ -67,10 +67,22 @@ export VARSCAN_DIR="/usr/local"
 
 # dnsnp filtering
 $perl $gvip_dir/dbsnp_filter.pl $dbsnp_config
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 
 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
 bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn strelka $strelka_vcf_filter_config $vcf_filtered_fn
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 
 EOF
     close OUT;

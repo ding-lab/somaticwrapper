@@ -161,6 +161,16 @@ JAVA_CMD="java \$JAVA_OPTS -jar $varscan_jar somatic - $run_name $varscan_args -
 
 \$SAMTOOLS_CMD | \$JAVA_CMD # &> $log
 
+ # Evaluate return value for chain of pipes; see https://stackoverflow.com/questions/90418/exit-shell-script-based-on-process-exit-code
+rcs=\${PIPESTATUS[\*]};
+for rc in ${rcs}; do
+    if [[ \$rc != 0 ]]; then
+        >&2 echo Fatal error.  Exiting.
+        exit \$rc;
+    fi;
+done
+
+
 EOF
     close OUT;
     my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";

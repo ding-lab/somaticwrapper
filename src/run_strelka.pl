@@ -57,9 +57,21 @@ if [ -d $strelka_out ] ; then
 fi
 
 $strelka_bin --normal $IN_bam_N --tumor $IN_bam_T --ref $ref --config $strelka_config --output-dir $strelka_out
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 
 cd $strelka_out
 make -j 16
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 EOF
         close OUT;
         $expected_out="$strelka_out/results/passed.somatic.snvs.vcf";
@@ -76,10 +88,22 @@ if [ -d $strelka_out ] ; then
 fi
 
 $strelka_bin $strelka_flags --normalBam $IN_bam_N --tumorBam $IN_bam_T --referenceFasta $ref --config $strelka_config --runDir $strelka_out
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 
 cd $strelka_out
 ls
 ./runWorkflow.py -m local -j 8 -g 4
+rc=\$?
+if [[ \$rc != 0 ]]; then
+    >&2 echo Fatal error \$rc: \$!.  Exiting.
+    exit \$rc;
+fi
+
 EOF
         close OUT;
 

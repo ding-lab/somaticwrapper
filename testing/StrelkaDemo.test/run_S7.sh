@@ -34,6 +34,7 @@ ARGS="\
 --dbsnp_db $DBSNP_DB \
 --results_dir $RESULTS_DIR \
 --no_delete_temp \
+--bypass \
 "
 
 BIN="/usr/local/somaticwrapper/SomaticWrapper.pl"

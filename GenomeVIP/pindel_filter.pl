@@ -21,6 +21,7 @@ use IO::File;
 use Getopt::Long;
 use POSIX qw( WIFEXITED );
 use File::Temp qw/ tempfile /;
+use File::Basename;
 
 # List of parameters accepted:
 # * variants_file
@@ -53,9 +54,10 @@ sub CvgVafStrandFilter {
     my $remove_complex_indels = shift;  # boolean
     my $child_var_allele_freq = shift;  
     my $parents_max_num_supporting_reads = shift; 
+    my $zero = shift;
 
 # Optional filter, part 1
-    my $input_fh        = IO::File->new( "$var_file"     ) or die "Could not open $var_file for reading $! ";
+    my $input_fh        = IO::File->new( "$infn"         ) or die "Could not open $infn for reading $! ";
     my $filter1_pass_fh = IO::File->new( "$passfn",  ">" ) or die "Could not create $passfn for writing $!";
     my $filter1_fail_fh = IO::File->new( "$failfn",  ">" ) or die "Could not create $failfn for writing $!";
 
@@ -198,9 +200,9 @@ sub HomopolymerFilter {
     my $failfn = shift; 
     my $max_num_homopolymer_repeat_units = shift;
 
-    my $input_fh        = IO::File->new( "$var_file"     ) or die "Could not open $var_file for reading $! ";
-    my $filter2_pass_fh = IO::File->new( "$passfn",  ">" ) or die "Could not create $passfn for writing $!";
-    my $filter2_fail_fh = IO::File->new( "$failfn",  ">" ) or die "Could not create $failfn for writing $!";
+    my $input_fh        = IO::File->new( "$infn"        ) or die "Could not open $infn for reading $! ";
+    my $filter2_pass_fh = IO::File->new( "$passfn", ">" ) or die "Could not create $passfn for writing $!";
+    my $filter2_fail_fh = IO::File->new( "$failfn", ">" ) or die "Could not create $failfn for writing $!";
 
     while ( <$input_fh> ) {
         if ( /^#/ ) { $filter2_pass_fh->print($_); next };
@@ -266,21 +268,23 @@ if ($paras{'apply_filter'} eq "true"  &&  $paras{'mode'} ne "pooled") {
     my $infn = "$var_file";
     my $passfn = "$var_file.$filter1_prefix{'pass'}";
     my $failfn = "$var_file.$filter1_prefix{'fail'}";
-    if (not $paras{'skip_filter1'} =~ /true/) {
+    if ( (not exists ($paras{'skip_filter1'})) or ($paras{'skip_filter1'} !~ /true/)) {
+        print("Running filter 1 (CvgVafStrand).  Input: $infn  Pass Output: $passfn\n");
         CvgVafStrandFilter($infn, $passfn, $failfn, $paras{'mode'}, $paras{'min_coverages'}, 
             $paras{'min_var_allele_freq'}, ($paras{'require_balanced_reads'} =~ /true/), 
             ($paras{'remove_complex_indels'} =~ /true/), $paras{'child_var_allele_freq'}, 
-            $paras{'parents_max_num_supporting_reads'});
+            $paras{'parents_max_num_supporting_reads'}, $zero);
     } else {
-        print("Skipping filter 1 (CvgVafStrand).  Creating $passfn as link to $infn\n");
-        my $return_code = system ( "ln -s $infn $passfn" );
+        my $infn_base = basename($infn);
+        print("Skipping filter 1 (CvgVafStrand).  Creating $passfn as link to $infn_base\n");
+        my $return_code = system ( "ln -fs $infn_base $passfn" );
         die("Exiting ($return_code).\n") if $return_code != 0;
     }
 }
 
 # Conversion to VCF with pindel2vcf
 my $skip_pindel2vcf = 0;
-if (not $paras{'skip_pindel2vcf'} =~ /true/) {
+if ((not exists ($paras{'skip_pindel2vcf'})) or ($paras{'skip_pindel2vcf'} !~ /true/)) {
     my $var_src;
     my $var_dest;
     if ($paras{'apply_filter'} eq "true" && $paras{'mode'} ne "pooled") { # only case for filter1
@@ -294,6 +298,7 @@ if (not $paras{'skip_pindel2vcf'} =~ /true/) {
     chomp  $ref_base;
     my $logfile= ( exists($paras{'logfile'}) ? $paras{'logfile'} : "pindel2vcf.log" );
 
+    print("Running pindel2vcf.pl  Input: $var_src  Output: $var_dest\n");
     runPindel2VCF($thisdir, $var_src, $var_dest, $ref_base, $logfile, $paras{'pindel2vcf'}, $paras{'REF'}, $paras{'date'},
         $paras{'heterozyg_min_var_allele_freq'}, $paras{'homozyg_min_var_allele_freq'});
 } else {
@@ -316,11 +321,13 @@ if ($paras{'apply_filter'} eq "true") {
         $failfn = "$var_file.$filter1_prefix{'pass'}.$filter2_prefix{'fail'}.vcf";
     }
 
-    if (not $paras{'skip_filter2'} =~ /true/) {
+    if ((not exists ($paras{'skip_filter2'})) or ($paras{'skip_filter2'} !~ /true/)) {
+        print("Running filter 2 (Homopolymer).  Input: $infn  Pass Output: $passfn\n");
         HomopolymerFilter($infn, $passfn, $failfn, $paras{'max_num_homopolymer_repeat_units'});
     } else {
-        print("Skipping filter 2 (Homopolymer).  Creating $passfn as link to $infn\n");
-        my $return_code = system ( "ln -s $infn $passfn" );
+        my $infn_base = basename($infn);
+        print("Skipping filter 2 (Homopolymer).  Creating $passfn as link to $infn_base\n");
+        my $return_code = system ( "ln -fs $infn_base $passfn" );
         die("Exiting ($return_code).\n") if $return_code != 0;
     }
 }
