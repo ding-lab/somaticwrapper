@@ -100,8 +100,12 @@ class TumorNormal_VAF(ConfigFileFilter):
 
     def get_readcounts_pindel(self, VCF_record, VCF_data):
         # read counts supporting reference, variant, resp.
+        # If both are zero, avoid division by zero and return 0
         rc_ref, rc_var = VCF_data.AD
-        vaf = rc_var / float(rc_var + rc_ref)
+        rc_tot = float(rc_var + rc_ref)
+        if rc_tot == 0:
+            return 0
+        vaf = rc_var / rc_tot
         if self.debug:
             eprint("pindel VCF = %f" % vaf)
         return vaf
