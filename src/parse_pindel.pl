@@ -56,7 +56,7 @@ sub parse_pindel {
     my $pindel_raw=$filter_results . "/" . basename($pindel_raw_in) ;
     my $filter_out="$pindel_raw.CvgVafStrand_pass.Homopolymer_pass.vcf";
 
-    # This is the principal result of pindel_filter
+    # work out bypass logic
     my $bypass_str;
     my $bypass_vcf;
     if ($bypass) {
