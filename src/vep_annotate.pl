@@ -139,9 +139,9 @@ if [[ \$rc != 0 ]]; then
     exit \$rc; 
 fi
 
-echo Unfiltered VEP-annotated VCF written to $vep_output_fn
+>&2 echo Unfiltered VEP-annotated VCF written to $vep_output_fn
 
-echo Filtering by AF and classification
+>&2 echo Filtering by AF and classification
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
 
 bash $filter_dir/run_combined_af_classification_filter.sh $vep_output_fn $af_filter_config $classification_filter_config $filtered_output_fn $filter_xargs

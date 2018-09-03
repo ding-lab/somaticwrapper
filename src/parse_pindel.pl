@@ -123,7 +123,7 @@ EOF
     print OUT <<"EOF";
 #!/bin/bash
 
-echo Running pindel_filter.pl
+>&2 echo Running pindel_filter.pl
 $perl $gvip_dir/pindel_filter.pl $filter_results/pindel_filter.input
 rc=\$?
 if [[ \$rc != 0 ]]; then
@@ -131,7 +131,7 @@ if [[ \$rc != 0 ]]; then
     exit \$rc;
 fi
 
-echo Running dbsnp_filter.pl
+>&2 echo Running dbsnp_filter.pl
 export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 $perl $gvip_dir/dbsnp_filter.pl $filter_results/pindel_dbsnp_filter.indel.input
 rc=\$?
@@ -140,7 +140,7 @@ if [[ \$rc != 0 ]]; then
     exit \$rc;
 fi
 
-echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
+>&2 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
 bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn pindel $pindel_vcf_filter_config $vcf_filtered_fn $bypass_vcf 
 rc=\$?

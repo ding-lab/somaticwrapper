@@ -75,7 +75,7 @@ if [[ \$rc != 0 ]]; then
 fi
 
 
-echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
+>&2 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
 bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn strelka $strelka_vcf_filter_config $vcf_filtered_fn
 rc=\$?

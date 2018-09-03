@@ -228,7 +228,7 @@ sub runPindel2VCF {
 
     # NOTE: pindel -co option seems to work on vcf output but warning messages may happend regardless
     my $pindel2vcf_command = "$pindel2vcf -r $ref -R $ref_base -p $var_src -d $date -v $var_dest -he $heterozyg_min_var_allele_freq -ho $homozyg_min_var_allele_freq  >> $thisdir/$logfile 2>&1";
-    print $pindel2vcf_command."\n";
+    print STDERR $pindel2vcf_command."\n";
     my $return_code = system( $pindel2vcf_command );
     die("Exiting ($return_code).\n") if $return_code != 0;
 }
@@ -282,9 +282,9 @@ unless ( -e $paras{'variants_file'} ) { die "input indels not exist !!! \n"; }
 my $zero = 0.001;
 if( exists $paras{'zero_variant_support'}) {
     $zero=$paras{'zero_variant_support'};
-    print("Setting zero_variant_support: $zero\n");
+    print STDERR "Setting zero_variant_support: $zero\n";
 } else {
-    print("Using default value of zero_variant_support: $zero\n");
+    print STDERR "Using default value of zero_variant_support: $zero\n";
 }
 
 my $var_file        = $paras{'variants_file'};
@@ -312,14 +312,14 @@ if ($paras{'apply_filter'} eq "true"  &&  $paras{'mode'} ne "pooled") {
     my $passfn = "$var_file.$filter1_prefix{'pass'}";
     my $failfn = "$var_file.$filter1_prefix{'fail'}";
     if ( (not exists ($paras{'skip_filter1'})) or ($paras{'skip_filter1'} !~ /true/)) {
-        print("Running filter 1 (CvgVafStrand).  Input: $infn  Pass Output: $passfn\n");
+        print STDERR "Running filter 1 (CvgVafStrand).  Input: $infn  Pass Output: $passfn\n";
         CvgVafStrandFilter($infn, $passfn, $failfn, $paras{'mode'}, $paras{'min_coverages'}, 
             $paras{'min_var_allele_freq'}, ($paras{'require_balanced_reads'} =~ /true/), 
             ($paras{'remove_complex_indels'} =~ /true/), $paras{'child_var_allele_freq'}, 
             $paras{'parents_max_num_supporting_reads'}, $zero);
     } else {
         my $infn_base = basename($infn);
-        print("Skipping filter 1 (CvgVafStrand).  Creating $passfn as link to $infn_base\n");
+        print STDERR "Skipping filter 1 (CvgVafStrand).  Creating $passfn as link to $infn_base\n";
         my $return_code = system ( "ln -fs $infn_base $passfn" );
         die("Exiting ($return_code).\n") if $return_code != 0;
     }
@@ -341,11 +341,11 @@ if ((not exists ($paras{'skip_pindel2vcf'})) or ($paras{'skip_pindel2vcf'} !~ /t
     chomp  $ref_base;
     my $logfile= ( exists($paras{'logfile'}) ? $paras{'logfile'} : "pindel2vcf.log" );
 
-    print("Running pindel2vcf.pl  Input: $var_src  Output: $var_dest\n");
+    print STDERR "Running pindel2vcf.pl  Input: $var_src  Output: $var_dest\n";
     runPindel2VCF($thisdir, $var_src, $var_dest, $ref_base, $logfile, $paras{'pindel2vcf'}, $paras{'REF'}, $paras{'date'},
         $paras{'heterozyg_min_var_allele_freq'}, $paras{'homozyg_min_var_allele_freq'});
 } else {
-    print("Skipping pindel2vcf\n");
+    print STDERR "Skipping pindel2vcf\n";
 }
 
 # Filter 2: Homopolymer filtering
@@ -365,11 +365,11 @@ if ($paras{'apply_filter'} eq "true") {
     }
 
     if ((not exists ($paras{'skip_filter2'})) or ($paras{'skip_filter2'} !~ /true/)) {
-        print("Running filter 2 (Homopolymer).  Input: $infn  Pass Output: $passfn\n");
+        print STDERR "Running filter 2 (Homopolymer).  Input: $infn  Pass Output: $passfn\n";
         HomopolymerFilter($infn, $passfn, $failfn, $paras{'max_num_homopolymer_repeat_units'});
     } else {
         my $infn_base = basename($infn);
-        print("Skipping filter 2 (Homopolymer).  Creating $passfn as link to $infn_base\n");
+        print STDERR "Skipping filter 2 (Homopolymer).  Creating $passfn as link to $infn_base\n";
         my $return_code = system ( "ln -fs $infn_base $passfn" );
         die("Exiting ($return_code).\n") if $return_code != 0;
     }

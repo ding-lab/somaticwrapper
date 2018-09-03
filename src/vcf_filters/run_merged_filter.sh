@@ -12,7 +12,7 @@ OUT=$1; shift
 XARG="$@"  # https://stackoverflow.com/questions/1537673/how-do-i-forward-parameters-to-other-command-in-bash-script
 
 if [ -z $OUT ]; then
-echo Output VCF not specified.  Quitting.
+>&2 echo Output VCF not specified.  Quitting.
 exit 1
 fi
 

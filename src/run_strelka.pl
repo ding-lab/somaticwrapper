@@ -48,7 +48,7 @@ sub run_strelka {
 # Strelka 1
 #
     if (! $is_strelka2) {
-        print "Executing Strelka 1\n";
+        print STDERR "Executing Strelka 1\n";
         print OUT <<"EOF";
 #!/bin/bash
 
@@ -79,7 +79,7 @@ EOF
 #
 # strelka 2
 #
-        print "Executing Strelka 2\n";
+        print STDERR "Executing Strelka 2\n";
         print OUT <<"EOF";
 #!/bin/bash
 
@@ -115,9 +115,9 @@ EOF
     my $return_code = system ( $bsub_com );
     die("Exiting ($return_code).\n") if $return_code != 0;
 
-    printf("Testing output $expected_out\n");
+    printf STDERR "Testing output $expected_out\n";
     die "Error: Did not find expected output file $expected_out\n" if (! -e $expected_out);
-    printf("OK\n");
+    printf STDERR "OK\n";
 }
 
 1;

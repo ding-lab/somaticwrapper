@@ -95,9 +95,9 @@ sub parse_varscan{
         "--min-strands2 $params{'filter.min-strands2'} --min-avg-qual $params{'filter.min-avg-qual'} " . 
         "--min-var-freq $params{'filter.min-var-freq'} --p-value $params{'filter.p-value'}";
 
-    print "Somatic SNV Params:\n$somatic_snv_params\n";
-    print "Somatic Indel Params:\n$somatic_indel_params\n";
-    print "Somatic Filter Params:\n$somatic_filter_params\n";
+    print STDERR "Somatic SNV Params:\n$somatic_snv_params\n";
+    print STDERR "Somatic Indel Params:\n$somatic_indel_params\n";
+    print STDERR "Somatic Filter Params:\n$somatic_filter_params\n";
 
     my $bsub = "bash";
     my $filter_results = "$sample_full_path/varscan/filter_out";
@@ -175,7 +175,7 @@ EOF
 #!/bin/bash
 export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 
-echo \'APPLYING PROCESS FILTER TO SOMATIC SNVS:\' # &> $log_file
+>&2 echo \'APPLYING PROCESS FILTER TO SOMATIC SNVS:\' # &> $log_file
 # Script below creates the following in the same directory as the input data
 # The inability to define output directory complicates things
     # varscan.out.som_snv.Somatic.hc.vcf      -> used for SNV SNP filter below 
@@ -192,7 +192,7 @@ if [[ \$rc != 0 ]]; then
 fi
 
 
-echo \'APPLYING PROCESS FILTER TO SOMATIC INDELS:\' # &>> $log_file
+>&2 echo \'APPLYING PROCESS FILTER TO SOMATIC INDELS:\' # &>> $log_file
 # Script below creates:
     # varscan.out.som_indel.Germline.hc.vcf    
     # varscan.out.som_indel.Germline.vcf       
@@ -211,7 +211,7 @@ fi
 
 ### Somatic Filter filters SNV based on indel
 # http://varscan.sourceforge.net/using-varscan.html#v2.3_somaticFilter
-echo \'APPLYING SOMATIC FILTER:\' # &>> $log_file
+>&2 echo \'APPLYING SOMATIC FILTER:\' # &>> $log_file
 
 # Script below creates:
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf   -> used for SNV dbSnP 
@@ -258,7 +258,7 @@ fi
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.filtered.vcf     -> used for merge_vcf
     # varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf    -> used for merge_vcf
 
-echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
+>&2 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
 bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_snv_fn varscan $varscan_vcf_filter_config $vcf_filtered_snv_fn 
 rc=\$?

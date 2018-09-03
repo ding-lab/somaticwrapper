@@ -30,7 +30,7 @@ sub checksize {
 # get paras from config file
 my (%paras);
 map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
-map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
+map { print STDERR; print STDERR "\t"; print STDERR $paras{$_}; print STDERR "\n" } keys %paras;
 
 # Use uncompressed db to avoid being bitten by java compression bug
 my $anno=$paras{'rawvcf'}."dbsnp_anno.vcf";
@@ -39,17 +39,17 @@ if ($paras{'rawvcf'} =~ /\.vcf$/) {
 }
 
 my $cmd = "java $ENV{'JAVA_OPTS'} -jar $paras{'annotator'} annotate -id $paras{'db'} $paras{'rawvcf'} > $anno";
-print "$cmd\n";
+print STDERR "$cmd\n";
 system($cmd);
 
 checksize($anno, $paras{'rawvcf'});
 if( exists $paras{'mode'}  &&  $paras{'mode'} eq "filter" )  {
 $cmd = "java $ENV{'JAVA_OPTS'} -jar $paras{'annotator'} filter -n \" (exists ID) & (ID =~ 'rs' ) \" -f $anno > $paras{'passfile'}";
-print "$cmd\n";
+print STDERR "$cmd\n";
 system($cmd);
 checksize($paras{'passfile'}, $anno);
 $cmd = "java $ENV{'JAVA_OPTS'} -jar $paras{'annotator'} filter    \" (exists ID) & (ID =~ 'rs' ) \" -f $anno > $paras{'dbsnpfile'}";
-print "$cmd\n";
+print STDERR "$cmd\n";
 system($cmd);
 checksize($paras{'dbsnpfile'}, $anno);
 $cmd = "rm -f $anno";

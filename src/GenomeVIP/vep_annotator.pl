@@ -22,7 +22,7 @@ use File::Temp qw/ tempfile /;
 # get paras from config file
 my (%paras);
 map {chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/^\s+//;  $_[1] =~ s/\s+$//; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
-map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
+map { print STDERR; print STDERR "\t"; print STDERR $paras{$_}; print STDERR "\n" } keys %paras;
 
 # check if options are present
 my $opts = "";
@@ -47,7 +47,7 @@ if ($paras{'usedb'}) {
  
     $cmd = "perl $paras{'vep_cmd'} $opts --database --port 3337 --buffer_size 10000  --fork 4 --format vcf $vcf_flag -i $paras{'vcf'} -o $paras{'output'} --force_overwrite  --fasta $paras{'reffasta'}";
 
-    print($cmd . "\n");
+    print STDERR $cmd . "\n";
     my $errcode = system($cmd); 
     die ("Error executing: $cmd \n $! \n") if ($errcode);
 
@@ -56,7 +56,7 @@ if ($paras{'usedb'}) {
     if (exists($paras{'cache_version'})) { $opts = "$opts --cache_version $paras{'cache_version'}" }
     my $opts = "$opts --af --max_af --af_1kg --af_esp --af_gnomad";
     $cmd = "perl $paras{'vep_cmd'} $opts --buffer_size 10000 --offline --cache --dir $paras{'cachedir'} --fork 4 --format vcf $vcf_flag -i $paras{'vcf'} -o $paras{'output'} --force_overwrite  --fasta $paras{'reffasta'}";
-    print($cmd . "\n");
+    print STDERR $cmd . "\n";
     my $errcode = system($cmd); 
     die ("Error executing: $cmd \n $! \n") if ($errcode);
 }
