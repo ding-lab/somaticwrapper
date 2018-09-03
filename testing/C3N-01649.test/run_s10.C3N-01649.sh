@@ -21,19 +21,21 @@ CLASS_FILTER_CONFIG="/usr/local/somaticwrapper/params/classification_filter_conf
 CACHE_DIR="/image/D_VEP"
 CACHE_GZ="/image/D_VEP/vep-cache.90_GRCh37.tar.gz"
 
-
-# 10 vcf_2_maf:
-#     --input_vcf s: VCF file to be annotated with vep_annotate.  Required
-#     --reference_fasta s: path to reference.  Required
-#     --assembly s: either "GRCh37" or "GRCh38", used to identify cache file. Optional if not ambigous 
-#     --vep_cache_version s: Cache version, e.g. '90', used to identify cache file.  Optional if not ambiguous
-#     --vep_cache_gz: is a file ending in .tar.gz containing VEP cache tarball
-#     --vep_cache_dir s: location of VEP cache directory
-#         VEP Cache logic:
-#         * If vep_cache_dir is defined, it indicates location of VEP cache 
-#         * if vep_cache_dir is not defined, and vep_cache_gz is defined, extract vep_cache_gz contents into "./vep-cache" and use VEP cache
-#         * if neither vep_cache_dir nor vep_cache_gz defined, error.  vcf_2_maf does not support online vep_cache lookups
-#     --exac:  ExAC database to pass as --f_exac for annotation
+#10 vcf_2_maf:
+#    --input_vcf s: VCF file to be annotated with vep_annotate.  Required
+#    --reference_fasta s: path to reference.  Required
+#    --assembly s: either "GRCh37" or "GRCh38", used to identify cache file. Optional if not ambigous 
+#    --vep_cache_version s: Cache version, e.g. '90', used to identify cache file.  Optional if not ambiguous
+#    --vep_cache_gz: is a file ending in .tar.gz containing VEP cache tarball
+#    --vep_cache_dir s: location of VEP cache directory
+#        VEP Cache logic:
+#        * If vep_cache_dir is defined, it indicates location of VEP cache 
+#        * if vep_cache_dir is not defined, and vep_cache_gz is defined, extract vep_cache_gz contents into "./vep-cache" and use VEP cache
+#        * if neither vep_cache_dir nor vep_cache_gz defined, error.  vcf_2_maf does not support online vep_cache lookups
+#    --exac:  ExAC database to pass as --f_exac for annotation
+#
+#    --results_dir s: Per-sample analysis results location. Often same as sample name [.] 
+#    --skip s: If defined, skip this step and print argument as reason for skipping.  Helpful for interaction with CWL workflow.
 
 ARGS="\
 --input_vcf $MERGED_VCF  \
@@ -42,29 +44,7 @@ ARGS="\
 --vep_cache_version 90 \
 --assembly GRCh37 \
 --vep_cache_dir $CACHE_DIR \
---af_filter_config $AF_FILTER_CONFIG \
---classification_filter_config $CLASS_FILTER_CONFIG \
 "
-#--bypass \
-
-#--vep_cache_gz $CACHE_GZ \
-#--vep_output vcf \
-#--vep_cache_version 90 \
-#--assembly GRCh37 \
-
-# optional:
-# --assembly
-# --vep_cache_version
-# --vep_cache_dir
-# --vep_output
-
 
 BIN="/usr/local/somaticwrapper/SomaticWrapper.pl"
 perl $BIN $ARGS $STEP
-
-#   1554 varscan
-#    245 pindel
-#     88 varindel
-#     24 strelka
-#      9 strelka-varscan
-

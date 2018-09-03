@@ -8,8 +8,8 @@ SAMPLE="C3N-01649"
 STEP=3
 
 DBSNP_DB="/image/B_Filter/dbsnp.noCOSMIC.GRCh37.vcf.gz"  # note that this differs from 00-All.brief.pass.cosmic.vcf.gz used in SW.  For present purposes that is OK
-STRELKA_SNV_RAW="/data/s1_run_strelka/results/strelka/strelka_out/results/passed.somatic.snvs.vcf"
-STRELKA_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/vcf_filters/vcf_filter_config.ini"
+STRELKA_SNV_RAW="/data/root/s1_run_strelka/results/strelka/strelka_out/results/passed.somatic.snvs.vcf"
+STRELKA_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/params/vcf_filter_config.ini"
 STRELKA_CONFIG="../StrelkaDemo.dat/strelka.WES.ini"
 
 ARGS="\

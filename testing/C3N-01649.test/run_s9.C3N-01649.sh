@@ -67,9 +67,3 @@ ARGS="\
 BIN="/usr/local/somaticwrapper/SomaticWrapper.pl"
 perl $BIN $ARGS $STEP
 
-#   1554 varscan
-#    245 pindel
-#     88 varindel
-#     24 strelka
-#      9 strelka-varscan
-

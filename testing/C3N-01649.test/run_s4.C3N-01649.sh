@@ -8,9 +8,9 @@ SAMPLE="C3N-01649"
 STEP=4
 
 DBSNP_DB="/image/B_Filter/dbsnp.noCOSMIC.GRCh37.vcf.gz"  # note that this differs from 00-All.brief.pass.cosmic.vcf.gz used in SW.  For present purposes that is OK
-VARSCAN_SNV_RAW="/data/s2_run_varscan/results/varscan/varscan_out/varscan.out.som_snv.vcf"
-VARSCAN_INDEL_RAW="/data/s2_run_varscan/results/varscan/varscan_out/varscan.out.som_indel.vcf"
-VARSCAN_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/vcf_filters/vcf_filter_config.ini"
+VARSCAN_SNV_RAW="/data/root/s2_run_varscan/results/varscan/varscan_out/varscan.out.som_snv.vcf"
+VARSCAN_INDEL_RAW="/data/root/s2_run_varscan/results/varscan/varscan_out/varscan.out.som_indel.vcf"
+VARSCAN_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/params/vcf_filter_config.ini"
 VARSCAN_CONFIG="../StrelkaDemo.dat/varscan.WES.ini"
 
 ARGS="\

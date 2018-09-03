@@ -22,6 +22,7 @@ sub parse_strelka {
     } else {
         die "Error: dbSnP database file $dbsnp_db does not exist\n" if (! -e $dbsnp_db);
     }
+    die "Error: Input data file $input_snv does not exist\n" if (! -e $input_snv);
 
     $current_job_file = "j3_parse_strelka.sh";
 

@@ -3,8 +3,11 @@
 REFERENCE_FASTA="/image/A_Reference/Homo_sapiens_assembly19.fasta"
 PINDEL_CONFIG="../StrelkaDemo.dat/pindel.WES.ini"
 DBSNP_DB="/image/B_Filter/dbsnp.noCOSMIC.GRCh37.vcf.gz"  # note that this differs from 00-All.brief.pass.cosmic.vcf.gz used in SW.  For present purposes that is OK
-#PINDEL_RAW="/data/s5_run_pindel/results/pindel/pindel_out/pindel-raw.100-test.dat"
 PINDEL_RAW="/data/root/s5_run_pindel/results/pindel/pindel_out/pindel-raw.dat"
+
+# for testing, renamed pindel.N, pindel.T -> NORMAL, TUMOR
+# future pindel runs will use this naming convention
+PINDEL_RAW="/usr/local/somaticwrapper/testing/C3N-01649.test/C3N-01649.results/pindel/testdat/pindel-raw.renamed.dat"
 PINDEL_VCF_FILTER_CONFIG="/usr/local/somaticwrapper/params/pindel-vcf_filter_config.ini"
 
 OUTDIR="./C3N-01649.results"
