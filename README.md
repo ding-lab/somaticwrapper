@@ -28,7 +28,7 @@ Usage: perl somatic_calling_v1.1.pl --srg --step --sre --rdir --ref --refname --
 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
 
-<wgs> ==  1 for yes and 0 for no 
+<wgs> = 1 for yes and 0 for no 
 
 <indsize> = indel size < indsize; default indsize=20
 
