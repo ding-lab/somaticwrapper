@@ -275,7 +275,7 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("tumor_bam undefined \n") unless $tumor_bam;
     die("normal_bam undefined \n") unless $normal_bam;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    run_pindel($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $pindel_dir, $centromere_bed, $no_delete_temp);
+    run_pindel($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $pindel_dir, $centromere_bed, $no_delete_temp, $pindel_chrom);
 } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
     die("pindel_config undefined \n") unless $pindel_config;
     die("pindel raw input file not specified \n") unless $pindel_raw;
