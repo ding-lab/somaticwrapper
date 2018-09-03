@@ -33,7 +33,7 @@ my $normal = "\e[0m";
 (my $usage = <<OUT) =~ s/\t+//g;
 Somatic variant calling pipeline 
 Pipeline version: $version
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --wgs 
+$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --wgs --indsize 
 
 $normal
 
@@ -45,6 +45,7 @@ $normal
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
 <wgs> ==  1 for yes and 0 for no 
+<indsize> = indel size < indsize; default indsize=20
 
 with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
 without chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite.fa
@@ -78,6 +79,7 @@ my $run_dir="";
 my $log_dir="";
 my $h37_REF="";
 my $ref_name="";
+my $inds=20; 
 
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
@@ -88,6 +90,7 @@ my $status = &GetOptions (
 	  "ref=s"  => \$h37_REF,
 	  "log=s"  => \$log_dir,
       "wgs=i"  => \$s_wgs,	    	
+ 	   "indsize=i" => \$inds, 
 	  "q=s" => \$q_name,
    	  "help" => \$help, 
 	);
@@ -272,7 +275,7 @@ if($step_number==9 || $step_number==0)
     #print REPRUN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     #print REPRUN "#BSUB -J $current_job_file\n";
 	#print REPRUN "#BSUB -w \"$hold_job_file\"","\n";
-	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir."\n";
+	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir." ".$inds."\n";
 	close REPRUN;
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
 	#system ($bsub_com);
@@ -1301,7 +1304,7 @@ sub bsub_merge_vcf{
 	#print MERGE "     ".$run_script_path."vaf_filter_hg19.pl \${RUNDIR}\n";
     #print MERGE "if [ $ref_name = $hg19 ]\n";
     #print MERGE "then\n";	
-	print MERGE "     ".$run_script_path."vaf_filter_v1.2.pl \${RUNDIR}\n";
+	print MERGE "     ".$run_script_path."vaf_filter_v1.2.pl \${RUNDIR} $inds\n";
 	#print MERGE "else\n";
 	#print MERGE "     ".$run_script_path."vaf_filter_hg19_v1.1.pl \${RUNDIR}\n";
 	#print MERGE "fi\n";
