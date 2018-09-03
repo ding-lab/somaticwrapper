@@ -23,6 +23,14 @@ STEP="vep_annotate"
 
 INPUT_VCF="results/merged/merged.filtered.vcf"
 
+# We rely on online VEP cache lookup for StrelkaDemo testing, so vep_cache_dir is not specified
+# AF filtering cannot be performed as a result, since that requires cache
+
+# Parameters needed for cache use:
+#--vep_cache_dir /image/D_VEP \
+#--vep_cache_version 90 \
+#--assembly GRCh37 \
+
 ARGS="\
 --input_vcf $INPUT_VCF \
 --reference_fasta $REFERENCE_FASTA \
@@ -32,12 +40,6 @@ ARGS="\
 --bypass \
 "
 
-# We rely on online VEP cache lookup for initial testing, so vep_cache_dir is not specified
-
-# --assembly s: either "GRCh37" or "GRCh38", used to identify cache file. Optional if not ambigous 
-# --vep_cache_version s: Cache version, e.g. '90', used to identify cache file.  Optional if not ambiguous
-# --vep_cache_dir s: location of VEP cache directory, indicator whether to use online VEP DB lookups.  
-# --vep_output: Define output format after annotation.  Allowed values: vcf, vep.  [vcf]
 
 BIN="/usr/local/somaticwrapper/SomaticWrapper.pl"
 perl $BIN $ARGS $STEP
