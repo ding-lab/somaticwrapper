@@ -34,7 +34,7 @@ my $normal = "\e[0m";
 (my $usage = <<OUT) =~ s/\t+//g;
 Somatic variant calling pipeline 
 Pipeline version: $version
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --wgs 
+$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --wgs --indsize 
 
 $normal
 
@@ -77,6 +77,8 @@ my $log_dir="";
 my $h37_REF="";
 my $ref_name="";
 my $chr_status=0;
+## indel size: daufault <20 ##
+my $inds=20; 
 
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
@@ -86,7 +88,8 @@ my $status = &GetOptions (
       "rdir=s" => \$run_dir,
 	  "ref=s"  => \$h37_REF,
 	  "log=s"  => \$log_dir,
-      "wgs=i"  => \$s_wgs,	    	
+      "wgs=i"  => \$s_wgs,	
+      "indsize=i" => \$inds,    	
 	  "q=s" => \$q_name,
    	  "help" => \$help, 
 	);
@@ -281,7 +284,7 @@ if($step_number==9 || $step_number==0)
     #print REPRUN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     #print REPRUN "#BSUB -J $current_job_file\n";
 	#print REPRUN "#BSUB -w \"$hold_job_file\"","\n";
-	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir."\n";
+	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir." ".$inds."\n";
 	close REPRUN;
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
 	#system ($bsub_com);
@@ -1239,7 +1242,7 @@ sub bsub_merge_vcf{
 	#print MERGE "     ".$run_script_path."vaf_filter_hg19.pl \${RUNDIR}\n";
     #print MERGE "if [ $ref_name = $hg19 ]\n";
     #print MERGE "then\n";	
-	print MERGE "     ".$run_script_path."vaf_filter_v1.2.pl \${RUNDIR}\n";
+	print MERGE "     ".$run_script_path."vaf_filter_v1.2.pl \${RUNDIR} $inds\n";
 	#print MERGE "else\n";
 	#print MERGE "     ".$run_script_path."vaf_filter_hg19_v1.1.pl \${RUNDIR}\n";
 	#print MERGE "fi\n";

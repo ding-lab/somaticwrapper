@@ -2,9 +2,8 @@
 
 ## additional filtering ##
 ## minimum coverage filtering: 20
-## tumor >= 5% and normal <=2% for varscan and strelka 
+## tumor >= 5% and normal <=2% for merged vcf file
 ### pindel tumor >=10% since the vaf calculation underestimates the ref coverage ##
-### add the filtering for indel length (100 bps)  ##
 ### SNV: called by both strelka and varscan ##
 ## INDEL: called by either varscan or pindel ##
 ## merged.filtered.vcf: the merged vcf file after filtering ##
@@ -15,8 +14,8 @@
 
 use strict;
 use warnings;
-die unless @ARGV == 1;
-my ($run_dir)=@ARGV; 
+die unless @ARGV == 2;
+my ($run_dir,$filter_indel_length)=@ARGV; 
 
 my $f_m=$run_dir."/merged.vcf"; 
 my $f_filter_out=$run_dir."/merged.filtered.vcf";
@@ -25,7 +24,7 @@ my $min_vaf_somatic=0.05;
 my $min_vaf_pindel=0.1;
 my $max_vaf_germline=0.02; 
 my $min_coverage=20; 
-my $filter_indel_length = 100; 
+#my $filter_indel_length = 100; 
 
 open(OUT1,">$f_filter_out");
 open(OUT2,">$f_vaf_out"); 
