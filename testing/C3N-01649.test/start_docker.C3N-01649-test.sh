@@ -16,13 +16,14 @@
 DATAD="/diskmnt/Projects/Users/hsun/beta_tinDaisy/compare/mgi_sw_C3N-01649"
 
 # results of past TinDaisy run
-DATAD="/diskmnt/Projects/Users/hsun/beta_tinDaisy/tin-daisy/results/TinDaisy.workflow-2018-08-14-210442.362/root"
+DATAD="/diskmnt/Projects/Users/hsun/beta_tinDaisy/tmp/tin-daisy.0814/results/TinDaisy.workflow-2018-08-14-210442.362"
 IMAGED="/home/mwyczalk_test/data/docker/data"  # a second volume to mount with per-image dagta
+GDCDAT="/diskmnt/Projects/cptac_downloads/data/GDC_import" # where GDC BAMs live.  Mounted to /GDC_import
 
 #IMAGE="mwyczalkowski/somatic-wrapper:latest"
 IMAGE="cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:cwl"
 
-docker run -v $DATAD:/data -v $IMAGED:/image -it $IMAGE
+docker run -v $DATAD:/data -v $IMAGED:/image -v $GDCDAT:/GDC_import -it $IMAGE
 
 # To start another terminal in running container, first get name of running container with `docker ps`,
 # then start bash in it with,
