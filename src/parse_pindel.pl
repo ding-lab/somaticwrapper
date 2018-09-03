@@ -58,10 +58,13 @@ sub parse_pindel {
 
     # This is the principal result of pindel_filter
     my $bypass_str;
+    my $bypass_vcf;
     if ($bypass) {
         $bypass_str = "pindel.filter.skip_filter1 = true\npindel.filter.skip_filter2 = true";
+        $bypass_vcf = "--bypass";
     } else {
         $bypass_str = "";
+        $bypass_vcf = "";
     }
 
 ## Pindel Filter - below is input into pindel_filter.pl
@@ -102,8 +105,6 @@ EOF
 #    pindel.out.raw.CvgVafStrand_fail
 #    pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf  -> this is input into dbSnP filter
 #    pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail.vcf  
-# 2. rename headers of pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf to be "NORMAL" and "TUMOR" 
-#    Also add "FORMAT" column which new version of pindel2vcf misses
 # 3. Run dbSnP filter
 #    pindel.out.current_final.dbsnp_pass.vcf
 #    pindel.out.current_final.dbsnp_pass.vcf.idx
@@ -122,7 +123,7 @@ EOF
     print OUT <<"EOF";
 #!/bin/bash
 
-echo Running pindel_filter
+echo Running pindel_filter.pl
 $perl $gvip_dir/pindel_filter.pl $filter_results/pindel_filter.input
 rc=\$?
 if [[ \$rc != 0 ]]; then
@@ -139,10 +140,9 @@ if [[ \$rc != 0 ]]; then
     exit \$rc;
 fi
 
-
 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
-bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn pindel $pindel_vcf_filter_config $vcf_filtered_fn
+bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn pindel $pindel_vcf_filter_config $vcf_filtered_fn $bypass_vcf 
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.

@@ -43,6 +43,115 @@ use File::Basename;
 # * skip_pindel2vcf:        do not run pindel2vcf
 # * skip_filter2:           skip Homopolymer filter 
 
+sub CvgVafStrandFilter_Germline {
+    my $input_fh = shift;
+    my $filter1_fail_fh = shift;
+    my $filter1_pass_fh = shift;
+    my $min_coverages = shift;
+    my $min_var_allele_freq = shift;
+    my $require_balanced_reads = shift;
+
+    print STDERR "Running CvgVafStrandFilter: Germline\n";
+
+    while (<$input_fh>) {
+        chomp; 
+        my @t = split /\s+/;
+        if(  ($t[32] + $t[34] + $t[36] <  $min_coverages) || ($t[33] + $t[34] + $t[36] <  $min_coverages)  ) {
+            $filter1_fail_fh->print($_."\n");
+            next;
+        }
+        if( ($t[34] + $t[36] + $t[34] + $t[36])/($t[32] + $t[33] + $t[34] + $t[36] + $t[34] + $t[36] ) <  $min_var_allele_freq ){
+            $filter1_fail_fh->print($_."\n");
+            next;
+        }
+        if($require_balanced_reads) {  
+            if ( $t[34] == 0 ||  $t[36] == 0 ) {
+                $filter1_fail_fh->print($_."\n");
+                next;
+            }
+        }
+        $filter1_pass_fh->print($_."\n");
+    }
+}
+
+sub CvgVafStrandFilter_Somatic {
+    my $input_fh = shift;
+    my $filter1_fail_fh = shift;
+    my $filter1_pass_fh = shift;
+    my $min_coverages = shift;
+    my $min_var_allele_freq = shift;
+    my $require_balanced_reads = shift;
+    my $remove_complex_indels = shift;
+    my $zero = shift;
+    print STDERR "Running CvgVafStrandFilter: Somatic\n";
+
+    while (<$input_fh>) {
+        chomp; 
+        my @t = split /\s+/;
+        if(  ($t[32] + $t[34] + $t[36] <  $min_coverages) || ($t[33] + $t[34] + $t[36] < $min_coverages) || ($t[39] + $t[41] + $t[43] < $min_coverages) || ($t[40] + $t[41] + $t[43] < $min_coverages)) {
+            $filter1_fail_fh->print($_."\n");
+            next;
+        }
+        if( ($t[34] + $t[36] + $t[34] + $t[36])/($t[32] + $t[33] + $t[34] + $t[36] + $t[34] + $t[36] ) > $zero ||  ($t[41] + $t[43] + $t[41] + $t[43])/($t[39] + $t[40] + $t[41] + $t[43] + $t[41] + $t[43]) < $min_var_allele_freq) {
+            $filter1_fail_fh->print($_."\n");
+            next;
+        }
+        if($require_balanced_reads) {  
+            if ( $t[41] == 0 || $t[43] == 0 ) {
+                $filter1_fail_fh->print($_."\n");
+                next;
+            }
+        }
+        if($remove_complex_indels) {  
+            if ( $t[1] eq "I" || $t[1] eq "D") {
+                if ( $t[1] eq "I" || ($t[1] eq "D" && $t[4] == 0) ) {
+# print "Indel filter: passed\n";
+                    $filter1_pass_fh->print($_."\n");
+                } else {
+                    $filter1_fail_fh->print($_."\n");
+                }
+                next;
+            }
+        }
+        $filter1_pass_fh->print($_."\n");
+    }
+}
+
+sub CvgVafStrandFilter_Trio {
+    my $input_fh = shift;
+    my $filter1_fail_fh = shift;
+    my $filter1_pass_fh = shift;
+    my $min_coverages = shift;
+    my $require_balanced_reads = shift;
+    my $child_var_allele_freq = shift;
+    my $parents_max_num_supporting_reads = shift;
+    print STDERR "Running CvgVafStrandFilter: Trio\n";
+
+    while (<$input_fh>) {
+        chomp; 
+        my @t = split /\s+/;
+        if(  ($t[32] + $t[34] + $t[36] <  $min_coverages) || ($t[33] + $t[34] + $t[36] <  $min_coverages)  || ($t[39] + $t[41] + $t[43] < $min_coverages) ||  ($t[40] + $t[41] + $t[43] <  $min_coverages) ||   ($t[46] + $t[48] + $t[50] < $min_coverages) ||  ($t[47] + $t[48] + $t[50] <  $min_coverages) ) {
+            $filter1_fail_fh->print($_."\n");
+            next;
+        }
+        if( ($t[48] + $t[50] + $t[48] + $t[50])/($t[46] + $t[47] + $t[48] + $t[50] + $t[48] + $t[50]) < $child_var_allele_freq    ) { 
+            $filter1_fail_fh->print($_."\n");
+            next;
+        }
+        if( ($t[34] + $t[36]) + ($t[41] + $t[43]) >  $parents_max_num_supporting_reads  ) {
+            $filter1_fail_fh->print($_."\n");
+            next;
+        }
+        if($require_balanced_reads) {  
+            if ( $t[48] == 0 ||  $t[50] == 0 ) {
+                $filter1_fail_fh->print($_."\n");
+                next;
+            }
+        }
+        $filter1_pass_fh->print($_."\n");
+    }
+}
+
 sub CvgVafStrandFilter {
     my $infn = shift;   
     my $passfn = shift; 
@@ -56,7 +165,6 @@ sub CvgVafStrandFilter {
     my $parents_max_num_supporting_reads = shift; 
     my $zero = shift;
 
-# Optional filter, part 1
     my $input_fh        = IO::File->new( "$infn"         ) or die "Could not open $infn for reading $! ";
     my $filter1_pass_fh = IO::File->new( "$passfn",  ">" ) or die "Could not create $passfn for writing $!";
     my $filter1_fail_fh = IO::File->new( "$failfn",  ">" ) or die "Could not create $failfn for writing $!";
@@ -79,25 +187,7 @@ sub CvgVafStrandFilter {
 # Germline filtering options:
 # minimum coverage, VAF threshold, reads are considered balanced as long as there is nonzero read support in both directions
     if ($mode eq "germline") {
-        while (<$input_fh>) {
-            chomp; 
-            my @t = split /\s+/;
-            if(  ($t[32] + $t[34] + $t[36] <  $min_coverages) || ($t[33] + $t[34] + $t[36] <  $min_coverages)  ) {
-                $filter1_fail_fh->print($_."\n");
-                next;
-            }
-            if( ($t[34] + $t[36] + $t[34] + $t[36])/($t[32] + $t[33] + $t[34] + $t[36] + $t[34] + $t[36] ) <  $min_var_allele_freq ){
-                $filter1_fail_fh->print($_."\n");
-                next;
-            }
-            if($require_balanced_reads) {  
-                if ( $t[34] == 0 ||  $t[36] == 0 ) {
-                    $filter1_fail_fh->print($_."\n");
-                    next;
-                }
-            }
-            $filter1_pass_fh->print($_."\n");
-        }
+        CvgVafStrandFilter_Germline($input_fh, $filter1_fail_fh, $filter1_pass_fh, $min_coverages, $min_var_allele_freq, $require_balanced_reads);
     }
 
 # Somatic filtering options:
@@ -106,36 +196,7 @@ sub CvgVafStrandFilter {
 # support in normal; reads are considered balanced as long as there is nonzero
 # read support in both directions in tumor
     if ($mode eq "somatic") {
-        while (<$input_fh>) {
-            chomp; 
-            my @t = split /\s+/;
-            if(  ($t[32] + $t[34] + $t[36] <  $min_coverages) || ($t[33] + $t[34] + $t[36] < $min_coverages) || ($t[39] + $t[41] + $t[43] < $min_coverages) || ($t[40] + $t[41] + $t[43] < $min_coverages)) {
-                $filter1_fail_fh->print($_."\n");
-                next;
-            }
-            if( ($t[34] + $t[36] + $t[34] + $t[36])/($t[32] + $t[33] + $t[34] + $t[36] + $t[34] + $t[36] ) > $zero ||  ($t[41] + $t[43] + $t[41] + $t[43])/($t[39] + $t[40] + $t[41] + $t[43] + $t[41] + $t[43]) < $min_var_allele_freq) {
-                $filter1_fail_fh->print($_."\n");
-                next;
-            }
-            if($require_balanced_reads) {  
-                if ( $t[41] == 0 || $t[43] == 0 ) {
-                    $filter1_fail_fh->print($_."\n");
-                    next;
-                }
-            }
-            if($remove_complex_indels) {  
-                if ( $t[1] eq "I" || $t[1] eq "D") {
-                    if ( $t[1] eq "I" || ($t[1] eq "D" && $t[4] == 0) ) {
-# print "Indel filter: passed\n";
-                        $filter1_pass_fh->print($_."\n");
-                    } else {
-                        $filter1_fail_fh->print($_."\n");
-                    }
-                    next;
-                }
-            }
-            $filter1_pass_fh->print($_."\n");
-        }
+        CvgVafStrandFilter_Somatic($input_fh, $filter1_fail_fh, $filter1_pass_fh, $min_coverages, $min_var_allele_freq, $require_balanced_reads, $remove_complex_indels, $zero);
     }
 
 # Trio filtering options:
@@ -144,29 +205,7 @@ sub CvgVafStrandFilter {
 # variant support in parents combined; reads are considered balanced as long as
 # there is nonzero read support in both directions in child
     if ($mode eq "trio") {   # trio
-        while (<$input_fh>) {
-            chomp; 
-            my @t = split /\s+/;
-            if(  ($t[32] + $t[34] + $t[36] <  $min_coverages) || ($t[33] + $t[34] + $t[36] <  $min_coverages)  || ($t[39] + $t[41] + $t[43] < $min_coverages) ||  ($t[40] + $t[41] + $t[43] <  $min_coverages) ||   ($t[46] + $t[48] + $t[50] < $min_coverages) ||  ($t[47] + $t[48] + $t[50] <  $min_coverages) ) {
-                $filter1_fail_fh->print($_."\n");
-                next;
-            }
-            if( ($t[48] + $t[50] + $t[48] + $t[50])/($t[46] + $t[47] + $t[48] + $t[50] + $t[48] + $t[50]) < $child_var_allele_freq    ) { 
-                $filter1_fail_fh->print($_."\n");
-                next;
-            }
-            if( ($t[34] + $t[36]) + ($t[41] + $t[43]) >  $parents_max_num_supporting_reads  ) {
-                $filter1_fail_fh->print($_."\n");
-                next;
-            }
-            if($require_balanced_reads) {  
-                if ( $t[48] == 0 ||  $t[50] == 0 ) {
-                    $filter1_fail_fh->print($_."\n");
-                    next;
-                }
-            }
-            $filter1_pass_fh->print($_."\n");
-        }
+        CvgVafStrandFilter_Trio($input_fh, $filter1_fail_fh, $filter1_pass_fh, $min_coverages, $require_balanced_reads, $child_var_allele_freq, $parents_max_num_supporting_reads);
     }
 
     $filter1_fail_fh->close;
@@ -233,7 +272,11 @@ chomp $thisdir;
 my %paras; 
 map { chomp; if ( !/^[#;]/ &&  /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
 if( $paras{'apply_filter'} eq "true" &&  !exists($paras{'mode'}) ) { die "Could not detect a filtering mode for filtering !!!\n"; }
-# file exist ? 
+
+if (($paras{'mode'} ne 'pooled') && ($paras{'mode'} ne 'somatic') && ($paras{'mode'} ne 'germline') && ($paras{'mode'} ne 'trio')) {
+    die ("Unknown pindel filter mode: " . $paras{'mode'});
+}
+
 unless ( -e $paras{'variants_file'} ) { die "input indels not exist !!! \n"; }
 
 my $zero = 0.001;

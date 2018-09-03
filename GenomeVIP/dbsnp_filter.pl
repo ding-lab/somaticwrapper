@@ -27,13 +27,10 @@ sub checksize {
     return 1;
 }
 
-
 # get paras from config file
 my (%paras);
-#map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; print $v."\n";  $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
 map { chomp;  if(!/^[#;]/ && /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
 map { print; print "\t"; print $paras{$_}; print "\n" } keys %paras;
-
 
 # Use uncompressed db to avoid being bitten by java compression bug
 my $anno=$paras{'rawvcf'}."dbsnp_anno.vcf";
