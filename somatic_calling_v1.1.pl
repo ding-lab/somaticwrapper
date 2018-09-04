@@ -45,7 +45,8 @@ $normal
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
-<wgs> ==  1 for yes and 0 for no 
+<wgs> = 1 for yes and 0 for no 
+<indsize> = indel size < indsize: default indsize = 20
 
 Hg38: /gscmnt/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.fa
 
@@ -765,22 +766,22 @@ sub bsub_parse_varscan{
 	print VARSCANP "varscan.fpfilter.snv.min_var_allele_avg_mapping_qual = 30\n";
 	print VARSCANP "varscan.fpfilter.snv.max_avg_mapping_qual_difference = 50\n";
 	print VARSCANP "EOF\n";
-	print VARSCANP "cat > \${RUNDIR}/varscan/vs_vep.snv.input <<EOF\n";
-	print VARSCANP "varscan.vep.vcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-	print VARSCANP "varscan.vep.output = ./varscan.out.som_snv.current_final.gvip.Somatic.VEP.vcf\n";
-	print VARSCANP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-	print VARSCANP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-	print VARSCANP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-	print VARSCANP "varscan.vep.assembly = GRCh37\n";
-	print VARSCANP "EOF\n";
-    print VARSCANP "cat > \${RUNDIR}/varscan/vs_vep.indel.input <<EOF\n";
-    print VARSCANP "varscan.vep.vcf = ./varscan.out.som_indel.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-    print VARSCANP "varscan.vep.output = ./varscan.out.som_indel.current_final.gvip.Somatic.VEP.vcf\n";
-    print VARSCANP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print VARSCANP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-    print VARSCANP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print VARSCANP "varscan.vep.assembly = GRCh37\n";
-    print VARSCANP "EOF\n";
+	#print VARSCANP "cat > \${RUNDIR}/varscan/vs_vep.snv.input <<EOF\n";
+	#print VARSCANP "varscan.vep.vcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
+	#print VARSCANP "varscan.vep.output = ./varscan.out.som_snv.current_final.gvip.Somatic.VEP.vcf\n";
+	#print VARSCANP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
+	#print VARSCANP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
+	#print VARSCANP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
+	#print VARSCANP "varscan.vep.assembly = GRCh37\n";
+	#print VARSCANP "EOF\n";
+    #print VARSCANP "cat > \${RUNDIR}/varscan/vs_vep.indel.input <<EOF\n";
+    #print VARSCANP "varscan.vep.vcf = ./varscan.out.som_indel.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
+    #print VARSCANP "varscan.vep.output = ./varscan.out.som_indel.current_final.gvip.Somatic.VEP.vcf\n";
+    #print VARSCANP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
+   # print VARSCANP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
+   # print VARSCANP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
+   # print VARSCANP "varscan.vep.assembly = GRCh37\n";
+   # print VARSCANP "EOF\n";
 	print VARSCANP "if [ ! -d \${myRUNDIR} ]\n";
     print VARSCANP "then\n";
     print VARSCANP "mkdir \${myRUNDIR}\n";

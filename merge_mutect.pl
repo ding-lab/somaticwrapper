@@ -4,6 +4,8 @@ use strict;
 use warnings;
 die unless @ARGV == 1;
 
+## merge calls from different chromosomes ##
+
 my @chrlist=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","X","Y");
 my ($sample_full_path)=@ARGV;
 my $f_snv;
