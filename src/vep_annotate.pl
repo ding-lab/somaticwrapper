@@ -1,4 +1,4 @@
-# Annotate VCF file using vcf and write output as VCF or VEP
+# Annotate VCF file using vcf and and apply AF (allele frequency) and classification (e.g., exon-only) filter.
 #
 # Required Arguments (from command line):
 # * input_vcf 

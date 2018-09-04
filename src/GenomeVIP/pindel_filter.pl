@@ -1,4 +1,9 @@
 #!/usr/bin/env perl
+# Process pindel output and generate VCF file with indel calls
+# 1. apply CvgVafStrand Filter (coverage) to pindel output
+# 2. Convert reads to VCF
+# 3. apply homopolymer filter
+#
 #--------------------------------------
 # @name GenomeVIP Pindel filters
 # @author Beifang Niu
