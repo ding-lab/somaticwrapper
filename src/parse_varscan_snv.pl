@@ -5,7 +5,7 @@
 #
 # Note that dbSnP filtering is removed from this step
 
-# The following files created in $sample_full_path/varscan_out are read here:
+# The following files created in $results_dir/varscan_out are read here:
 #  varscan.out.som_indel.vcf 
 #  varscan.out.som_snv.vcf 
 #
@@ -75,7 +75,7 @@ sub make_data_link {
 }
 
 sub parse_varscan_snv {
-    my $sample_full_path = shift;
+    my $results_dir = shift;
     my $job_files_dir = shift;
     my $filter_dir = shift;
     my $varscan_jar = shift;
@@ -85,7 +85,7 @@ sub parse_varscan_snv {
     my $varscan_vcf_filter_config = shift;
 
     # define output directory: varscan/filter_snv_out
-    my $filter_results_dir = "$sample_full_path/varscan/filter_snv_out";
+    my $filter_results_dir = "$results_dir/varscan/filter_snv_out";
     print STDERR "Filter results: $filter_results_dir\n";
     system("mkdir -p $filter_results_dir");
 

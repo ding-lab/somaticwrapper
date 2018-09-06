@@ -73,22 +73,20 @@ sub test_config_parameters_varscan_run {
 sub run_varscan{
     my $IN_bam_T = shift;
     my $IN_bam_N = shift;
-    my $sample_full_path = shift;
+    my $results_dir = shift;
     my $job_files_dir = shift;
     my $REF = shift;
     my $varscan_config = shift;
     my $varscan_jar = shift;
 
-    my $bsub = "bash";
     my $samtools="/usr/local/bin/samtools";
 
-    $current_job_file = "j2_varscan.sh";
     die "Error: Tumor BAM $IN_bam_T does not exist\n" if (! -e $IN_bam_T);
     die "Error: Tumor BAM $IN_bam_T is empty\n" if (! -s $IN_bam_T);
     die "Error: Normal BAM $IN_bam_N does not exist\n" if (! -e $IN_bam_N);
     die "Error: Normal BAM $IN_bam_N is empty\n" if (! -s $IN_bam_N);
 
-    my $workdir="$sample_full_path/varscan/varscan_out";
+    my $workdir="$results_dir/varscan/varscan_out";
     system("mkdir -p $workdir");
 
     # Create a list of BAM files for varscan to use
@@ -102,9 +100,9 @@ sub run_varscan{
     # Create the run script
     # Using HERE docs: https://stackoverflow.com/questions/17479354/how-to-use-here-doc-to-print-lines-to-file
 
-    my $outfn = "$job_files_dir/$current_job_file";
-    print STDERR "Writing to $outfn\n";
-    open(OUT, ">$outfn") or die $!;
+    my $runfn = "$job_files_dir/j2_varscan.sh";
+    print STDERR "Writing to $runfn\n";
+    open(OUT, ">$runfn") or die $!;
 
 
     my $run_name="varscan.out.som";
@@ -173,11 +171,11 @@ done
 
 EOF
     close OUT;
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
+    my $cmd = "bash < $runfn\n";
 
-    print STDERR "Executing:\n $bsub_com \n";
+    print STDERR "Executing:\n $cmd \n";
 
-    my $return_code = system ( $bsub_com );
+    my $return_code = system ( $cmd );
     die("Exiting ($return_code).\n") if $return_code != 0;
     print STDERR "Final results: SNV: $snvout.vcf \n             INDEL: $indelout.vcf\n";
 

@@ -16,8 +16,6 @@ sub run_strelka {
     my $is_strelka2 = shift;    # accommodates differences in how strelka v2 is called
     my $manta_vcf = shift;    
 
-    my $bsub = "bash";
-    $current_job_file = "j1_streka.sh"; 
     die "Error: Tumor BAM $IN_bam_T does not exist\n" if (! -e $IN_bam_T);
     die "Error: Tumor BAM $IN_bam_T is empty\n" if (! -s $IN_bam_T);
     die "Error: Normal BAM $IN_bam_N does not exist\n" if (! -e $IN_bam_N);
@@ -40,9 +38,9 @@ sub run_strelka {
 
     my $expected_out;
 
-    my $outfn = "$job_files_dir/$current_job_file";
-    print STDERR "Writing to $outfn\n";
-    open(OUT, ">$outfn") or die $!;
+    my $runfn = "$job_files_dir/j1_streka.sh"; 
+    print STDERR "Writing to $runfn\n";
+    open(OUT, ">$runfn") or die $!;
 
 #
 # Strelka 1
@@ -109,10 +107,10 @@ EOF
 
         $expected_out="$strelka_out/results/variants/somatic.snvs.vcf.gz";
     }
-    my $bsub_com = "$bsub < $outfn\n";
+    my $cmd = "bash < $runfn\n";
 
-    print STDERR $bsub_com."\n";
-    my $return_code = system ( $bsub_com );
+    print STDERR $cmd."\n";
+    my $return_code = system ( $cmd );
     die("Exiting ($return_code).\n") if $return_code != 0;
 
     printf STDERR "Testing output $expected_out\n";

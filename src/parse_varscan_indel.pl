@@ -4,7 +4,7 @@
 #
 # Note that dbSnP filtering is removed from this step
 
-# The following file created in $sample_full_path/varscan_out is read here:
+# The following file created in $results_dir/varscan_out is read here:
 #  varscan.out.som_indel.vcf 
 #
 # processing which takes place here will be written to varscan/filter_indel_out 
@@ -40,7 +40,7 @@ sub test_config_parameters_varscan_parse {
 }
 
 sub parse_varscan_indel {
-    my $sample_full_path = shift;
+    my $results_dir = shift;
     my $job_files_dir = shift;
     my $filter_dir = shift;
     my $varscan_jar = shift;
@@ -48,7 +48,7 @@ sub parse_varscan_indel {
     my $varscan_config = shift;
     my $varscan_vcf_filter_config = shift;
     
-    my $filter_results = "$sample_full_path/varscan/filter_indel_out";
+    my $filter_results = "$results_dir/varscan/filter_indel_out";
     print STDERR "Filter results: $filter_results\n";
     system("mkdir -p $filter_results");
 
@@ -85,10 +85,9 @@ sub parse_varscan_indel {
     my $vcf_filter_out = "$filter_results/varscan.out.som_indel.Somatic.hc.filtered.vcf";
     my $vcf_filter_cmd="bash $filter_dir/run_combined_vcf_filter.sh $process_somatic_out varscan $varscan_vcf_filter_config $vcf_filter_out ";
 
-    my $current_job_file = "j4b_parse_varscan_indel.sh";
-    my $outfn = "$job_files_dir/$current_job_file";
-    print STDERR "Writing to $outfn\n";
-    open(OUT, ">$outfn") or die $!;
+    my $runfn = "$job_files_dir/j4b_parse_varscan_indel.sh";
+    print STDERR "Writing to $runfn\n";
+    open(OUT, ">$runfn") or die $!;
 
     print OUT <<"EOF";
 #!/bin/bash
@@ -114,7 +113,7 @@ fi
 EOF
 
     close OUT;
-    my $cmd = "bash < $outfn\n";
+    my $cmd = "bash < $runfn\n";
     print STDERR "Executing:\n $cmd \n";
 
     my $return_code = system ( $cmd );

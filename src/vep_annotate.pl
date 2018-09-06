@@ -77,9 +77,7 @@ sub vep_annotate {
     # We now require all output to be vcf format (not vep), so that VCF filtering can take place 
 
 
-    $current_job_file = "j10_vep.sh";
 
-    my $bsub = "bash";
     my $filter_results = "$results_dir/vep";
     system("mkdir -p $filter_results");
 
@@ -124,9 +122,9 @@ sub vep_annotate {
         $vep_output_fn,           # output
         $vep_cmd, $cache_dir, $reference, $assembly, $cache_version, $use_vep_db, 0);
 
-    my $out = "$job_files_dir/$current_job_file";
-    print STDERR "Writing to $out\n";
-    open(OUT, ">$out") or die $!;
+    my $runfn = "$job_files_dir/j10_vep.sh";
+    print STDERR "Writing to $runfn\n";
+    open(OUT, ">$runfn") or die $!;
     print OUT <<"EOF";
 #!/bin/bash
 
@@ -149,10 +147,10 @@ bash $filter_dir/run_combined_af_classification_filter.sh $vep_output_fn $af_fil
 EOF
 
     close OUT;
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    print STDERR "Executing:\n $bsub_com \n";
+    my $cmd = "bash < $runfn";
+    print STDERR "Executing:\n $cmd \n";
 
-    my $return_code = system ( $bsub_com );
+    my $return_code = system ( $cmd );
     die("Exiting ($return_code).\n") if $return_code != 0;
 
     # Clean up by deleting contents of cache_dir - this tends to be big (>10Gb) and unnecessary to keep

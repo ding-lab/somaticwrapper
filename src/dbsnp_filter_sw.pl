@@ -21,7 +21,6 @@ sub dbsnp_filter {
     my $input_vcf = shift;
     my $bypass = shift;
 
-    $current_job_file = "j_dbsnp_filter.sh";
     
     my $filter_results = "$results_dir/dbsnp_filter";
     print STDERR "Filter results: $filter_results\n";
@@ -62,9 +61,9 @@ varscan.dbsnp.snv.passfile  = $pass_fn
 varscan.dbsnp.snv.presentfile = $present_fn
 EOF
 
-    my $job_file = "$job_files_dir/$current_job_file";
-    print STDERR "Writing to $job_file\n";
-    open(OUT, ">$job_file") or die $!;
+    my $runfn = "$job_files_dir/j_dbsnp_filter.sh";
+    print STDERR "Writing to $runfn\n";
+    open(OUT, ">$runfn") or die $!;
 
     print OUT <<"EOF";
 #!/bin/bash
@@ -79,7 +78,7 @@ fi
 EOF
     close OUT;
 
-    my $cmd = "bash < $job_file\n";
+    my $cmd = "bash < $runfn\n";
     print STDERR "Executing:\n $cmd \n";
 
     my $return_code = system ( $cmd );

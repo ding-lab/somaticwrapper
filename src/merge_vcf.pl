@@ -10,14 +10,13 @@
 
 # After merging, we filter to retain only those SNVs which are called by both strelka and varscan
 
-
 # CWL-specific changes
 # * Get rid of unused arguments
 # * pass all input VCFs
 # * Output port: merged/merged.filtered.vcf
 
 sub merge_vcf {
-    my $sample_full_path = shift;
+    my $results_dir = shift;
     my $job_files_dir = shift;
     my $filter_dir = shift;
     my $REF = shift;
@@ -29,19 +28,16 @@ sub merge_vcf {
     my $pindel_vcf = shift;
     my $filter_xargs = shift;
 
-    my $bsub = "bash";
-    $current_job_file = "j8_merge_vcf.sh";
-    my $filter_results = "$sample_full_path/merged";
+    my $filter_results = "$results_dir/merged";
     system("mkdir -p $filter_results");
 
 
     my $merger_out_tmp = "$filter_results/merged.vcf";
     my $merger_out = "$filter_results/merged.filtered.vcf";
 
-
-    my $outfn = "$job_files_dir/$current_job_file";
-    print STDERR "Writing to $outfn\n";
-    open(OUT, ">$outfn") or die $!;
+    my $runfn = "$job_files_dir/j8_merge_vcf.sh";
+    print STDERR "Writing to $runfn\n";
+    open(OUT, ">$runfn") or die $!;
 
     print OUT <<"EOF";
 #!/bin/bash
@@ -72,10 +68,10 @@ fi
 EOF
 
     close OUT;
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    print STDERR "Executing:\n $bsub_com \n";
+    my $cmd = "bash < $runfn\n";
+    print STDERR "Executing:\n $cmd \n";
 
-    my $return_code = system ( $bsub_com );
+    my $return_code = system ( $cmd );
     die("Exiting ($return_code).\n") if $return_code != 0;
 }
 

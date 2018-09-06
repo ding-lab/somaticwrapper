@@ -1,10 +1,7 @@
 
-# principal output used in merging: pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf
+# principal output used in merging: pindel/filter_out/pindel.out.current_final.filtered.vcf
 
 # if apply_filter is 0, skip filtering for CvgVafStrand and Homopolymer in pindel_filter, and just output VCF file
-
-# TODO: add pindel.filter.apply_filter = true to pindel_filter input
-# TODO: make dbsnp_db optional; if does not exist, skip this filtering
 
 # CWL changes:
 # * genomevip_labeling removed
@@ -15,125 +12,72 @@
 # * Optionally delete files pindel-raw.CvgVafStrand_fail and pindel-raw.CvgVafStrand_pass.Homopolymer_fail.vcf
 
 sub parse_pindel {
-    my $sample_full_path = shift;
+    my $results_dir = shift;
     my $job_files_dir = shift;
-    my $REF = shift;
+    my $reference = shift;
     my $perl = shift;
     my $gvip_dir = shift;
     my $filter_dir = shift;
     my $pindel_dir = shift;
-    my $dbsnp_db = shift;
-    my $snpsift_jar = shift;
     my $pindel_config = shift;
-    my $pindel_raw_in = shift; # NEW
+    my $pindel_raw_in = shift; 
     my $no_delete_temp = shift;
     my $pindel_vcf_filter_config = shift;
     my $bypass = shift;
 
     if (! $no_delete_temp) {
-        $no_delete_temp = 0; # avoid empty variables
+        $no_delete_temp = 0; 
     }
 
-    $current_job_file = "j7_parse_pindel.sh";
-
-    my $bsub = "bash";
-    my $filter_results = "$sample_full_path/pindel/filter_out";
+    my $filter_results = "$results_dir/pindel/filter_out";
     system("mkdir -p $filter_results");
 
-    die "Error: dbSnP database file $dbsnp_db does not exist\n" if (! -e $dbsnp_db);
+    # pindel_filter writes all output data to the same directory as input data.
+    # To get around this, make link to input data in output directory.  make_data_link()
+    # defined in parse_varscan_snv.pl
+    my $pindel_raw = make_data_link($pindel_raw_in, $filter_results);
 
-    # pindel_filter is unfortunately designed such that all output data is written to the same directory as input data, and
-    # no way is provided to change that.  Since input data is passed, and we need
-    # to be able to control where data is written to, we must create a soft-link to input data in output 
-    # directory.  Link has to be created with an absolute filename
-    die "Error: Pindel raw input file $pindel_raw_in does not exist\n" if (! -e $pindel_raw_in);
-    $pindel_raw_in = `readlink -f $pindel_raw_in`;
-    chomp $pindel_raw_in;
+    # bypass flag will skip two filters in parse_pindel, and vcf_filter.  
+    my $bypass_str = $bypass ? "pindel.filter.skip_filter1 = true\npindel.filter.skip_filter2 = true" : "";
+    my $bypass_vcf = $bypass ? "--bypass" : "";
 
-    my $errcode = system ("ln -fs $pindel_raw_in $filter_results "); 
-    die ("Error executing: $cmd \n $! \n") if ($errcode);
-
-    my $pindel_raw=$filter_results . "/" . basename($pindel_raw_in) ;
-    my $filter_out="$pindel_raw.CvgVafStrand_pass.Homopolymer_pass.vcf";
-
-    # work out bypass logic
-    my $bypass_str;
-    my $bypass_vcf;
-    if ($bypass) {
-        $bypass_str = "pindel.filter.skip_filter1 = true\npindel.filter.skip_filter2 = true";
-        $bypass_vcf = "--bypass";
-    } else {
-        $bypass_str = "";
-        $bypass_vcf = "";
-    }
-
-## Pindel Filter - below is input into pindel_filter.pl
-# lines below are added to data from $pindel_config
+    # Set up parse_pindel configuration file.  It takes $pindel_config file and adds several lines to it
     die "$pindel_config does not exist\n" unless (-f $pindel_config);
-
-    my $out = "$filter_results/pindel_filter.input";
-    print STDERR "Copying $pindel_config to $out and appending\n";
-    $errcode = system("cp $pindel_config $out");
+    my $config_fn = "$filter_results/pindel_filter.input";
+    print STDERR "Copying $pindel_config to $config_fn and appending\n";
+    $errcode = system("cp $pindel_config $config_fn");
     die ("Error executing: $cmd \n $! \n") if ($errcode);
-
-    open(OUT, ">>$out") or die $!;
+    open(OUT, ">>$config_fn") or die $!;
     print OUT <<"EOF";
 pindel.filter.pindel2vcf = $pindel_dir/pindel2vcf
 pindel.filter.variants_file = $pindel_raw
-pindel.filter.REF = $REF
+pindel.filter.REF = $reference
 pindel.filter.date = 000000
 $bypass_str
 EOF
 
-## dbSnP Filter
-# TODO: skip this step if $dbsnp_db not defined.  Not yet implemented
-    my $dbsnp_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.vcf";
-    my $out = "$filter_results/pindel_dbsnp_filter.indel.input";
-    print STDERR "Writing to $out\n";
-    open(OUT, ">$out") or die $!;
-    print OUT <<"EOF";
-pindel.dbsnp.indel.annotator = $snpsift_jar
-pindel.dbsnp.indel.db = $dbsnp_db
-pindel.dbsnp.indel.rawvcf = $filter_out
-pindel.dbsnp.indel.mode = filter
-pindel.dbsnp.indel.passfile  = $dbsnp_filtered_fn
-pindel.dbsnp.indel.dbsnpfile = $filter_results/pindel.out.current_final.dbsnp_present.vcf
-EOF
+    # Run pindel_filter produces:
+    #    pindel.out.raw.CvgVafStrand_pass 
+    #    pindel.out.raw.CvgVafStrand_fail
+    #    pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf  -> this is input into dbSnP filter
+    #    pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail.vcf  
+    my $pindel_filter_out="$pindel_raw.CvgVafStrand_pass.Homopolymer_pass.vcf";
+    my $pindel_filter_cmd = "$perl $gvip_dir/pindel_filter.pl $config_fn";
 
-# 1. run pindel_filter.  This produces
-#    pindel.out.raw.CvgVafStrand_pass 
-#    pindel.out.raw.CvgVafStrand_fail
-#    pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf  -> this is input into dbSnP filter
-#    pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail.vcf  
-# 3. Run dbSnP filter
-#    pindel.out.current_final.dbsnp_pass.vcf
-#    pindel.out.current_final.dbsnp_pass.vcf.idx
-#    pindel.out.current_final.dbsnp_present.vcf
-# 4. run vcf_filter.py family of filters: VAF, read depth, and indel length
-#    * Reads pindel.out.current_final.dbsnp_pass.vcf
-#    * Outputs pindel.out.current_final.dbsnp_pass.filtered.vcf
-# 5. Optionally delete intermediate files
-#    - specifically, files with "_fail" in the filename
+    # run vcf_filter.py family of filters: VAF, read depth, and indel length
+    #    * Reads pindel.out.current_final.vcf
+    #    * Outputs pindel.out.current_final.filtered.vcf
+    my $vcf_filtered_out = "$filter_results/pindel.out.current_final.filtered.vcf";
+    my $vcf_filter_cmd = "bash $filter_dir/run_combined_vcf_filter.sh $pindel_filter_out pindel $pindel_vcf_filter_config $vcf_filtered_out $bypass_vcf";
 
-    my $vcf_filtered_fn = "$filter_results/pindel.out.current_final.dbsnp_pass.filtered.vcf";
-
-    my $outfn = "$job_files_dir/$current_job_file";
+    my $outfn = "$job_files_dir/j7_parse_pindel.sh";
     print STDERR "Writing to $outfn\n";
     open(OUT, ">$outfn") or die $!;
     print OUT <<"EOF";
 #!/bin/bash
 
 >&2 echo Running pindel_filter.pl
-$perl $gvip_dir/pindel_filter.pl $filter_results/pindel_filter.input
-rc=\$?
-if [[ \$rc != 0 ]]; then
-    >&2 echo Fatal error \$rc: \$!.  Exiting.
-    exit \$rc;
-fi
-
->&2 echo Running dbsnp_filter.pl
-export JAVA_OPTS=\"-Xms256m -Xmx10g\"
-$perl $gvip_dir/dbsnp_filter.pl $filter_results/pindel_dbsnp_filter.indel.input
+$pindel_filter_cmd
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.
@@ -142,36 +86,32 @@ fi
 
 >&2 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
-bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn pindel $pindel_vcf_filter_config $vcf_filtered_fn $bypass_vcf 
+$vcf_filter_cmd
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.
     exit \$rc;
 fi
 
-
+# Optionally delete intermediate files
+#    - specifically, files with "_fail" in the filename
 if [[ $no_delete_temp == 1 ]]; then
-
->&2 echo Not deleting intermediate files
-
+    >&2 echo Not deleting intermediate files
 else
-
->&2 echo Deleting intermediate \\"filter fail\\" files
-cd $filter_results
-rm -f \*_fail\* 
-
-tmp_base=\$(basename \$TMP)
-rm -f \$tmp_base
-
+    >&2 echo Deleting intermediate \\"filter fail\\" files
+    cd $filter_results
+    rm -f \*_fail\* 
+    tmp_base=\$(basename \$TMP)
+    rm -f \$tmp_base
 fi
 
 EOF
 
     close OUT;
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    print STDERR "Executing:\n $bsub_com \n";
+    my $cmd = "bash < $outfn\n";
+    print STDERR "Executing:\n $cmd \n";
 
-    my $return_code = system ( $bsub_com );
+    my $return_code = system ( $cmd );
     die("Exiting ($return_code).\n") if $return_code != 0;
 }
 

@@ -30,7 +30,7 @@
 sub run_pindel {
     my $IN_bam_T = shift;
     my $IN_bam_N = shift;
-    my $sample_full_path = shift;
+    my $results_dir = shift;
     my $job_files_dir = shift;
     my $REF = shift;
     my $pindel_dir = shift;
@@ -56,11 +56,9 @@ sub run_pindel {
     }
 
 
-    my $bsub = "bash";
-    $current_job_file = "j5_pindel.sh";  
     my $step_output_fn = "pindel-raw.dat";
 
-    my $pindel_out = "$sample_full_path/pindel/pindel_out";
+    my $pindel_out = "$results_dir/pindel/pindel_out";
     system("mkdir -p $pindel_out");
 
     my $config_fn = "$pindel_out/pindel.config";
@@ -83,9 +81,9 @@ EOF
 #list=\$(xargs -a  $outlist)
 #cat \$list | grep ChrID > $pin_var_file
 
-    my $out = "$job_files_dir/$current_job_file";
-    print STDERR "Writing to $out\n";
-    open(OUT, ">$out") or die $!;
+    my $runfn = "$job_files_dir/j5_pindel.sh";  
+    print STDERR "Writing to $runfn\n";
+    open(OUT, ">$runfn") or die $!;
     print OUT <<"EOF";
 #!/bin/bash
 
@@ -122,10 +120,10 @@ EOF
 
     close OUT;
 
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    print STDERR "Executing:\n $bsub_com \n";
+    my $cmd = "bash < $runfn\n";
+    print STDERR "Executing:\n $cmd \n";
 
-    my $return_code = system ( $bsub_com );
+    my $return_code = system ( $cmd );
     die("Exiting ($return_code).\n") if $return_code != 0;
 }
 

@@ -49,9 +49,7 @@ sub vcf_2_maf {
     my $input_vcf = shift;  # Name of input VCF to process
     my $exac_vcf = shift;   # passed as --filter-vcf
 
-    $current_job_file = "j9_vcf_2_maf.sh";
 
-    my $bsub = "bash";
     my $filter_results = "$results_dir/maf";
     system("mkdir -p $filter_results");
 
@@ -91,9 +89,9 @@ sub vcf_2_maf {
     my $vep_path = dirname($vep_cmd);
     my $cmd = "$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl $opts --input-vcf $input_vcf --output-maf $output_fn --ref-fasta $reference --vep-path $vep_path --tmp-dir $filter_results";
 
-    my $out = "$job_files_dir/$current_job_file";
-    print STDERR "Writing to $out\n";
-    open(OUT, ">$out") or die $!;
+    my $runfn = "$job_files_dir/j9_vcf_2_maf.sh";
+    print STDERR "Writing to $runfn\n";
+    open(OUT, ">$runfn") or die $!;
     print OUT <<"EOF";
 #!/bin/bash
 
@@ -109,10 +107,10 @@ fi
 EOF
 
     close OUT;
-    my $bsub_com = "$bsub < $job_files_dir/$current_job_file\n";
-    print STDERR "Executing:\n $bsub_com \n";
+    my $cmd = "bash < $runfn";
+    print STDERR "Executing:\n $cmd \n";
 
-    my $return_code = system ( $bsub_com );
+    my $return_code = system ( $cmd );
     die("Exiting ($return_code).\n") if $return_code != 0;
 
     # Clean up by deleting contents of cache_dir - this tends to be big (>10Gb) and unnecessary to keep
