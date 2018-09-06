@@ -114,8 +114,7 @@ sub parse_varscan_snv {
     # Filename processSomaticOut determined by `varscan processSomatic` based on $snv_raw
     my $processSomaticOut="$filter_results_dir/varscan.out.som_snv.Somatic.hc.vcf";  
 
-# TODO: why the /varscan argument?  Indel does not have it
-    my $process_somatic_cmd = "java \${JAVA_OPTS} -jar $varscan_jar processSomatic $snv_raw $somatic_snv_params /varscan ";
+    my $process_somatic_cmd = "java \${JAVA_OPTS} -jar $varscan_jar processSomatic $snv_raw $somatic_snv_params ";
 
     #
     # Somatic Filter parameters and command 

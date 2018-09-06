@@ -53,7 +53,7 @@ sub parse_varscan_indel {
     system("mkdir -p $filter_results");
 
     # creating a link to indel_raw.  See parse_varscan_snv.pl for details
-    my $indel_raw = make_data_link($varscan_indel_raw, $filter_results_dir); 
+    my $indel_raw = make_data_link($varscan_indel_raw, $filter_results); 
 
     # Read configuration file into %params
     my %params = get_config_params($varscan_config, 1);
@@ -75,7 +75,7 @@ sub parse_varscan_indel {
         # varscan.out.som_indel.Somatic.hc.vcf     -> used for Indel SnP Filter below 
         # varscan.out.som_indel.Somatic.vcf        
     # all this based on assumption that indel_raw filename is varscan.out.som_indel.vcf
-    my $process_somatic_out ="$filter_results_dir/varscan.out.som_indel.Somatic.hc.vcf";  
+    my $process_somatic_out ="$filter_results/varscan.out.som_indel.Somatic.hc.vcf";  
     my $process_somatic_cmd = "java \${JAVA_OPTS} -jar $varscan_jar processSomatic $indel_raw $somatic_indel_params";
 
     #

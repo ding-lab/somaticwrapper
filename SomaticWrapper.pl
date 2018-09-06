@@ -17,6 +17,7 @@ require("src/parse_pindel.pl");
 require("src/merge_vcf.pl");
 require("src/vep_annotate.pl");
 require("src/vcf_2_maf.pl");
+require("src/dbsnp_filter_sw.pl");
 
 (my $usage = <<OUT) =~ s/\t+//g;
 This script will evaluate variants for WGS and WXS data
@@ -26,12 +27,14 @@ step_number executes given step of pipeline:
 * [1 or run_strelka]  Run streka
 * [2 or run_varscan]  Run Varscan
 * [3 or parse_strelka]  Parse streka result
-* [4 or parse_varscan]  Parse VarScan result
+* [4a or parse_varscan_snv]  Parse VarScan snv result
+* [4b or parse_varscan_indel]  Parse VarScan indel result
 * [5 or run_pindel]  Run Pindel
 * [7 or parse_pindel]  Parse Pindel
 * [8 or merge_vcf]  Merge vcf files 
 * [9 or vep_annotate]  Run VEP annotation on a given file
 * [10 or vcf_2_maf]  Run vcf_2_maf on VCF
+* [dbsnp_filter]  Remove dbSnP variants from VCF
 
 Required and optional arguments per step
 
@@ -117,6 +120,10 @@ All steps:
         * if vep_cache_dir is not defined, and vep_cache_gz is defined, extract vep_cache_gz contents into "./vep-cache" and use VEP cache
         * if neither vep_cache_dir nor vep_cache_gz defined, error.  vcf_2_maf does not support online vep_cache lookups
     --exac:  ExAC database to pass to vcf_2_maf.pl as --filter-vcf for custom annotation
+dbsnp_filter:
+    --dbsnp_db s: database for dbSNP filtering.  Step will be skipped if not defined
+    --input_vcf s: VCF file to process.  Required
+    --bypass: Apply dbSnP annotation to VCF with no further filtering
 
 Note that logic of boolean arguments can be reversed with "no" prefix, e.g. --nois_strelka2 
 OUT
@@ -277,7 +284,6 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("Varscan Indel Raw input file not specified \n") unless $varscan_indel_raw;
     die("varscan_config undefined \n") unless $varscan_config;
     die("varscan_vcf_filter_config undefined \n") unless $varscan_vcf_filter_config;
-
     parse_varscan_indel($results_dir, $job_files_dir, $filter_dir, $varscan_jar, $varscan_indel_raw, $varscan_config, $varscan_vcf_filter_config);
 
 } elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
@@ -307,6 +313,10 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
     vcf_2_maf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $input_vcf, $exac);
+
+} elsif ($step_number eq 'dbsnp_filter') {
+    die("input_vcf undefined \n") unless $input_vcf;
+    dbsnp_filter($results_dir, $job_files_dir, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $input_vcf, $bypass);
 } else {
     die("Unknown step number $step_number\n");
 }
