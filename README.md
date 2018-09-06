@@ -36,6 +36,19 @@ The primary branch used for this work is CWL branch.
   * One of the steps in `parse_pindel`, the `grep ChrID` step, was moved to `pindel_run`
   * All references of `genomevip_label` were removed, simplifying internal data file structure
 
+The tag `20180904` refers to a stable version of the cwl branch.  Subsequent to this the CWL branch will be 
+a stable branch, with no commits that would break things.
+
+An associated docker tag 20180904 and tin daisy tag 20180904 also exist.
+
+### Additional CWL development
+
+Further development takes place on `cwl-dev` branch.  Currently, splitting varscan parsing into indel and snv, and moving
+all dbsnp filtering to one filtering step.  Addition of new callers will take place too.  This branch is unstable and 
+changes may sometimes break things.
+
+
+
 ### `run_vep`
 
 The script `run_vep` has been replaced by a more CWL-friendly version, `annotate_vep`.  The latter

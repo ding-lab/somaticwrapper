@@ -1,27 +1,28 @@
 # Process varscan SNV output in 3 steps:
 # * varscan processSomatic
 # * varscan somaticFilter
-# * vcf_filter: VAF, Length, Depth
+# * vcf_filter: VAF, Depth
 #
 # Note that dbSnP filtering is removed from this step
 
-# The following files were created in $sample_full_path/varscan_out
+# The following files created in $sample_full_path/varscan_out are read here:
 #  varscan.out.som_indel.vcf 
 #  varscan.out.som_snv.vcf 
+#
+# While the primary goal is to process the snv calls, indel calls are used as input for the somaticFilter
+#
 # processing which takes place here will be written to varscan/filter_snv_out 
 #
 # Principal output and CWL mapping:
     # varscan.out.som_snv.Somatic.hc.vcf      -> varscan_snv_process
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf   -> varscan_snv_filtered
     # varscan.out.som_snv.Somatic.hc.somfilter_pass.filtered.vcf   -> varscan_snv_dbsnp, used for merge_vcf
+# Note that all filenames above dependent on the filename of input data.
 
 # The following parameters are read from varscan_config.  Numbers provided are parameters used by Song circa May 2018
 #    snv.min-tumor-freq = 0.05 
 #    snv.max-normal-freq = 0.05 
 #    snv.p-value = 0.05
-#    indel.min-tumor-freq = 0.05 
-#    indel.max-normal-freq = 0.05 
-#    indel.p-value = 0.05
 #    filter.min-coverage = 20 
 #    filter.min-reads2 = 4 
 #    filter.min-strands2 = 1 
@@ -63,6 +64,7 @@ sub test_config_parameters_varscan_parse {
 sub make_data_link {
     my $input_dat = shift;
     my $results_dir = shift;
+
     die "Error: Input file $input_dat does not exist\n" if (! -e $input_dat);
     $input_dat_abs = `readlink -f $input_dat`;
     chomp $input_dat_abs;
@@ -72,10 +74,9 @@ sub make_data_link {
     return ($results_dir . "/" . basename($input_dat_abs)) ;
 }
 
-sub parse_varscan{
+sub parse_varscan_snv {
     my $sample_full_path = shift;
     my $job_files_dir = shift;
-    my $perl = shift;
     my $filter_dir = shift;
     my $varscan_jar = shift;
     my $varscan_indel_raw = shift; 
@@ -89,8 +90,8 @@ sub parse_varscan{
     system("mkdir -p $filter_results_dir");
 
     # make input data available in working directory via soft links
-    my $indel_raw = make_data_link($varscan_indel_raw, $filter_results_dir); 
     my $snv_raw = make_data_link($varscan_snv_raw, $filter_results_dir); 
+    my $indel_raw = make_data_link($varscan_indel_raw, $filter_results_dir); 
 
     # Read configuration file into %params
     my %params = get_config_params($varscan_config, 1);
@@ -109,7 +110,11 @@ sub parse_varscan{
     #   varscan.out.som_snv.LOH.vcf            
     #   varscan.out.som_snv.Germline.hc.vcf    
     #   varscan.out.som_snv.Germline.vcf       
-    my $processSomaticOut="$filter_results_dir/varscan.out.som_snv.Somatic.hc.vcf";  # This is genrated by varscan processSomatic
+    # all this based on assumption that snv_raw filename is varscan.out.som_snv.vcf
+    # Filename processSomaticOut determined by `varscan processSomatic` based on $snv_raw
+    my $processSomaticOut="$filter_results_dir/varscan.out.som_snv.Somatic.hc.vcf";  
+
+# TODO: why the /varscan argument?  Indel does not have it
     my $process_somatic_cmd = "java \${JAVA_OPTS} -jar $varscan_jar processSomatic $snv_raw $somatic_snv_params /varscan ";
 
     #
@@ -120,26 +125,28 @@ sub parse_varscan{
         "--min-strands2 $params{'filter.min-strands2'} --min-avg-qual $params{'filter.min-avg-qual'} " . 
         "--min-var-freq $params{'filter.min-var-freq'} --p-value $params{'filter.p-value'}";
     print STDERR "Somatic Filter Params:\n$somatic_filter_params\n";
-    my $somaticFilterOut="$filter_results_dir/varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf";
-    my $somatic_filter_cmd = "java \${JAVA_OPTS} -jar $varscan_jar somaticFilter $processSomaticOut $somatic_filter_params --indel-file $indel_raw --output-file $somaticFilterOut";
+    # we define filename of somatic_filter_out :
+    my $somatic_filter_out ="$filter_results_dir/varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf";
+    my $somatic_filter_cmd = "java \${JAVA_OPTS} -jar $varscan_jar somaticFilter $processSomaticOut $somatic_filter_params --indel-file $indel_raw --output-file $somatic_filter_out ";
 
     #
     # vcf_filter.py family of filters: VAF, read depth, and indel length
     #
-    my $vcfFilteredSNVOut = "$filter_results_dir/varscan.out.som_snv.Somatic.hc.somfilter_pass.filtered.vcf";
-    my $vcf_filter_cmd = "bash $filter_dir/run_combined_vcf_filter.sh $somaticFilterOut varscan $varscan_vcf_filter_config $vcfFilteredSNVOut ";
+    # we define filename of vcf_filter_out:
+    my $vcf_filter_out = "$filter_results_dir/varscan.out.som_snv.Somatic.hc.somfilter_pass.filtered.vcf";
+    my $vcf_filter_cmd = "bash $filter_dir/run_combined_vcf_filter.sh $somatic_filter_out  varscan $varscan_vcf_filter_config $vcf_filter_out ";
 
     #
     # Construct composite script
     #
-    my $outfn = "$job_files_dir/j4_parse_varscan.sh";
+    my $outfn = "$job_files_dir/j4a_parse_varscan_snv.sh";
     print STDERR "Writing to $outfn\n";
     open(OUT, ">$outfn") or die $!;
     print OUT <<"EOF";
 #!/bin/bash
 export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 
->&2 echo Applying varscan process filter to somatic SNVs:
+>&2 echo Applying varscan process filter to somatic SNVs
 $process_somatic_cmd 
 rc=\$?
 if [[ \$rc != 0 ]]; then
@@ -147,7 +154,7 @@ if [[ \$rc != 0 ]]; then
     exit \$rc;
 fi
 
->&2 echo Applying varscan somatic filter:
+>&2 echo Applying varscan somatic filter
 $somatic_filter_cmd
 rc=\$?
 if [[ \$rc != 0 ]]; then
