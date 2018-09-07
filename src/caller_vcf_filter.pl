@@ -12,7 +12,10 @@ sub caller_vcf_filter {
     my $output_vcf = shift;  #
     my $caller = shift;  # strelka, varscan, or pindel
     my $vcf_filter_config = shift;
+    my $bypass = shift;  # boolean: will skip filtering if defined
 
+
+    my $bypass_vcf = $bypass ? "--bypass" : "";
     die "Error: Input data file $input_vcf does not exist\n" if (! -e $input_vcf);
     die "Error: Caller not defined\n" if (! $caller);
 
@@ -31,12 +34,9 @@ sub caller_vcf_filter {
     print OUT <<"EOF";
 #!/bin/bash
 
-export JAVA_OPTS=\"-Xms256m -Xmx10g\"
-export VARSCAN_DIR="/usr/local"
-
 >&2 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
-bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn $caller $vcf_filter_config $vcf_filtered_fn
+bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn $caller $vcf_filter_config $vcf_filtered_fn $bypass_vcf
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.

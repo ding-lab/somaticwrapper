@@ -1,9 +1,8 @@
-# Process varscan SNV output in 3 steps:
+# Process varscan SNV output in 2 steps:
 # * varscan processSomatic
 # * varscan somaticFilter
-# * vcf_filter: VAF, Depth
 #
-# Note that dbSnP filtering is removed from this step
+# Note that dbSnP and length/depth/vaf filtering is removed from this step
 
 # The following files created in $results_dir/varscan_out are read here:
 #  varscan.out.som_indel.vcf 
@@ -13,22 +12,21 @@
 #
 # processing which takes place here will be written to varscan/filter_snv_out 
 #
-# Principal output and CWL mapping:
-    # varscan.out.som_snv.Somatic.hc.vcf      -> varscan_snv_process
-    # varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf   -> varscan_snv_filtered
-    # varscan.out.som_snv.Somatic.hc.somfilter_pass.filtered.vcf   -> varscan_snv_dbsnp, used for merge_vcf
+# Principal output:
+#   $results_dir/varscan/filter_snv_out/varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf   
+#
 # Note that all filenames above dependent on the filename of input data.
 
-# The following parameters are read from varscan_config.  Numbers provided are parameters used by Song circa May 2018
-#    snv.min-tumor-freq = 0.05 
-#    snv.max-normal-freq = 0.05 
-#    snv.p-value = 0.05
-#    filter.min-coverage = 20 
-#    filter.min-reads2 = 4 
-#    filter.min-strands2 = 1 
-#    filter.min-avg-qual = 20 
-#    filter.min-var-freq = 0.05 
-#    filter.p-value = 0.05
+# The following parameters are read from varscan_config
+#    snv.min-tumor-freq
+#    snv.max-normal-freq
+#    snv.p-value
+#    filter.min-coverage
+#    filter.min-reads2
+#    filter.min-strands2
+#    filter.min-avg-qual
+#    filter.min-var-freq
+#    filter.p-value
 
 use File::Basename;
 
@@ -77,12 +75,10 @@ sub make_data_link {
 sub parse_varscan_snv {
     my $results_dir = shift;
     my $job_files_dir = shift;
-    my $filter_dir = shift;
     my $varscan_jar = shift;
     my $varscan_indel_raw = shift; 
     my $varscan_snv_raw = shift;  
     my $varscan_config = shift;
-    my $varscan_vcf_filter_config = shift;
 
     # define output directory: varscan/filter_snv_out
     my $filter_results_dir = "$results_dir/varscan/filter_snv_out";
@@ -129,13 +125,6 @@ sub parse_varscan_snv {
     my $somatic_filter_cmd = "java \${JAVA_OPTS} -jar $varscan_jar somaticFilter $processSomaticOut $somatic_filter_params --indel-file $indel_raw --output-file $somatic_filter_out ";
 
     #
-    # vcf_filter.py family of filters: VAF, read depth, and indel length
-    #
-    # we define filename of vcf_filter_out:
-    my $vcf_filter_out = "$filter_results_dir/varscan.out.som_snv.Somatic.hc.somfilter_pass.filtered.vcf";
-    my $vcf_filter_cmd = "bash $filter_dir/run_combined_vcf_filter.sh $somatic_filter_out  varscan $varscan_vcf_filter_config $vcf_filter_out ";
-
-    #
     # Construct composite script
     #
     my $outfn = "$job_files_dir/j4a_parse_varscan_snv.sh";
@@ -155,15 +144,6 @@ fi
 
 >&2 echo Applying varscan somatic filter
 $somatic_filter_cmd
-rc=\$?
-if [[ \$rc != 0 ]]; then
-    >&2 echo Fatal error \$rc: \$!.  Exiting.
-    exit \$rc;
-fi
-
->&2 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
-export PYTHONPATH="$filter_dir:\$PYTHONPATH"
-$vcf_filter_cmd
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.
