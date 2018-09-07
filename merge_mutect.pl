@@ -17,8 +17,8 @@ my $f_indel_idx;
 my $f_raw; 
 my $f_raw_idx; 
 
-my $f_snv_out=$sample_full_path."/mutect/mutect.filter.snv.vcf";
-my $f_ind_out=$sample_full_path."/mutect/mutect.filter.indel.vcf";
+my $f_snv_out=$sample_full_path."/mutect1/mutect.filter.snv.vcf";
+my $f_ind_out=$sample_full_path."/mutect1/mutect.filter.indel.vcf";
 
 open(OUT1,">$f_snv_out"); 
 open(OUT2,">$f_ind_out"); 
@@ -26,14 +26,14 @@ open(OUT2,">$f_ind_out");
 foreach my $chr (@chrlist)
     {
 
-	$f_snv=$sample_full_path."/mutect/mutect.filter.snv.$chr.vcf";
-	$f_indel=$sample_full_path."/mutect/mutect.filter.indel.$chr.vcf";
+	$f_snv=$sample_full_path."/mutect1/mutect.filter.snv.$chr.vcf";
+	$f_indel=$sample_full_path."/mutect1/mutect.filter.indel.$chr.vcf";
  
-	$f_snv_idx=$sample_full_path."/mutect/mutect.filter.snv.$chr.vcf.idx";
-	$f_indel_idx=$sample_full_path."/mutect/mutect.filter.indel.$chr.vcf.idx";;
+	$f_snv_idx=$sample_full_path."/mutect1/mutect.filter.snv.$chr.vcf.idx";
+	$f_indel_idx=$sample_full_path."/mutect1/mutect.filter.indel.$chr.vcf.idx";;
 
-	$f_raw=$sample_full_path."/mutect/mutect.raw.filtered.$chr.vcf"; 
-	$f_raw_idx=$sample_full_path."/mutect/mutect.raw.filtered.$chr.vcf.idx";
+	$f_raw=$sample_full_path."/mutect1/mutect.raw.filtered.$chr.vcf"; 
+	$f_raw_idx=$sample_full_path."/mutect1/mutect.raw.filtered.$chr.vcf.idx";
 	#$f_raw_idx=$sample_full_path."/mutect/".$sample_name.".gvip.$chr.vcf.idx";	
 	#$f_raw=$sample_full_path."/mutect/".$sample_name.".snv.gvip.$chr.vcf";
 

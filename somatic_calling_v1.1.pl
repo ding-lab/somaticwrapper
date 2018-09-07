@@ -75,7 +75,7 @@ my $s_wgs="";
 #__FILE NAME (STRING, NO DEFAULT)
 my $run_dir="";
 my $log_dir="";
-my $h37_REF="";
+my $h38_REF="";
 my $ref_name="";
 my $chr_status=0;
 ## indel size: daufault <20 ##
@@ -87,7 +87,7 @@ my $status = &GetOptions (
       "srg=i" => \$status_rg,
       "sre=i" => \$status_rerun,	
       "rdir=s" => \$run_dir,
-	  "ref=s"  => \$h37_REF,
+	  "ref=s"  => \$h38_REF,
 	  "log=s"  => \$log_dir,
       "wgs=i"  => \$s_wgs,	
       "indsize=i" => \$inds,    	
@@ -164,26 +164,33 @@ my $hold_job_file = "";
 my $bsub_com = "";
 my $sample_full_path = "";
 my $sample_name = "";
-### absolute paths for STRELKA, PINDEL, GATK
-my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/mutect/1.0.14/bin";
+### absolute paths for  PINDEL, MUTECT, VARSCAN
+#my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/mutect/1.0.14/bin";
 my $pindel="/gscuser/scao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/scao/tools/pindel";
 my $picardexe="/gscuser/scao/tools/picard.jar";
 my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
 my $java_dir="/gscuser/scao/tools/jre1.8.0_121";
-
+my $java_mutect="/gscmnt/gc2518/dinglab/scao/tools/jre1.7.0_80";
+my $snpsift="/gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar";
+my $bamrc="/gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount";
+my $dir_vs="/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8";
+my $dir_sam="/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin";
 ### dbsnp database, cosmic database ##
 
 my $DB_SNP="/gscmnt/gc2737/ding/hg38_database/DBSNP/00-All.chr.vcf";
-my $DB_COSMIC="/gscmnt/gc2737/ding/hg38_database/COSMIC/CosmicCodingMuts.chr.vcf";
-
+my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
+my $db_gl="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.HG38.pass.cosmic.vcf";
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
-my $f_ref_annot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
-my $h37_REF_bai=$h37_REF.".fai";
+my $f_ref_annot="/gscmnt/gc2518/dinglab/scao/tools/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
+my $h38_REF_bai=$h38_REF.".fai";
+my $vepcmd="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
+my $vepcache="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache";
 my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 my $gatkexe3="/gscmnt/gc2525/dinglab/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
+my $mutect1="/gscmnt/gc2518/dinglab/scao/tools/mutect/mutect-1.1.7.jar";
 
-my $first_line=`head -n 1 $h37_REF`;
+my $first_line=`head -n 1 $h38_REF`;
 
 if($first_line=~/^\>chr/) { $chr_status=1; }
 
@@ -382,9 +389,12 @@ sub bsub_mutect{
 	my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
 
+	print $lsf_out,"\n"; 
+	print $lsf_err,"\n";
+	
     `rm $lsf_out`;
 	`rm $lsf_err`; 
-
+    #<STDIN>;
     open(MUTECT, ">$job_files_dir/$current_job_file") or die $!;
     print MUTECT "#!/bin/bash\n";
     #print MUTECT "#BSUB -n 1\n";
@@ -403,17 +413,19 @@ sub bsub_mutect{
     print MUTECT "NBAM_rg=".$sample_full_path."/".$sample_name.".N.rg.bam\n";
     print MUTECT "TBAM_rg_bai=".$sample_full_path."/".$sample_name.".T.rg.bam.bai\n";
     print MUTECT "NBAM_rg_bai=".$sample_full_path."/".$sample_name.".N.rg.bam.bai\n";
-	print MUTECT "fcov=".$sample_full_path."/mutect/mutect.coverage\n";
-    print MUTECT "fstat=".$sample_full_path."/mutect/mutect.status\n";
-    print MUTECT "myRUNDIR=".$sample_full_path."/mutect\n";
+	print MUTECT "fcov=".$sample_full_path."/mutect1/mutect.coverage\n";
+    print MUTECT "fstat=".$sample_full_path."/mutect1/mutect.status\n";
+    print MUTECT "myRUNDIR=".$sample_full_path."/mutect1\n";
     #print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
-    print MUTECT "filtervcf=".$sample_full_path."/mutect/mutect.filtered.vcf\n";
+    print MUTECT "filtervcf=".$sample_full_path."/mutect1/mutect.filtered.vcf\n";
     #print MUTECT "filtervcfsnv=".$sample_full_path."/mutect/mutect.filter.snv.vcf\n";
     #print MUTECT "filtervcfindel=".$sample_full_path."/mutect/mutect.filter.indel.vcf\n";
     print MUTECT "RUNDIR=".$sample_full_path."\n";
     print MUTECT "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
     print MUTECT "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-    print MUTECT "export JAVA_HOME=$java_dir\n";
+    #print MUTECT "export JAVA_HOME=$java_dir\n";
+	## downgrade to mutect1.7#
+ 	print MUTECT "export JAVA_HOME=$java_mutect\n";
     print MUTECT "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MUTECT "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print MUTECT "if [ ! -d \${myRUNDIR} ]\n";
@@ -432,22 +444,24 @@ sub bsub_mutect{
     print MUTECT "samtools index \${NBAM_rg}\n";
     print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${TBAM} O=\${TBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
     print MUTECT "samtools index \${TBAM_rg}\n";
-	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";
-#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --vcf \${rawvcf}\n";
-    #print MUTECT "java  \${JAVA_OPTS} -jar $mutect --analysis_type MuTect --reference_sequence $h37_REF -B:dbsnp,VCF $DB_SNP -B:cosmic,VCF $DB_COSMIC --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out /data/patient/example_MuTect.call_stats.txt --vcf \${rawvcf}\n";
-#  	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor \${TBAM_rg} -I:normal \${NBAM_rg}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";
-   #print MUTECT "$gatkexe4 -T MuTect2 -R $h37_REF --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";
+#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --vcf \${rawvcf}\n";
+    #print MUTECT "java  \${JAVA_OPTS} -jar $mutect --analysis_type MuTect --reference_sequence $h38_REF -B:dbsnp,VCF $DB_SNP -B:cosmic,VCF $DB_COSMIC --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out /data/patient/example_MuTect.call_stats.txt --vcf \${rawvcf}\n";
+#  	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h38_REF  -T MuTect2 -I:tumor \${TBAM_rg} -I:normal \${NBAM_rg}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";
+   #print MUTECT "$gatkexe4 -T MuTect2 -R $h38_REF --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
    #print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
-
 	foreach my $chr (@chrlist)
     {
     	my $chr1=$chr;
     	if($chr_status==1) { $chr1="chr".$chr; }
-		print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.$chr.vcf\n";
+		print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";
 		print MUTECT '  if [ ! -s $rawvcf ]',"\n";
     	print MUTECT "  then\n";
-		print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3 -T MuTect2 -nct 4  -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
-	    print MUTECT "  fi\n";
+	## downgrade mutect2 to mutect1 ##
+#		print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3 -T MuTect2 -nct 4  -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+### run mutect1 ##
+       print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1 -T MuTect  -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode -vcf \${rawvcf}\n";
+	   print MUTECT "  fi\n";
 	} 
 
 	print MUTECT "rm \${NBAM_rg}\n";
@@ -455,30 +469,36 @@ sub bsub_mutect{
 	print MUTECT "rm \${TBAM_rg}\n";
     print MUTECT "rm \${TBAM_rg_bai}\n";
 	print MUTECT "else\n";
-#	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
- #   print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
+#	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
+ #   print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
 	foreach my $chr (@chrlist)
     {
 	my $chr1=$chr;
     if($chr_status==1) { $chr1="chr".$chr; }
-	print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.$chr.vcf\n";	
+	print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";	
 	print MUTECT '  if [ ! -s $rawvcf ]',"\n"; 
     print MUTECT "  then\n";
-	print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3  -T MuTect2 -nct 4 -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
- 	print MUTECT "  fi\n"; 
+	#downgrade it to mutect1.7 ##
+#    print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3  -T MuTect2 -nct 4 -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+	print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
+ 
+	print MUTECT "  fi\n"; 
 	}
 
 	print MUTECT "fi\n";
 
    	foreach my $chr (@chrlist)
     {
-	print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.$chr.vcf\n";
-	print MUTECT "filtervcf=".$sample_full_path."/mutect/mutect.raw.filtered.$chr.vcf\n";
-	print MUTECT "filtervcfsnv=".$sample_full_path."/mutect/mutect.filter.snv.$chr.vcf\n";
-    print MUTECT "filtervcfindel=".$sample_full_path."/mutect/mutect.filter.indel.$chr.vcf\n";	
-	print MUTECT "     ".$run_script_path."filter_mutect.pl \${rawvcf} \${filtervcf}\n";
-	print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
-    print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
+	print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";
+	print MUTECT "filtervcf=".$sample_full_path."/mutect1/mutect.raw.filtered.$chr.vcf\n";
+	print MUTECT "filtervcfsnv=".$sample_full_path."/mutect1/mutect.filter.snv.$chr.vcf\n";
+    print MUTECT "filtervcfindel=".$sample_full_path."/mutect1/mutect.filter.indel.$chr.vcf\n";	
+	print MUTECT "     ".$run_script_path."filter_mutect1.7.pl \${rawvcf} \${filtervcf}\n";
+  #  print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h38_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
+   # print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h38_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
+	print MUTECT "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h38_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
+    print MUTECT "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h38_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
+
 	}
 
 	#print MUTECT "     ".$run_script_path."merge_mutect.pl $sample_full_path\n";	
@@ -596,8 +616,8 @@ sub bsub_varscan{
     print VARSCAN "RUNDIR=".$sample_full_path."\n";
     print VARSCAN "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
    	print VARSCAN "GENOMEVIP_SCRIPTS=/gscmnt/gc2525/dinglab/rmashl/Software/bin/genomevip\n";
-	print VARSCAN "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-	print VARSCAN "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+	print VARSCAN "export VARSCAN_DIR=$dir_vs\n";
+	print VARSCAN "export SAMTOOLS_DIR=$dir_sam\n";
     print VARSCAN "export JAVA_HOME=$java_dir\n";
     print VARSCAN "export JAVA_OPTS=\"-Xmx10g\"\n";
     print VARSCAN "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
@@ -647,13 +667,13 @@ sub bsub_varscan{
     #print VARSCAN ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
    # print VARSCAN '  if [ ! -s $LOG ]',"\n";
     #print VARSCAN "  then\n";	
-	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
+	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
    	#print VARSCAN "  else\n";
     print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";# one possible blast error (see the end of this script). 
     print VARSCAN '      CHECK=$?',"\n";
     print VARSCAN '      while [ ${CHECK} -eq 0 ]',"\n";
     print VARSCAN "      do\n";
-    print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
+    print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
     print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";
     print VARSCAN '          CHECK=$?',"\n";
     print VARSCAN "      done\n";
@@ -719,23 +739,23 @@ sub bsub_parse_varscan{
     print VARSCANP "myRUNDIR=".$sample_full_path."/varscan\n";
     print VARSCANP "STATUSDIR=".$sample_full_path."/status\n";
     print VARSCANP "RUNDIR=".$sample_full_path."\n";
-    print VARSCANP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-    print VARSCANP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+    print VARSCANP "export VARSCAN_DIR=$dir_vs\n";
+    print VARSCANP "export SAMTOOLS_DIR=$dir_sam\n";
     print VARSCANP "export JAVA_HOME=$java_dir\n";
 #    print VARSCANP "export JAVA_OPTS=\"-Xms256m -Xmx512m\"\n";
 	print VARSCANP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print VARSCANP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input <<EOF\n";
-	print VARSCANP "varscan.dbsnp.snv.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-	print VARSCANP "varscan.dbsnp.snv.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
+	print VARSCANP "varscan.dbsnp.snv.annotator = $snpsift\n";
+	print VARSCANP "varscan.dbsnp.snv.db = $db_gl\n";
 	print VARSCANP "varscan.dbsnp.snv.rawvcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf\n";
 	print VARSCANP "varscan.dbsnp.snv.mode = filter\n";
 	print VARSCANP "varscan.dbsnp.snv.passfile  = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
 	print VARSCANP "varscan.dbsnp.snv.dbsnpfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf\n";
 	print VARSCANP "EOF\n";
 	print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.indel.input <<EOF\n";
-	print VARSCANP "varscan.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-	print VARSCANP "varscan.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
+	print VARSCANP "varscan.dbsnp.indel.annotator = $snpsift\n";
+	print VARSCANP "varscan.dbsnp.indel.db = $db_gl\n";
 	print VARSCANP "varscan.dbsnp.indel.rawvcf = ./varscan.out.som_indel.gvip.Somatic.hc.vcf\n";
 	print VARSCANP "varscan.dbsnp.indel.mode = filter\n";
 	print VARSCANP "varscan.dbsnp.indel.passfile  = ./varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
@@ -743,9 +763,10 @@ sub bsub_parse_varscan{
 	print VARSCANP "EOF\n";
 	print VARSCANP "FP_BAM=\`awk \'{if(NR==2){print \$1}}\' \${RUNDIR}/varscan/bamfilelist.inp\`\n";	
 	print VARSCANP "cat > \${RUNDIR}/varscan/vs_fpfilter.somatic.snv.input <<EOF\n";
-	print VARSCANP "varscan.fpfilter.snv.bam_readcount = /gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount\n";
+	print VARSCANP "varscan.fpfilter.snv.bam_readcount = $bamrc\n";
+	#;/gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount\n";
 	print VARSCANP "varscan.fpfilter.snv.bam_file = \${FP_BAM}\n";
-	print VARSCANP "varscan.fpfilter.snv.REF = $h37_REF\n";
+	print VARSCANP "varscan.fpfilter.snv.REF = $h38_REF\n";
 	print VARSCANP "varscan.fpfilter.snv.variants_file = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
 	print VARSCANP "varscan.fpfilter.snv.passfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.fp_pass.vcf\n";
 	print VARSCANP "varscan.fpfilter.snv.failfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.fp_fail.vcf\n";
@@ -913,7 +934,7 @@ sub bsub_pindel{
     #print PINDEL "fi\n";
 	print PINDEL "echo \"$IN_bam_T\t500\t$sample_name.T\" > \${CONFIG}\n";
     print PINDEL "echo \"$IN_bam_N\t500\t$sample_name.N\" >> \${CONFIG}\n";
-	print PINDEL "$pindel -T 4 -f $h37_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere\n";
+	print PINDEL "$pindel -T 4 -f $h38_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere\n";
 	print PINDEL "touch \${localstatus}\n";
 	print PINDEL "fi\n";
 	close PINDEL;
@@ -929,6 +950,7 @@ sub bsub_pindel{
     system ($bsub_com);
 
 	}
+
 
 #sub bsub_vep{
   
@@ -1095,7 +1117,7 @@ sub bsub_parse_pindel {
 	print PP "cat > \${RUNDIR}/pindel/pindel_filter.input <<EOF\n";
 	print PP "pindel.filter.pindel2vcf = $PINDEL_DIR/pindel2vcf\n";
 	print PP "pindel.filter.variants_file = \${RUNDIR}/pindel/pindel.out.raw\n";
-	print PP "pindel.filter.REF = $h37_REF\n";
+	print PP "pindel.filter.REF = $h38_REF\n";
 	print PP "pindel.filter.date = 000000\n";
 	print PP "pindel.filter.heterozyg_min_var_allele_freq = 0.2\n";
 	print PP "pindel.filter.homozyg_min_var_allele_freq = 0.8\n";
@@ -1108,8 +1130,8 @@ sub bsub_parse_pindel {
 	print PP "pindel.filter.somatic.max_num_homopolymer_repeat_units = 6\n";
 	print PP "EOF\n";
     print PP "cat > \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input <<EOF\n";
-    print PP "pindel.dbsnp.indel.annotator = /gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar\n";
-    print PP "pindel.dbsnp.indel.db = /gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf\n";
+    print PP "pindel.dbsnp.indel.annotator = $snpsift\n";
+    print PP "pindel.dbsnp.indel.db = $db_gl\n";
     print PP "pindel.dbsnp.indel.rawvcf = ./pindel.out.current_final.gvip.Somatic.vcf\n";
     print PP "pindel.dbsnp.indel.mode = filter\n";
     print PP "pindel.dbsnp.indel.passfile  = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
@@ -1221,11 +1243,11 @@ sub bsub_merge_vcf{
     print MERGE "STATUSDIR=".$sample_full_path."/status\n";
     print MERGE "RUNDIR=".$sample_full_path."\n";
     #print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-	print MERGE "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
+	print MERGE "export SAMTOOLS_DIR=$dir_sam\n";
     print MERGE "export JAVA_HOME=$java_dir\n";
     print MERGE "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-	print MERGE "STRELKA_VCF="."\${RUNDIR}/mutect/mutect_out/results/mutect.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
+	print MERGE "MUTECT_VCF="."\${RUNDIR}/mutect1/mutect_out/results/mutect.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
 	print MERGE "VARSCAN_VCF="."\${RUNDIR}/varscan/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
 	print MERGE "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
 	print MERGE "VARSCAN_INDEL="."\${RUNDIR}/varscan/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
@@ -1233,13 +1255,13 @@ sub bsub_merge_vcf{
     print MERGE "cat > \${RUNDIR}/vep.merged.input <<EOF\n";
     print MERGE "merged.vep.vcf = ./merged.filtered.vcf\n"; 
     print MERGE "merged.vep.output = ./merged.VEP.vcf\n";
-    print MERGE "merged.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    print MERGE "merged.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache\n";
+    print MERGE "merged.vep.vep_cmd = $vepcmd\n";
+    print MERGE "merged.vep.cachedir = $vepcache\n";
     #print MERGE "merged.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache/homo_sapiens/85_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
     print MERGE "merged.vep.reffasta = $f_ref_annot\n";
-    print MERGE "merged.vep.assembly = GRCh37\n";
+    print MERGE "merged.vep.assembly = GRCh38\n";
     print MERGE "EOF\n";
-	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:mutect \${STRELKA_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority mutect,varscan,pindel,varindel\n"; 
+	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h38_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority varscan,mutect,pindel,varindel\n"; 
 	#print MERGE "     ".$run_script_path."vaf_filter_hg19.pl \${RUNDIR}\n";
     #print MERGE "if [ $ref_name = $hg19 ]\n";
     #print MERGE "then\n";	
