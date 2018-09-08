@@ -46,7 +46,7 @@ $normal
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
 <wgs> = 1 for yes and 0 for no 
-<indsize> = indel size < indsize: default indsize = 20
+<indsize> = indel size < indsize: default indsize = 100
 
 Hg38: /gscmnt/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.fa
 
@@ -78,8 +78,8 @@ my $log_dir="";
 my $h38_REF="";
 my $ref_name="";
 my $chr_status=0;
-## indel size: daufault <20 ##
-my $inds=20; 
+## indel size: daufault <100 ##
+my $inds=100; 
 
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
@@ -1247,7 +1247,7 @@ sub bsub_merge_vcf{
     print MERGE "export JAVA_HOME=$java_dir\n";
     print MERGE "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-	print MERGE "MUTECT_VCF="."\${RUNDIR}/mutect1/mutect_out/results/mutect.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
+	print MERGE "MUTECT_VCF="."\${RUNDIR}/mutect1/mutect.filter.snv.vcf\n";
 	print MERGE "VARSCAN_VCF="."\${RUNDIR}/varscan/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
 	print MERGE "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
 	print MERGE "VARSCAN_INDEL="."\${RUNDIR}/varscan/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";

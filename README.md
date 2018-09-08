@@ -22,7 +22,7 @@ Usage: perl somatic_calling_v1.1.pl --srg --step --sre --rdir --ref --log --q --
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
 <wgs> ==  1 for yes and 0 for no 
-<indsize> = indel size < indsize; default indsize=20
+<indsize> = indel size < indsize; default indsize = 100
 HG38: 
 
 
