@@ -45,7 +45,7 @@ $normal
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
 <wgs> ==  1 for yes and 0 for no 
-<indsize> = indel size < indsize; default indsize=20
+<indsize> = indel size < indsize; default indsize=100
 
 with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
 without chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite.fa
@@ -79,7 +79,7 @@ my $run_dir="";
 my $log_dir="";
 my $h37_REF="";
 my $ref_name="";
-my $inds=20; 
+my $inds=100; 
 
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
