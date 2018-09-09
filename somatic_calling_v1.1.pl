@@ -164,6 +164,7 @@ my $hold_job_file = "";
 my $bsub_com = "";
 my $sample_full_path = "";
 my $sample_name = "";
+
 ### user needs to change the paths for tools and databases ##
 ### absolute paths for STRELKA, PINDEL, GATK, samtools, bam-readcount ##
 my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
