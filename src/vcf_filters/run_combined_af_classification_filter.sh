@@ -15,10 +15,10 @@ XARG="$@"  # optional argument passed to all filters, may be --debug
 
 for ARG in $XARG; do
     if [ "$ARG" != "--bypass_af" ]; then
-        CLASS_ARG = "$CLASS_ARG $ARG"
+        CLASS_ARG="$CLASS_ARG $ARG"
     fi
     if [ "$ARG" != "--bypass_classification" ]; then
-        AF_ARG = "$AF_ARG $ARG"
+        AF_ARG="$AF_ARG $ARG"
     fi
 done
 
