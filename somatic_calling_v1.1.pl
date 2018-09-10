@@ -166,7 +166,7 @@ my $sample_full_path = "";
 my $sample_name = "";
 
 ### user needs to change the paths for tools and databases ##
-### absolute paths for STRELKA, PINDEL, GATK, samtools, bam-readcount ##
+### absolute paths for STRELKA, PINDEL, GATK, samtools, bam-readcount, snpsift ##
 my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
 my $pindel="/gscuser/scao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/scao/tools/pindel";
@@ -185,6 +185,8 @@ my $vepcache="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache";
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $f_ref_annot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
 my $db_gl="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.vcf"; 
+
+## ref and centromere db ##
 my $h37_REF_bai=$h37_REF.".fai";
 my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 
@@ -274,6 +276,9 @@ if($step_number==9 || $step_number==0)
     `rm $lsf_out`;
     `rm $lsf_err`;
     `rm $current_job_file`;
+    my $working_name= (split(/\//,$run_dir))[-1];
+	my $f_maf=$run_dir."/".$working_name.".inds".$inds.".maf";
+	my $f_maf_rc=$f_maf.".rc";
 	open(REPRUN, ">$job_files_dir/$current_job_file") or die $!;
 	print REPRUN "#!/bin/bash\n";
     #print REPRUN "#BSUB -n 1\n";
@@ -287,6 +292,7 @@ if($step_number==9 || $step_number==0)
     #print REPRUN "#BSUB -J $current_job_file\n";
 	#print REPRUN "#BSUB -w \"$hold_job_file\"","\n";
 	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir." ".$inds."\n";
+	print REPRUN "      ".$run_script_path."add_rc.pl ".$run_dir." ".$f_maf." ".$f_maf_rc."\n";
 	close REPRUN;
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
 	#system ($bsub_com);
@@ -1404,7 +1410,6 @@ sub bsub_vcf_2_maf{
     print MAF "merged.vep.reffasta = $f_ref_annot\n";
     print MAF "merged.vep.assembly = GRCh37\n";
     print MAF "EOF\n";
-
     print MAF "     ".$run_script_path."vaf_filter_v1.2.pl \${RUNDIR} $inds\n";
     #print MERGE "else\n";
     #print MERGE "     ".$run_script_path."vaf_filter_hg19_v1.1.pl \${RUNDIR}\n";

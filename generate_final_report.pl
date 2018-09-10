@@ -9,7 +9,8 @@ my ($run_dir,$filter_indel_size)=@ARGV;
 
 my $working_name= (split(/\//,$run_dir))[-1];
 
-my $f_sum=$run_dir."/".$working_name.".maf\n";
+my $f_sum=$run_dir."/".$working_name.".inds".$filter_indel_size.".maf\n";
+
 my $f_status=$run_dir."/".$working_name.".status\n";
 
 open(OUT1,">$f_sum");
