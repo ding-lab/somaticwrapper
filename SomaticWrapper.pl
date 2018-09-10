@@ -223,7 +223,7 @@ system("mkdir -p $job_files_dir");
 
 #print("Using reference $reference_fasta\n");
 print STDERR "SomaticWrapper git revision: \n";
-print STDERR `git log -1`;
+system("git log -1 2>&1");  # don't care if this fails
 print STDERR "\nSomaticWrapper dir: $sw_dir \n";
 print STDERR "Analysis dir: $results_dir\n";
 print STDERR "Run script dir: $job_files_dir\n";
