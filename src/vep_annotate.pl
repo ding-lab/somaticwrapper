@@ -104,7 +104,11 @@ sub vep_annotate {
         die("Exiting ($rc).\n") if $rc != 0;
         $use_vep_db = 0;
     } else {
+        # VEP DB does not generate MAX_AF field, which is needed by AF filter.
+        # To prevent this from crashing, force bypass of the AF filter
         print STDERR "Using online VEP DB\n";
+        print STDERR "AF filter will be bypassed\n";
+        $filter_xargs = "$filter_xargs --bypass_af";
     }
 
     # Check to make sure filter config files exist
