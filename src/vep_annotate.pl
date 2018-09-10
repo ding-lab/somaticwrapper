@@ -77,7 +77,7 @@ sub vep_annotate {
     # We now require all output to be vcf format (not vep), so that VCF filtering can take place 
 
 
-    $current_job_file = "j10_vep.sh";
+    $current_job_file = "j9_vep_annotate.sh";
 
     my $bsub = "bash";
     my $filter_results = "$results_dir/vep";
@@ -104,7 +104,11 @@ sub vep_annotate {
         die("Exiting ($rc).\n") if $rc != 0;
         $use_vep_db = 0;
     } else {
+        # VEP DB does not generate MAX_AF field, which is needed by AF filter.
+        # To prevent this from crashing, force bypass of the AF filter
         print STDERR "Using online VEP DB\n";
+        print STDERR "AF filter will be bypassed\n";
+        $filter_xargs = "$filter_xargs --bypass_af";
     }
 
     # Check to make sure filter config files exist

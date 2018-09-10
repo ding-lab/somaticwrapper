@@ -26,6 +26,7 @@ import sys
 # --debug
 # --config config.ini
 # --bypass
+# --bypass_classification
 # --dump - print out CSQ dictionary for each variant
 #
 # Note that the input_vcf file will in general be specified twice, once as input into vcf_filter.py
@@ -45,6 +46,7 @@ class ClassificationFilter(VEPFilter):
         parser.add_argument('--exclude', help='Exclude all calls with given consequence(s); comma-separated list')
         parser.add_argument('--filter_field', type=str, help='VCF variable (INFO CSQ entry) which to evaluate.  Typically "Consequence", but can vary')
         parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
+        parser.add_argument('--bypass_classification', action="store_true", default=False, help='Equivalent to --bypass')
         parser.add_argument('--dump', action="store_true", default=False, help='Dump out CSQ dictionary for each read')
 
     def __init__(self, args):
@@ -52,7 +54,7 @@ class ClassificationFilter(VEPFilter):
 
         # These will not be set from config file (though could be)
         self.debug = args.debug
-        self.bypass = args.bypass
+        self.bypass = args.bypass or args.bypass_classification
         self.dump = args.dump
 
         # Read arguments from config file first, if present.

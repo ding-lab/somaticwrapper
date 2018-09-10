@@ -15,6 +15,7 @@ class MergedCallerFilter(ConfigFileFilter):
         parser.add_argument('--exclude', help='Exclude all calls with given caller(s); comma-separated list')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
         parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
+        parser.add_argument('--bypass_merge', action="store_true", default=False, help='Equivalent to --bypass')
 
     def __init__(self, args):
 
@@ -30,7 +31,7 @@ class MergedCallerFilter(ConfigFileFilter):
             self.callers = args.exclude.split(',') 
 
         self.debug = args.debug
-        self.bypass = args.bypass
+        self.bypass = args.bypass or args.bypass_merge
 
         # below becomes Description field in VCF
         if self.bypass:

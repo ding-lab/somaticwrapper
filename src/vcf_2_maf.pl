@@ -49,7 +49,7 @@ sub vcf_2_maf {
     my $input_vcf = shift;  # Name of input VCF to process
     my $exac_vcf = shift;   # passed as --filter-vcf
 
-    $current_job_file = "j9_vcf_2_maf.sh";
+    $current_job_file = "j10_vcf_2_maf.sh";
 
     my $bsub = "bash";
     my $filter_results = "$results_dir/maf";
