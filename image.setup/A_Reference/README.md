@@ -8,3 +8,5 @@ outside of the host image with the script `somaticwrapper/docker/2_setup_data.sh
 Processes only the references necessary for your work.  Note that steps 1 and 2 are time and storage intensive.
 
 TODO: add scripts to download and process GRCh38
+TODO: get Mouse: ftp://ftp.ensembl.org/pub/release-93/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna_sm.primary_assembly.fa.gz
+
