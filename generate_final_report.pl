@@ -2,6 +2,8 @@
 
 ### for example, 
 ## tumor >= 5% and normal <=1% 
+## remve af filtering since currently I do not have non-TCGA building 38 EXAC file## 
+### Song Cao #
 use strict;
 use warnings;
 die unless @ARGV == 2;
@@ -20,10 +22,9 @@ my $head_w=0;
 foreach my $d (`ls $run_dir`)
 {
   	my $dtr=$d; 
-	chomp($dtr);
- 
+	chomp($dtr); 
 #	my $f_maf=$run_dir."/".$dtr."/".$dtr.".checked.maf"; 
-my $f_maf=$run_dir."/".$dtr."/".$dtr.".maf"; 
+	my $f_maf=$run_dir."/".$dtr."/".$dtr.".maf"; 
 	if(-e $f_maf) 
 	{
 		my $count=0;
@@ -40,20 +41,20 @@ my $f_maf=$run_dir."/".$dtr."/".$dtr.".maf";
 				my $af=$temp[99];
 				my $ref=$temp[10]; 
 				my $var=$temp[12];
+				print $annot,"\n";
 				if($annot=~/Frame_Shift_Del/ || $annot=~/Frame_Shift_Ins/ || $annot=~/Missense_Mutation/ || $annot=~/Nonsense_Mutation/ ||  $annot=~/Nonstop_Mutation/ || $annot=~/Silent/ || $annot=~/Splice_Site/ || $annot=~/In_Frame_Ins/ || $annot=~/In_Frame_Del/) {
-					if(($af eq "" || (($af ne "") && $af<0.005)) && length($ref)<$filter_indel_size && length($var)<$filter_indel_size)
-					{
+				#	if(($af eq "" || (($af ne "") && $af<0.005)) && length($ref)<$filter_indel_size && length($var)<$filter_indel_size)
+			#		{
 					print OUT1 $ltr,"\n"; 
 					$count++;
-					}
-					} 
+			#		}
+				} 
 				} 
         		}
       	}
 		print OUT2 $count,"\t",$f_maf,"\n";
 	} 
-  }
-
+ }
 
 close OUT1;
 close OUT2; 

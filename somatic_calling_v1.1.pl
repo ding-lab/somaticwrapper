@@ -176,8 +176,8 @@ my $snpsift="/gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.
 my $bamrc="/gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount";
 my $dir_vs="/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8";
 my $dir_sam="/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin";
-### dbsnp database, cosmic database ##
 
+### dbsnp database, cosmic database ##
 my $DB_SNP="/gscmnt/gc2737/ding/hg38_database/DBSNP/00-All.chr.vcf";
 my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
 my $db_gl="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.HG38.pass.cosmic.vcf";
@@ -185,7 +185,7 @@ my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.si
 my $f_ref_annot="/gscmnt/gc2518/dinglab/scao/tools/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
 my $h38_REF_bai=$h38_REF.".fai";
 my $vepcmd="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
-my $vepcache="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache";
+my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v85";
 my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 my $gatkexe3="/gscmnt/gc2525/dinglab/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
 my $mutect1="/gscmnt/gc2518/dinglab/scao/tools/mutect/mutect-1.1.7.jar";
@@ -280,6 +280,11 @@ if($step_number==9 || $step_number==0)
     `rm $lsf_out`;
     `rm $lsf_err`;
     `rm $current_job_file`;
+
+    my $working_name= (split(/\//,$run_dir))[-1];
+	my $f_maf=$run_dir."/".$working_name.".maf";
+	my $f_maf_rc=$f_maf.".rc";
+
 	open(REPRUN, ">$job_files_dir/$current_job_file") or die $!;
 	print REPRUN "#!/bin/bash\n";
     #print REPRUN "#BSUB -n 1\n";
@@ -293,6 +298,7 @@ if($step_number==9 || $step_number==0)
     #print REPRUN "#BSUB -J $current_job_file\n";
 	#print REPRUN "#BSUB -w \"$hold_job_file\"","\n";
 	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir." ".$inds."\n";
+    print REPRUN "      ".$run_script_path."add_rc.pl ".$run_dir." ".$f_maf." ".$f_maf_rc."\n";
 	close REPRUN;
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
 	#system ($bsub_com);
@@ -462,6 +468,7 @@ sub bsub_mutect{
 ### run mutect1 ##
        print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1 -T MuTect  -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode -vcf \${rawvcf}\n";
 	   print MUTECT "  fi\n";
+
 	} 
 
 	print MUTECT "rm \${NBAM_rg}\n";
@@ -1252,27 +1259,27 @@ sub bsub_merge_vcf{
 	print MERGE "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
 	print MERGE "VARSCAN_INDEL="."\${RUNDIR}/varscan/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
 	print MERGE "MERGER_OUT="."\${RUNDIR}/merged.vcf\n";
-    print MERGE "cat > \${RUNDIR}/vep.merged.input <<EOF\n";
-    print MERGE "merged.vep.vcf = ./merged.filtered.vcf\n"; 
-    print MERGE "merged.vep.output = ./merged.VEP.vcf\n";
-    print MERGE "merged.vep.vep_cmd = $vepcmd\n";
-    print MERGE "merged.vep.cachedir = $vepcache\n";
+    #print MERGE "cat > \${RUNDIR}/vep.merged.input <<EOF\n";
+    #print MERGE "merged.vep.vcf = ./merged.filtered.vcf\n"; 
+    #print MERGE "merged.vep.output = ./merged.VEP.vcf\n";
+    #print MERGE "merged.vep.vep_cmd = $vepcmd\n";
+    #print MERGE "merged.vep.cachedir = $vepcache\n";
     #print MERGE "merged.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache/homo_sapiens/85_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    print MERGE "merged.vep.reffasta = $f_ref_annot\n";
-    print MERGE "merged.vep.assembly = GRCh38\n";
-    print MERGE "EOF\n";
+    #print MERGE "merged.vep.reffasta = $f_ref_annot\n";
+    #print MERGE "merged.vep.assembly = GRCh38\n";
+    #print MERGE "EOF\n";
 	print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h38_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:pindel \${PINDEL_VCF} -genotypeMergeOptions PRIORITIZE -priority varscan,mutect,pindel,varindel\n"; 
 	#print MERGE "     ".$run_script_path."vaf_filter_hg19.pl \${RUNDIR}\n";
     #print MERGE "if [ $ref_name = $hg19 ]\n";
     #print MERGE "then\n";	
-	print MERGE "     ".$run_script_path."vaf_filter_v1.2.pl \${RUNDIR} $inds\n";
+	#print MERGE "     ".$run_script_path."vaf_filter_v1.2.pl \${RUNDIR} $inds\n";
 	#print MERGE "else\n";
 	#print MERGE "     ".$run_script_path."vaf_filter_hg19_v1.1.pl \${RUNDIR}\n";
 	#print MERGE "fi\n";
-	print MERGE "cd \${RUNDIR}\n";
-	print MERGE ". $script_dir/set_envvars\n"; 
+	#print MERGE "cd \${RUNDIR}\n";
+	#print MERGE ". $script_dir/set_envvars\n"; 
 	#print MERGE ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
-	print MERGE "     ".$run_script_path."vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";	
+	#print MERGE "     ".$run_script_path."vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";	
 	close MERGE;
 	#$bsub_com = "sh $job_files_dir/$current_job_file\n";
 
@@ -1328,12 +1335,24 @@ sub bsub_vcf_2_maf{
     print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.vcf\n";
     print MAF "F_VEP_2=".$sample_full_path."/".$sample_name.".vep.vcf\n";
 	print MAF "F_maf=".$sample_full_path."/".$sample_name.".maf\n";
+    print MAF "RUNDIR=".$sample_full_path."\n";
 	print MAF "rm \${F_VCF_2}\n";
 	print MAF "rm \${F_VEP_2}\n"; 
 	print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
 	print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
+    print MAF "cat > \${RUNDIR}/vep.merged.input <<EOF\n";
+    print MAF "merged.vep.vcf = ./merged.filtered.vcf\n";
+    print MAF "merged.vep.output = ./merged.VEP.vcf\n";
+    print MAF "merged.vep.vep_cmd = $vepcmd\n";
+    print MAF "merged.vep.cachedir = $vepcache\n";
+    print MAF "merged.vep.reffasta = $f_ref_annot\n";
+    print MAF "merged.vep.assembly = GRCh38\n";
+    print MAF "EOF\n";
+    print MAF "     ".$run_script_path."vaf_filter_v1.2.pl \${RUNDIR} $inds\n";
+    print MAF "cd \${RUNDIR}\n";
+    print MAF ". $script_dir/set_envvars\n";
+    print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";
 	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --filter-vcf $f_exac\n";
- 	#print MAF "     ".$run_script_path."splice_site_check.pl $sample_full_path\n"; 
     close MAF;
   	my $sh_file=$job_files_dir."/".$current_job_file;
 
@@ -1344,7 +1363,6 @@ sub bsub_vcf_2_maf{
     }
     print $bsub_com;
 	system ($bsub_com);
-
-	}
+}
 
  

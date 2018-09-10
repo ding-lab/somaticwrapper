@@ -4,7 +4,7 @@
 ## minimum coverage filtering: 20
 ## tumor >= 5% and normal <=2% for merged vcf file
 ### pindel tumor >=10% since the vaf calculation underestimates the ref coverage ##
-### SNV: called by both strelka and varscan ##
+### SNV: called by varscan and mutect##
 ## INDEL: called by either varscan or pindel ##
 ## merged.filtered.vcf: the merged vcf file after filtering ##
 ## merged.vaf: save the variant allele frequency (vaf) ## 
@@ -15,8 +15,8 @@
 use strict;
 use warnings;
 die unless @ARGV == 2;
-my ($run_dir,$filter_indel_length)=@ARGV; 
 
+my ($run_dir,$filter_indel_length)=@ARGV; 
 my $f_m=$run_dir."/merged.vcf"; 
 my $f_filter_out=$run_dir."/merged.filtered.vcf";
 my $f_vaf_out=$run_dir."/merged.vaf";
@@ -61,19 +61,19 @@ foreach my $l (`cat $f_m`)
 
          if(length($ref)>=$filter_indel_length || length($var)>=$filter_indel_length)  { next; }
  
-		 if($info=~/strelka-varscan/) 
-		 {
+		# if($info=~/varscan-mutect/) 
+		# {
 			#print $info,"\n"; 
 			#<STDIN>;
 	
-			$vaf_n=$temp[11];
-		 	$vaf_t=$temp[12];
-		 	$ref=$temp[3]; 
-		 	$var=$temp[4];
-		 	$r_tot=0; 
+		#	$vaf_n=$temp[11];
+		# 	$vaf_t=$temp[12];
+		# 	$ref=$temp[3]; 
+		# 	$var=$temp[4];
+		# 	$r_tot=0; 
 	
-		 	@temp2=split(":",$vaf_n);
-			%rc=();			
+		# 	@temp2=split(":",$vaf_n);
+	#		%rc=();			
 			#print $vaf_n,"\n";
 			#print $temp2[0],"\t",$temp2[1],"\t",$temp2[4],"\t",$temp2[7],"\n";
 			#<STDIN>;
@@ -82,62 +82,64 @@ foreach my $l (`cat $f_m`)
 
 			# get the read count for A, C, G and T for normal#
 
-	 	 	$rc{'A'}=(split(",",$temp2[0]))[0]; 
-		 	$rc{'C'}=(split(",",$temp2[1]))[0];
-		 	$rc{'G'}=(split(",",$temp2[4]))[0];
-		 	$rc{'T'}=(split(",",$temp2[7]))[0];
+	 #	 	$rc{'A'}=(split(",",$temp2[0]))[0]; 
+	#	 	$rc{'C'}=(split(",",$temp2[1]))[0];
+	#	 	$rc{'G'}=(split(",",$temp2[4]))[0];
+	#	 	$rc{'T'}=(split(",",$temp2[7]))[0];
 			#print $vaf_n,"\n";
 			#print $vaf_t,"\n";	
 			#<STDIN>;
 			
-			foreach my $nt (keys %rc) 
-			{
-				$r_tot+=$rc{$nt}; 
+	#		foreach my $nt (keys %rc) 
+	#		{
+	#			$r_tot+=$rc{$nt}; 
 				#print $rc{$nt},"\n";
-			}
+	#		}
 
-			@temp2=split(":",$vaf_t);
+	#		@temp2=split(":",$vaf_t);
 
-        	%rc2=();
+     #   	%rc2=();
 			# get the read count for A, C, G and T for tumor#
 
-         	$rc2{'A'}=(split(",",$temp2[0]))[0];
-         	$rc2{'C'}=(split(",",$temp2[1]))[0];
-         	$rc2{'G'}=(split(",",$temp2[4]))[0];
-         	$rc2{'T'}=(split(",",$temp2[7]))[0];
+      #   	$rc2{'A'}=(split(",",$temp2[0]))[0];
+      #   	$rc2{'C'}=(split(",",$temp2[1]))[0];
+       #  	$rc2{'G'}=(split(",",$temp2[4]))[0];
+       #  	$rc2{'T'}=(split(",",$temp2[7]))[0];
 
-        	foreach $nt (sort keys %rc2)
-        	{
-            	$r_tot2+=$rc2{$nt};
+        #	foreach $nt (sort keys %rc2)
+        #	{
+         #   	$r_tot2+=$rc2{$nt};
 				#print $rc2{$nt},"\n";
-        	}
+        #	}
 		#print $ltr,"\n";
 
-		my @vars=split(",",$var); 
-		my $rcvar=0;
-		my $rc2var=0;
+		#my @vars=split(",",$var); 
+		#my $rcvar=0;
+		#my $rc2var=0;
  
-		foreach my $v (@vars)
-		{
-		 $rcvar+=$rc{$v};
-		 $rc2var+=$rc2{$v}; 
-		}		
+		#foreach my $v (@vars)
+		#{
+		 #$rcvar+=$rc{$v};
+		 #$rc2var+=$rc2{$v}; 
+	#	}		
 		
-;
+#;
 		### calculate vaf for tumor and normal: 
 		## vaf calculation: defined as (number of reads supporting variant)/(number of reads supporting variant and number of reads supporting reference) ####
 		## use 20 a coverage filtering ##
 
-		print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$rc{$ref},"\t",$rc{$ref}/$r_tot,"\t",$rcvar,"\t",$rcvar/$r_tot,"\t",$rc2{$ref},"\t",$rc2{$ref}/$r_tot2,"\t",$rc2var,"\t",$rc2var/$r_tot2,"\n"; 
+#		print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$rc{$ref},"\t",$rc{$ref}/$r_tot,"\t",$rcvar,"\t",$rcvar/$r_tot,"\t",$rc2{$ref},"\t",$rc2{$ref}/$r_tot2,"\t",$rc2var,"\t",$rc2var/$r_tot2,"\n"; 
 
-		if($rc2var/$r_tot2>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_tot2>=$min_coverage && $r_tot>=$min_coverage) 
-			{
-		        print OUT1 $ltr,"\n";
-			} 	
-		}
+#		if($rc2var/$r_tot2>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_tot2>=$min_coverage && $r_tot>=$min_coverage) 
+#			{
+#		        print OUT1 $ltr,"\n";
+#			} 	
+#		}
 	
-		elsif($info=~/varindel/)
-		{
+	   if($info=~/varscan-mutect/ || $info=~/varindel/)
+		  {
+
+### vaf_n and vaf_t ###
 		   	$vaf_n=$temp[11];
         	$vaf_t=$temp[12];
 			@temp2=split(":",$vaf_n); 
@@ -205,9 +207,8 @@ foreach my $l (`cat $f_m`)
  $ltr=~s/SVTYPE=//g;		 
   print OUT1 $ltr,"\n";	
 		}
-		
-	}
-
+			
+	   }
 
 	}
 }
