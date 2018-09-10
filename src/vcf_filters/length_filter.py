@@ -17,6 +17,7 @@ import sys
 # --debug
 # --config config.ini
 # --bypass
+# --bypass_length
 
 class IndelLengthFilter(ConfigFileFilter):
     'Filter indel variant sites by reference and variant length'
@@ -30,11 +31,12 @@ class IndelLengthFilter(ConfigFileFilter):
         parser.add_argument('--config', type=str, help='Optional configuration file')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
         parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
+        parser.add_argument('--bypass_length', action="store_true", default=False, help='Equivalent to --bypass')
 
     def __init__(self, args):
         # These will not be set from config file (though could be)
         self.debug = args.debug
-        self.bypass = args.bypass
+        self.bypass = args.bypass or args.bypass_length
 
         # Read arguments from config file first, if present.
         # Then read from command line args, if defined
