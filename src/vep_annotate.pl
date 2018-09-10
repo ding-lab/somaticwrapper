@@ -77,7 +77,7 @@ sub vep_annotate {
     # We now require all output to be vcf format (not vep), so that VCF filtering can take place 
 
 
-    $current_job_file = "j10_vep.sh";
+    $current_job_file = "j9_vep_annotate.sh";
 
     my $bsub = "bash";
     my $filter_results = "$results_dir/vep";
