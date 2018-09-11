@@ -26,6 +26,7 @@ import sys
 # --debug
 # --config config.ini
 # --bypass
+# --bypass_af  -- this is equivalent to --bypass
 # --dump
 #
 # Note that the input_vcf file will in general be specified twice, once as input into vcf_filter.py
@@ -40,6 +41,7 @@ class AFFilter(VEPFilter):
     def customize_parser(self, parser):
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
         parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
+        parser.add_argument('--bypass_af', action="store_true", default=False, help='Equivalent to --bypass')
         parser.add_argument('--dump', action="store_true", default=False, help='Dump out CSQ dictionary for each read')
         parser.add_argument('--config', type=str, help='Optional configuration file')
         parser.add_argument('--input_vcf', type=str, help='Input VCF filename', required=True)
@@ -51,7 +53,7 @@ class AFFilter(VEPFilter):
 
         # These will not be set from config file (though could be)
         self.debug = args.debug
-        self.bypass = args.bypass
+        self.bypass = args.bypass or args.bypass_af
         self.dump = args.dump
 
         # Read arguments from config file first, if present.

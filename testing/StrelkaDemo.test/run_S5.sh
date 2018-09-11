@@ -18,8 +18,8 @@ ARGS="\
 --reference_fasta $REFERENCE_FASTA \
 --centromere_bed $CENTROMERE_BED \
 --results_dir $RESULTS_DIR \
---no_delete_temp \
 "  
+#--no_delete_temp \
 
 BIN="/usr/local/somaticwrapper/SomaticWrapper.pl"
 perl $BIN $ARGS $STEP

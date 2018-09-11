@@ -9,17 +9,30 @@ CLASS_CONFIG=$1 ; shift
 OUT=$1 ; shift
 XARG="$@"  # optional argument passed to all filters, may be --debug
 
+# Need to remove any instances of --bypass_af from args passed to Classification filter, and
+# remove --bypass_classification from args passed to AF filter.  Do this by putting together
+# new arg lists
+
+for ARG in $XARG; do
+    if [ "$ARG" != "--bypass_af" ]; then
+        CLASS_ARG="$CLASS_ARG $ARG"
+    fi
+    if [ "$ARG" != "--bypass_classification" ]; then
+        AF_ARG="$AF_ARG $ARG"
+    fi
+done
+
 export PYTHONPATH="/usr/local/somaticwrapper/src/vcf_filters:$PYTHONPATH"
 
 MAIN_FILTER="vcf_filter.py --no-filtered" # Assuming in path
 
 # Arguments to AF filter
 AF_FILTER="vcf_filter.py --no-filtered --local-script af_filter.py"  # filter module
-AF_FILTER_ARGS="af $XARG --config $AF_CONFIG --input_vcf $VCF" 
+AF_FILTER_ARGS="af $AF_ARG --config $AF_CONFIG --input_vcf $VCF" 
 
 # Arguments to classification filter
 CLASS_FILTER="vcf_filter.py --no-filtered --local-script classification_filter.py"  # filter module
-CLASS_FILTER_ARGS="classification $XARG --config $CLASS_CONFIG --input_vcf $VCF" 
+CLASS_FILTER_ARGS="classification $CLASS_ARG --config $CLASS_CONFIG --input_vcf $VCF" 
 
 if [ $OUT == '-' ]; then
 

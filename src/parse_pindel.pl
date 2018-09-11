@@ -80,11 +80,11 @@ fi
 if [[ $no_delete_temp == 1 ]]; then
     >&2 echo Not deleting intermediate files
 else
-    >&2 echo Deleting intermediate \\"filter fail\\" files
-    cd $filter_results
-    rm -f \*_fail\* 
-    tmp_base=\$(basename \$TMP)
-    rm -f \$tmp_base
+
+>&2 echo Deleting intermediate \\"filter fail\\" files
+cd $filter_results
+rm -f \*_fail\* 
+
 fi
 
 EOF

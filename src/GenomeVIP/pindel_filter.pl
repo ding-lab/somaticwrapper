@@ -28,25 +28,54 @@ use POSIX qw( WIFEXITED );
 use File::Temp qw/ tempfile /;
 use File::Basename;
 
-# List of parameters accepted:
-# * variants_file
+# List of parameters 
+# * variants_file                       : Required
 # * zero_variant_support
-# * apply_filter
-# * mode
-# * min_coverages
-# * min_var_allele_freq
-# * require_balanced_reads
-# * remove_complex_indels
-# * child_var_allele_freq
-# * parents_max_num_supporting_reads
-# * REF
-# * date
-# * heterozyg_min_var_allele_freq
-# * homozyg_min_var_allele_freq
-# * max_num_homopolymer_repeat_units
-# * skip_filter1:           skip CvgVafStrandFilter
-# * skip_pindel2vcf:        do not run pindel2vcf
-# * skip_filter2:           skip Homopolymer filter 
+# * apply_filter                        : Required
+# * mode                                : Required
+# * min_coverages                       : Required 
+# * min_var_allele_freq                 : Required for Germline, Somatic
+# * require_balanced_reads              : Required 
+# * remove_complex_indels               : Required for Somatic
+# * child_var_allele_freq               : Required for Trio - not checking now
+# * parents_max_num_supporting_reads    : Required for Trio - not checking now
+# * REF                                 : Required
+# * date                                : Required
+# * heterozyg_min_var_allele_freq       : Required
+# * homozyg_min_var_allele_freq         : Required
+# * max_num_homopolymer_repeat_units    : Required
+# * skip_filter1:      skip CvgVafStrandFilter
+# * skip_pindel2vcf:   do not run pindel2vcf
+# * skip_filter2:      skip Homopolymer filter 
+
+# Confirm that all required configuration parameters are defined.  Exit with an error if they are not
+sub test_config_parameters {
+
+# Discussion of subtleties of passing hashes in perl: pass strings first
+# https://stackoverflow.com/questions/3567316/unable-to-pass-a-hash-and-a-string-to-a-function-together-in-perl
+    
+    my ($config_fn, %params) = @_;
+
+    my @required_keys = (
+        "variants_file",
+        "apply_filter",
+        "mode",
+        "min_coverages",
+        "min_var_allele_freq",
+        "require_balanced_reads",
+        "remove_complex_indels",
+        "REF",
+        "date",
+        "heterozyg_min_var_allele_freq",
+        "homozyg_min_var_allele_freq",
+        "max_num_homopolymer_repeat_units");
+
+    foreach my $key (@required_keys) {
+        if (! exists $params{$key}) {
+            die ("Error: Required key $key not found in configuration file $config_fn\n");
+        }
+    }
+}
 
 sub CvgVafStrandFilter_Germline {
     my $input_fh = shift;
@@ -276,6 +305,11 @@ chomp $thisdir;
 # get paras from config file
 my %paras; 
 map { chomp; if ( !/^[#;]/ &&  /=/) { @_ = split /=/; $_[1] =~ s/ //g; my $v = $_[1]; $_[0] =~ s/ //g; $paras{ (split /\./, $_[0])[-1] } = $v } } (<>);
+
+test_config_parameters($ARGV, %paras);
+
+
+
 if( $paras{'apply_filter'} eq "true" &&  !exists($paras{'mode'}) ) { die "Could not detect a filtering mode for filtering !!!\n"; }
 
 if (($paras{'mode'} ne 'pooled') && ($paras{'mode'} ne 'somatic') && ($paras{'mode'} ne 'germline') && ($paras{'mode'} ne 'trio')) {

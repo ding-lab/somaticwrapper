@@ -227,7 +227,9 @@ my $job_files_dir="$results_dir/runtime";  # OUTPUT PORT
 system("mkdir -p $job_files_dir");
 
 #print("Using reference $reference_fasta\n");
-print STDERR "SomaticWrapper dir: $sw_dir \n";
+print STDERR "SomaticWrapper git revision: \n";
+print STDERR `git -C $sw_dir log -1`;
+print STDERR "\nSomaticWrapper dir: $sw_dir \n";
 print STDERR "Analysis dir: $results_dir\n";
 print STDERR "Run script dir: $job_files_dir\n";
 
