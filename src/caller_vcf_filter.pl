@@ -4,6 +4,8 @@
 # Configuration file defines all adjustable filter parameters.
 # Output filename is given by $output_vcf, written to $results_dir/caller_vcf_filter/$output_vcf
 
+# TODO: Allow options --bypass_vaf, --bypass_length, --bypass_depth
+
 sub caller_vcf_filter {
     my $results_dir = shift;
     my $job_files_dir = shift;
@@ -13,7 +15,6 @@ sub caller_vcf_filter {
     my $caller = shift;  # strelka, varscan, or pindel
     my $vcf_filter_config = shift;
     my $bypass = shift;  # boolean: will skip filtering if defined
-
 
     my $bypass_vcf = $bypass ? "--bypass" : "";
     die "Error: Input data file $input_vcf does not exist\n" if (! -e $input_vcf);
