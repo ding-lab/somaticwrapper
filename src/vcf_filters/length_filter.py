@@ -10,19 +10,18 @@ import sys
 #
 # These may be specified on the command line (e.g., --max_length 100) or in
 # configuration file, as specified by --config config.ini  Sample contents of config file:
-#   [indel_length]
+#   [length]
 #   max_length = 100
 #
 # optional command line parameters
 # --debug
 # --config config.ini
 # --bypass
-# --bypass_length
 
 class IndelLengthFilter(ConfigFileFilter):
     'Filter indel variant sites by reference and variant length'
 
-    name = 'indel_length'
+    name = 'length'
 
     @classmethod
     def customize_parser(self, parser):
@@ -31,12 +30,11 @@ class IndelLengthFilter(ConfigFileFilter):
         parser.add_argument('--config', type=str, help='Optional configuration file')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
         parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
-        parser.add_argument('--bypass_length', action="store_true", default=False, help='Equivalent to --bypass')
 
     def __init__(self, args):
         # These will not be set from config file (though could be)
         self.debug = args.debug
-        self.bypass = args.bypass or args.bypass_length
+        self.bypass = args.bypass
 
         # Read arguments from config file first, if present.
         # Then read from command line args, if defined

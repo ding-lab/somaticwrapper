@@ -9,7 +9,8 @@
 # Output:
 # $results_dir/pindel/filter_out/$pindel_raw.CvgVafStrand_pass.Homopolymer_pass.vcf
 #
-# if bypass is true, skip filtering for CvgVafStrand and Homopolymer in pindel_filter, and just output VCF file
+# if bypass_cvs is true, skip filtering for CvgVafStrand in pindel_filter
+# if bypass_homopolymer is true, skip diltering for Homopolymer in pindel_filter
 
 sub parse_pindel {
     my $results_dir = shift;
@@ -21,7 +22,8 @@ sub parse_pindel {
     my $pindel_config = shift;
     my $pindel_raw_in = shift; 
     my $no_delete_temp = shift;
-    my $bypass = shift;
+    my $bypass_cvs = shift;
+    my $bypass_homopolymer = shift;
 
     if (! $no_delete_temp) {
         $no_delete_temp = 0; 
@@ -36,7 +38,8 @@ sub parse_pindel {
     my $pindel_raw = make_data_link($pindel_raw_in, $filter_results);
 
     # bypass flag will skip two filters in parse_pindel, and vcf_filter.  
-    my $bypass_str = $bypass ? "pindel.filter.skip_filter1 = true\npindel.filter.skip_filter2 = true" : "";
+    my $bypass_cvs_str = $bypass_cvs ? "pindel.filter.skip_filter1 = true" : "";
+    my $bypass_homopolymer_str = $bypass_homopolymer ? "pindel.filter.skip_filter2 = true" : "";
 
     # Set up parse_pindel configuration file.  It takes $pindel_config file and adds several lines to it
     die "$pindel_config does not exist\n" unless (-f $pindel_config);
@@ -50,7 +53,8 @@ pindel.filter.pindel2vcf = $pindel_dir/pindel2vcf
 pindel.filter.variants_file = $pindel_raw
 pindel.filter.REF = $reference
 pindel.filter.date = 000000
-$bypass_str
+$bypass_cvs_str
+$bypass_homopolymer_str
 EOF
 
     # Run pindel_filter produces:

@@ -49,8 +49,8 @@
 #       --flag_pick_allele_gene) and to   post-filter results.
 # As a result, we add the --flag_pick flag to vep_opts, then post-filter according to the PICK field
 # 
-# filter_xargs are strings which will be passed directly to merge_filter. --debug and --bypass may be passed this way
-#   --bypass is an optional flag which if set will bypass the filter and retain all reaads
+#   --bypass_af will skip AF filter by retaining all reads
+#   --bypass_classification will skip classification filter by retaining all reads
 
 # Output is $results_dir/vep/output.vcf
 
@@ -71,7 +71,8 @@ sub vep_annotate {
     my $input_vcf = shift;  # Name of input VCF to process
     my $af_filter_config = shift;
     my $classification_filter_config = shift;
-    my $filter_xargs = shift;
+    my $bypass_af = shift;
+    my $bypass_classification = shift;
 
     # assembly and cache_version may be blank; if so, not passed on command line to vep
     # We now require all output to be vcf format (not vep), so that VCF filtering can take place 
@@ -107,8 +108,11 @@ sub vep_annotate {
         # To prevent this from crashing, force bypass of the AF filter
         print STDERR "Using online VEP DB\n";
         print STDERR "AF filter will be bypassed\n";
-        $filter_xargs = "$filter_xargs --bypass_af";
+        $bypass_af = 1;
     }
+
+    my $bypass = $bypass_af ? "--bypass_af" : "";
+    $bypass = $bypass_classification ? "--bypass_classification $bypass" : "$bypass";
 
     # Check to make sure filter config files exist
     die "AF filter config $af_filter_config does not exist\n" unless (-e $af_filter_config);
@@ -147,7 +151,7 @@ fi
 >&2 echo Filtering by AF and classification
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
 
-bash $filter_dir/run_combined_af_classification_filter.sh $vep_output_fn $af_filter_config $classification_filter_config $filtered_output_fn $filter_xargs
+bash $filter_dir/run_combined_af_classification_filter.sh $vep_output_fn $af_filter_config $classification_filter_config $filtered_output_fn $bypass
 
 EOF
 

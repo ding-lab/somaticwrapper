@@ -4,7 +4,9 @@
 #
 # Usage:
 #   bash run_merged_filter.sh input.vcf output.vcf [args ...]
-# args is optional argument passed to all filters, e.g., --debug
+# args are zero or more optional arguments:
+#   --bypass_merge and --bypass will skip merge filter
+#   --debug will print out debug info to STDERR
 # If output.vcf is -, write to stdout
 
 VCF=$1; shift
@@ -18,8 +20,21 @@ fi
 
 export PYTHONPATH="/usr/local/somaticwrapper/vcf_filters:$PYTHONPATH"
 
+# parse XARG to catch bypass options.
+# --bypass and --bypass_merge will both bypass filter
+# if this is not a bypass arg then add it to both filters
+for ARG in $XARG; do
+    if [ "$ARG" == "--bypass_merge" ]; then
+        MERGE_ARG="$MERGE_ARG --bypass"
+    elif [ "$ARG" == "--bypass" ]; then
+        MERGE_ARG="$MERGE_ARG --bypass"
+    else
+        MERGE_ARG="$MERGE_ARG $ARG"
+    fi
+done
+
 MERGE_FILTER="vcf_filter.py --no-filtered --local-script merge_filter.py"  # filter module
-MERGE_FILTER_ARGS="merged_caller --exclude strelka,varscan $XARG " 
+MERGE_FILTER_ARGS="merge --exclude strelka,varscan $MERGE_ARG " 
 
 if [ $OUT == '-' ]; then
 

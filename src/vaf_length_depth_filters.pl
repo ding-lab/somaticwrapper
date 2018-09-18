@@ -2,11 +2,11 @@
 # Parses varscan, pindel, and strelka VCFs
 # Filtering is performed by pyvcf-based scripts in ./vcf_filter
 # Configuration file defines all adjustable filter parameters.
-# Output filename is given by $output_vcf, written to $results_dir/caller_vcf_filter/$output_vcf
+# Output filename is given by $output_vcf, written to $results_dir/vaf_length_depth_filters/$output_vcf
 
-# TODO: Allow options --bypass_vaf, --bypass_length, --bypass_depth
+# Accepts options --bypass_vaf, --bypass_length, --bypass_depth
 
-sub caller_vcf_filter {
+sub vaf_length_depth_filters {
     my $results_dir = shift;
     my $job_files_dir = shift;
     my $filter_dir = shift;
@@ -14,13 +14,17 @@ sub caller_vcf_filter {
     my $output_vcf = shift;  #
     my $caller = shift;  # strelka, varscan, or pindel
     my $vcf_filter_config = shift;
-    my $bypass = shift;  # boolean: will skip filtering if defined
+    my $bypass_vaf = shift;  # boolean: will skip filtering if defined
+    my $bypass_length = shift;  # boolean: will skip filtering if defined
+    my $bypass_depth = shift;  # boolean: will skip filtering if defined
 
-    my $bypass_vcf = $bypass ? "--bypass" : "";
+    my $bypass = $bypass_vaf ? "--bypass_vaf" : "";
+    $bypass = $bypass_length ? "--bypass_length $bypass" : "$bypass";
+    $bypass = $bypass_depth ? "--bypass_depth $bypass" : "$bypass";
     die "Error: Input data file $input_vcf does not exist\n" if (! -e $input_vcf);
     die "Error: Caller not defined\n" if (! $caller);
 
-    my $filter_results = "$results_dir/caller_vcf_filter";
+    my $filter_results = "$results_dir/vaf_length_depth_filters";
     system("mkdir -p $filter_results");
 
 # Create run script
@@ -37,7 +41,7 @@ sub caller_vcf_filter {
 
 >&2 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
-bash $filter_dir/run_combined_vcf_filter.sh $dbsnp_filtered_fn $caller $vcf_filter_config $vcf_filtered_fn $bypass_vcf
+bash $filter_dir/run_vaf_length_depth_filters.sh $dbsnp_filtered_fn $caller $vcf_filter_config $vcf_filtered_fn $bypass
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.

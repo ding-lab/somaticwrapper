@@ -2,12 +2,11 @@ from common_filter import *
 import sys
 
 # filter to include or exclude calls based on their caller, as defined by INFO field "set"
-# TODO: base on ConfigFileFilter (like depth_filter.py).  get rid of eprint below and update import fields
 
-class MergedCallerFilter(ConfigFileFilter):
+class MergeFilter(ConfigFileFilter):
     'Filter variant sites by caller, as defined by INFO field "set".'
 
-    name = 'merged_caller'
+    name = 'merge'
 
     @classmethod
     def customize_parser(self, parser):
@@ -15,7 +14,6 @@ class MergedCallerFilter(ConfigFileFilter):
         parser.add_argument('--exclude', help='Exclude all calls with given caller(s); comma-separated list')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
         parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
-        parser.add_argument('--bypass_merge', action="store_true", default=False, help='Equivalent to --bypass')
 
     def __init__(self, args):
 
@@ -31,7 +29,7 @@ class MergedCallerFilter(ConfigFileFilter):
             self.callers = args.exclude.split(',') 
 
         self.debug = args.debug
-        self.bypass = args.bypass or args.bypass_merge
+        self.bypass = args.bypass
 
         # below becomes Description field in VCF
         if self.bypass:
