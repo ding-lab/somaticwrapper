@@ -1,0 +1,55 @@
+##fileformat=VCFv4.1
+##fileDate=20180917
+##source=strelka
+##source_version=2.9.4
+##startTime=Mon Sep 17 19:31:47 2018
+##cmdline=/usr/local/strelka2/bin/configureStrelkaSomaticWorkflow.py --exome --normalBam /usr/local/somaticwrapper/testing/StrelkaDemo.dat/StrelkaDemoCase.N.bam --tumorBam /usr/local/somaticwrapper/testing/StrelkaDemo.dat/StrelkaDemoCase.T.bam --referenceFasta /usr/local/somaticwrapper/testing/StrelkaDemo.dat/demo20.fa --config /usr/local/somaticwrapper/params/strelka.WES.ini --runDir results/strelka/strelka_out
+##reference=file:///usr/local/somaticwrapper/testing/StrelkaDemo.dat/demo20.fa
+##content=strelka somatic snv calls
+##priorSomaticSnvRate=0.0001
+##SnpSiftVersion="SnpSift 4.3t (build 2017-11-24 10:18), by Pablo Cingolani"
+##SnpSiftCmd="SnpSift Annotate -id /usr/local/somaticwrapper/testing/StrelkaDemo.dat/dbsnp-StrelkaDemo.noCOSMIC.vcf.gz results/strelka/strelka_out/results/variants/somatic.snvs.vcf.gz"
+##SnpSiftCmd="SnpSift Filter -n '(exists ID) & (ID =~ 'rs' )' -f results/strelka/strelka_out/results/variants/somatic.snvs.vcf.gzdbsnp_anno.vcf"
+##INFO=<ID=QSS,Number=1,Type=Integer,Description="Quality score for any somatic snv, ie. for the ALT allele to be present at a significantly different frequency in the tumor and normal">
+##INFO=<ID=TQSS,Number=1,Type=Integer,Description="Data tier used to compute QSS">
+##INFO=<ID=NT,Number=1,Type=String,Description="Genotype of the normal in all data tiers, as used to classify somatic variants. One of {ref,het,hom,conflict}.">
+##INFO=<ID=QSS_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">
+##INFO=<ID=TQSS_NT,Number=1,Type=Integer,Description="Data tier used to compute QSS_NT">
+##INFO=<ID=SGT,Number=1,Type=String,Description="Most likely somatic genotype excluding normal noise states">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic mutation">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Combined depth across samples">
+##INFO=<ID=MQ,Number=1,Type=Float,Description="RMS Mapping Quality">
+##INFO=<ID=MQ0,Number=1,Type=Integer,Description="Total Mapping Quality Zero Reads">
+##INFO=<ID=ReadPosRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt Vs. Ref read-position in the tumor">
+##INFO=<ID=SNVSB,Number=1,Type=Float,Description="Somatic SNV site strand bias">
+##INFO=<ID=PNOISE,Number=1,Type=Float,Description="Fraction of panel containing non-reference noise at this site">
+##INFO=<ID=PNOISE2,Number=1,Type=Float,Description="Fraction of panel containing more than one non-reference noise obs at this site">
+##INFO=<ID=SomaticEVS,Number=1,Type=Float,Description="Somatic Empirical Variant Score (EVS) expressing the phred-scaled probability of the call being a false positive observation.">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth for tier1 (used+filtered)">
+##FORMAT=<ID=FDP,Number=1,Type=Integer,Description="Number of basecalls filtered from original read depth for tier1">
+##FORMAT=<ID=SDP,Number=1,Type=Integer,Description="Number of reads with deletions spanning this site at tier1">
+##FORMAT=<ID=SUBDP,Number=1,Type=Integer,Description="Number of reads below tier1 mapping quality threshold aligned across this site">
+##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
+##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
+##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
+##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
+##FILTER=<ID=LowEVS,Description="Somatic Empirical Variant Score (SomaticEVS) is below threshold">
+##FILTER=<ID=LowDepth,Description="Tumor or normal sample read depth at this locus is below 2">
+##FILTER=<ID=SnpSift,Description="SnpSift 4.3t (build 2017-11-24 10:18), by Pablo Cingolani, Expression used: (exists ID) & (ID =~ 'rs' )">
+##FILTER=<ID=vaf,Description="Retain calls where normal VAF <= 0.020000 and tumor VAF >= 0.050000 ">
+##FILTER=<ID=indel_length,Description="Retain calls where indel length > 0 and < 100 ">
+##FILTER=<ID=read_depth,Description="Retain calls where read depth in tumor and normal > 20 ">
+##contig=<ID=20,length=5000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NORMAL	TUMOR
+20	1508	.	A	G	.	PASS	QSS=99;TQSS=1;NT=ref;QSS_NT=99;TQSS_NT=1;SGT=AA->AG;SOMATIC;DP=62;MQ=59.63;MQ0=0;ReadPosRankSum=-0.68;SNVSB=0.0;SomaticEVS=18.02	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	39:0:0:0:39,39:0,0:0,0:0,0	23:0:0:0:11,11:0,0:12,12:0,0
+20	1744	.	C	T	.	PASS	QSS=64;TQSS=1;NT=ref;QSS_NT=64;TQSS_NT=1;SGT=CC->CT;SOMATIC;DP=48;MQ=59.03;MQ0=0;ReadPosRankSum=-0.78;SNVSB=0.0;SomaticEVS=15.68	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	27:0:0:0:0,0:27,27:0,0:0,0	21:0:0:0:0,0:9,9:0,0:12,12
+20	1846	.	C	T	.	PASS	QSS=51;TQSS=1;NT=ref;QSS_NT=51;TQSS_NT=1;SGT=CC->CT;SOMATIC;DP=46;MQ=60.0;MQ0=0;ReadPosRankSum=-1.16;SNVSB=0.0;SomaticEVS=19.83	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	21:0:0:0:0,0:21,21:0,0:0,0	25:0:0:0:0,0:16,16:0,0:9,9
+20	2074	.	T	C	.	PASS	QSS=61;TQSS=1;NT=ref;QSS_NT=61;TQSS_NT=1;SGT=TT->CT;SOMATIC;DP=51;MQ=60.0;MQ0=0;ReadPosRankSum=0.14;SNVSB=0.0;SomaticEVS=19.98	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	26:0:0:0:0,0:0,0:0,0:26,26	25:0:0:0:0,0:11,11:0,0:14,14
+20	2199	.	G	A	.	PASS	QSS=81;TQSS=1;NT=ref;QSS_NT=81;TQSS_NT=1;SGT=GG->AG;SOMATIC;DP=62;MQ=60.0;MQ0=0;ReadPosRankSum=-0.22;SNVSB=0.0;SomaticEVS=19.98	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	33:0:0:0:0,0:0,0:33,33:0,0	29:0:0:0:14,14:0,0:15,15:0,0
+20	2301	.	G	T	.	PASS	QSS=62;TQSS=1;NT=ref;QSS_NT=62;TQSS_NT=1;SGT=GG->GT;SOMATIC;DP=57;MQ=58.78;MQ0=0;ReadPosRankSum=-0.64;SNVSB=0.0;SomaticEVS=14.06	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	27:1:0:0:0,0:0,0:26,27:0,0	30:0:0:0:0,0:0,0:12,12:18,18
+20	2455	.	T	C	.	PASS	QSS=156;TQSS=1;NT=ref;QSS_NT=112;TQSS_NT=1;SGT=TT->CT;SOMATIC;DP=61;MQ=60.0;MQ0=0;ReadPosRankSum=0.0;SNVSB=0.0;SomaticEVS=19.73	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	28:0:0:0:0,0:0,0:0,0:28,28	33:1:0:0:0,0:32,33:0,0:0,0
+20	2512	.	A	G	.	PASS	QSS=64;TQSS=1;NT=ref;QSS_NT=64;TQSS_NT=1;SGT=AA->AG;SOMATIC;DP=67;MQ=58.89;MQ0=0;ReadPosRankSum=-0.86;SNVSB=0.0;SomaticEVS=14.13	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	26:1:0:0:25,26:0,0:0,0:0,0	40:0:0:0:14,14:0,0:26,27:0,0
+20	2640	.	C	T	.	PASS	QSS=165;TQSS=1;NT=ref;QSS_NT=133;TQSS_NT=1;SGT=CC->CT;SOMATIC;DP=63;MQ=60.0;MQ0=0;ReadPosRankSum=0.0;SNVSB=0.0;SomaticEVS=19.73	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	35:0:0:0:0,0:35,35:0,0:0,0	28:0:0:0:0,0:0,0:0,0:28,28
+20	2660	.	G	T	.	PASS	QSS=133;TQSS=1;NT=ref;QSS_NT=118;TQSS_NT=1;SGT=GG->GT;SOMATIC;DP=52;MQ=60.0;MQ0=0;ReadPosRankSum=0.0;SNVSB=0.0;SomaticEVS=19.73	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	30:0:0:0:0,0:0,0:30,30:0,0	22:0:0:0:0,0:0,0:0,0:22,22
+20	3366	.	G	T	.	PASS	QSS=133;TQSS=1;NT=ref;QSS_NT=106;TQSS_NT=1;SGT=GG->GT;SOMATIC;DP=52;MQ=60.0;MQ0=0;ReadPosRankSum=0.0;SNVSB=0.0;SomaticEVS=19.73	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	26:0:0:0:0,0:0,0:26,26:0,0	26:0:0:0:0,0:0,0:0,0:26,26
+20	3537	.	C	T	.	PASS	QSS=77;TQSS=1;NT=ref;QSS_NT=77;TQSS_NT=1;SGT=CC->CT;SOMATIC;DP=62;MQ=59.25;MQ0=0;ReadPosRankSum=-0.48;SNVSB=0.0;SomaticEVS=17.1	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	30:0:0:0:0,0:30,30:0,0:0,0	32:0:0:0:0,0:21,21:0,0:11,11

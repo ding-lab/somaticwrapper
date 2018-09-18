@@ -1,0 +1,20 @@
+##fileformat=VCFv4.0
+##fileDate=000000
+##source=pindel
+##reference=demo20.fa
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=HOMLEN,Number=1,Type=Integer,Description="Length of base pair identical micro-homology at event breakpoints">
+##INFO=<ID=PF,Number=1,Type=Integer,Description="The number of samples carry the variant">
+##INFO=<ID=HOMSEQ,Number=.,Type=String,Description="Sequence of base pair identical micro-homology at event breakpoints">
+##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=NTLEN,Number=.,Type=Integer,Description="Number of bases inserted in place of deleted code">
+##INFO=<ID=XQS,Number=1,Type=Integer,Description="Phred Quality score of chi-square test">
+##FORMAT=<ID=PL,Number=3,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=AD,Number=2,Type=Integer,Description="Allele depth, how many reads support this allele">
+##SnpSiftVersion="SnpSift 4.3t (build 2017-11-24 10:18), by Pablo Cingolani"
+##SnpSiftCmd="SnpSift Annotate -id /usr/local/somaticwrapper/testing/StrelkaDemo.dat/dbsnp-StrelkaDemo.noCOSMIC.vcf.gz results/pindel/filter_out/pindel-raw.dat.CvgVafStrand_pass.Homopolymer_pass.vcf"
+##SnpSiftCmd="SnpSift Filter '(exists ID) & (ID =~ 'rs' )' -f results/pindel/filter_out/pindel-raw.dat.CvgVafStrand_pass.Homopolymer_pass.dbsnp_anno.vcf"
+##FILTER=<ID=SnpSift,Description="SnpSift 4.3t (build 2017-11-24 10:18), by Pablo Cingolani, Expression used: (exists ID) & (ID =~ 'rs' )">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO

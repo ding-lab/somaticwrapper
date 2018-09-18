@@ -1,0 +1,86 @@
+##fileformat=VCFv4.2
+##GATKCommandLine.CombineVariants=<ID=CombineVariants,Version=3.8-0-ge9d806836,Date="Mon Sep 17 19:32:24 UTC 2018",Epoch=1537212744980,CommandLineOptions="analysis_type=CombineVariants input_file=[] showFullBamList=false read_buffer_size=null read_filter=[] disable_read_filter=[] intervals=null excludeIntervals=null interval_set_rule=UNION interval_merging=ALL interval_padding=0 reference_sequence=/usr/local/somaticwrapper/testing/StrelkaDemo.dat/demo20.fa nonDeterministicRandomSeed=false disableDithering=false maxRuntime=-1 maxRuntimeUnits=MINUTES downsampling_type=BY_SAMPLE downsample_to_fraction=null downsample_to_coverage=1000 baq=OFF baqGapOpenPenalty=40.0 refactor_NDN_cigar_string=false fix_misencoded_quality_scores=false allow_potentially_misencoded_quality_scores=false useOriginalQualities=false defaultBaseQualities=-1 performanceLog=null BQSR=null quantize_quals=0 static_quantized_quals=null round_down_quantized=false disable_indel_quals=false emit_original_quals=false preserve_qscores_less_than=6 globalQScorePrior=-1.0 secondsBetweenProgressUpdates=10 validation_strictness=SILENT remove_program_records=false keep_program_records=false sample_rename_mapping_file=null unsafe=null use_jdk_deflater=false use_jdk_inflater=false disable_auto_index_creation_and_locking_when_reading_rods=false no_cmdline_in_header=false sites_only=false never_trim_vcf_format_field=false bcf=false bam_compression=null simplifyBAM=false disable_bam_indexing=false generate_md5=false num_threads=1 num_cpu_threads_per_data_thread=1 num_io_threads=0 monitorThreadEfficiency=false num_bam_file_handles=null read_group_black_list=null pedigree=[] pedigreeString=[] pedigreeValidationType=STRICT allow_intervals_with_unindexed_bam=false generateShadowBCF=false variant_index_type=DYNAMIC_SEEK variant_index_parameter=-1 reference_window_stop=0 phone_home= gatk_key=null tag=NA logging_level=INFO log_to_file=null help=false version=false variant=[(RodBindingCollection [(RodBinding name=varscan source=results/varscan/filter_out/varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.filtered.vcf)]), (RodBindingCollection [(RodBinding name=strelka source=results/strelka/filter_out/strelka.somatic.snv.all.dbsnp_pass.filtered.vcf)]), (RodBindingCollection [(RodBinding name=varindel source=results/varscan/filter_out/varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf)]), (RodBindingCollection [(RodBinding name=pindel source=results/pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf)])] out=/usr/local/somaticwrapper/testing/StrelkaDemo.test/results/merged/merged.vcf genotypemergeoption=PRIORITIZE filteredrecordsmergetype=KEEP_IF_ANY_UNFILTERED multipleallelesmergetype=BY_TYPE rod_priority_list=strelka,varscan,pindel,varindel printComplexMerges=false filteredAreUncalled=false minimalVCF=false excludeNonVariants=false setKey=set assumeIdenticalSamples=false minimumN=1 suppressCommandLineHeader=false mergeInfoWithMaxAC=false filter_reads_with_N_cigar=false filter_mismatching_base_and_quals=false filter_bases_not_stored=false">
+##SnpSiftCmd="SnpSift Annotate -id /usr/local/somaticwrapper/testing/StrelkaDemo.dat/dbsnp-StrelkaDemo.noCOSMIC.vcf.gz results/varscan/filter_out/varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf"
+##SnpSiftVersion="SnpSift 4.3t (build 2017-11-24 10:18), by Pablo Cingolani"
+##cmdline=/usr/local/strelka2/bin/configureStrelkaSomaticWorkflow.py --exome --normalBam /usr/local/somaticwrapper/testing/StrelkaDemo.dat/StrelkaDemoCase.N.bam --tumorBam /usr/local/somaticwrapper/testing/StrelkaDemo.dat/StrelkaDemoCase.T.bam --referenceFasta /usr/local/somaticwrapper/testing/StrelkaDemo.dat/demo20.fa --config /usr/local/somaticwrapper/params/strelka.WES.ini --runDir results/strelka/strelka_out
+##content=strelka somatic snv calls
+##fileDate=20180917
+##priorSomaticSnvRate=0.0001
+##reference=file:///usr/local/somaticwrapper/testing/StrelkaDemo.dat/demo20.fa
+##source=VarScan2
+##source_version=2.9.4
+##startTime=Mon Sep 17 19:31:47 2018
+##VEP="v93" time="2018-09-17 19:32:35" db="homo_sapiens_core_93_37@ensembldb.ensembl.org" ensembl-io=93.cc29a66 ensembl-variation=93.c9c43a7 ensembl=93.b4d45ee ensembl-funcgen=93.0c98373 assembly="GRCh37.p13" gencode="GENCODE 19" genebuild="2011-04"
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Total depth of quality bases">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=GPV,Number=1,Type=Float,Description="Fisher's Exact Test P-value of tumor+normal versus no variant for Germline calls">
+##INFO=<ID=HOMLEN,Number=1,Type=Integer,Description="Length of base pair identical micro-homology at event breakpoints">
+##INFO=<ID=HOMSEQ,Number=.,Type=String,Description="Sequence of base pair identical micro-homology at event breakpoints">
+##INFO=<ID=MQ,Number=1,Type=Float,Description="RMS Mapping Quality">
+##INFO=<ID=MQ0,Number=1,Type=Integer,Description="Total Mapping Quality Zero Reads">
+##INFO=<ID=NT,Number=1,Type=String,Description="Genotype of the normal in all data tiers, as used to classify somatic variants. One of {ref,het,hom,conflict}.">
+##INFO=<ID=NTLEN,Number=.,Type=Integer,Description="Number of bases inserted in place of deleted code">
+##INFO=<ID=PF,Number=1,Type=Integer,Description="The number of samples carry the variant">
+##INFO=<ID=PNOISE,Number=1,Type=Float,Description="Fraction of panel containing non-reference noise at this site">
+##INFO=<ID=PNOISE2,Number=1,Type=Float,Description="Fraction of panel containing more than one non-reference noise obs at this site">
+##INFO=<ID=QSS,Number=1,Type=Integer,Description="Quality score for any somatic snv, ie. for the ALT allele to be present at a significantly different frequency in the tumor and normal">
+##INFO=<ID=QSS_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">
+##INFO=<ID=ReadPosRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt Vs. Ref read-position in the tumor">
+##INFO=<ID=SGT,Number=1,Type=String,Description="Most likely somatic genotype excluding normal noise states">
+##INFO=<ID=SNVSB,Number=1,Type=Float,Description="Somatic SNV site strand bias">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Indicates if record is a somatic mutation">
+##INFO=<ID=SPV,Number=1,Type=Float,Description="Fisher's Exact Test P-value of tumor versus normal for Somatic/LOH calls">
+##INFO=<ID=SS,Number=1,Type=String,Description="Somatic status of variant (0=Reference,1=Germline,2=Somatic,3=LOH, or 5=Unknown)">
+##INFO=<ID=SSC,Number=1,Type=String,Description="Somatic score in Phred scale (0-255) derived from somatic p-value">
+##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=SomaticEVS,Number=1,Type=Float,Description="Somatic Empirical Variant Score (EVS) expressing the phred-scaled probability of the call being a false positive observation.">
+##INFO=<ID=TQSS,Number=1,Type=Integer,Description="Data tier used to compute QSS">
+##INFO=<ID=TQSS_NT,Number=1,Type=Integer,Description="Data tier used to compute QSS_NT">
+##INFO=<ID=XQS,Number=1,Type=Integer,Description="Phred Quality score of chi-square test">
+##INFO=<ID=set,Number=1,Type=String,Description="Source VCF for the merged record in CombineVariants">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|Gene|Feature_type|Feature|BIOTYPE|EXON|INTRON|HGVSc|HGVSp|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|DISTANCE|STRAND|FLAGS|PICK|SYMBOL_SOURCE|HGNC_ID">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
+##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=DP4,Number=1,Type=String,Description="Strand read counts: ref/fwd, ref/rev, var/fwd, var/rev">
+##FORMAT=<ID=FDP,Number=1,Type=Integer,Description="Number of basecalls filtered from original read depth for tier1">
+##FORMAT=<ID=FREQ,Number=1,Type=String,Description="Variant allele frequency">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=RD,Number=1,Type=Integer,Description="Depth of reference-supporting bases (reads1)">
+##FORMAT=<ID=SDP,Number=1,Type=Integer,Description="Number of reads with deletions spanning this site at tier1">
+##FORMAT=<ID=SUBDP,Number=1,Type=Integer,Description="Number of reads below tier1 mapping quality threshold aligned across this site">
+##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
+##FILTER=<ID=LowDepth,Description="Tumor or normal sample read depth at this locus is below 2">
+##FILTER=<ID=LowEVS,Description="Somatic Empirical Variant Score (SomaticEVS) is below threshold">
+##FILTER=<ID=SnpSift,Description="SnpSift 4.3t (build 2017-11-24 10:18), by Pablo Cingolani, Expression used: (exists ID) & (ID =~ 'rs' )">
+##FILTER=<ID=indelError,Description="Likely artifact due to indel reads at this position">
+##FILTER=<ID=indel_length,Description="Retain calls where indel length > 0 and < 100">
+##FILTER=<ID=read_depth,Description="Retain calls where read depth in tumor and normal > 20">
+##FILTER=<ID=str10,Description="Less than 10% or more than 90% of variant supporting reads on one strand">
+##FILTER=<ID=vaf,Description="Retain calls where normal VAF <= 0.020000 and tumor VAF >= 0.050000">
+##FILTER=<ID=merged_caller,Description="Exclude calls where 'set' INFO field includes any of strelka,varscan">
+##FILTER=<ID=af,Description="Bypassing AF filter, retaining all reads">
+##FILTER=<ID=classification,Description="Bypassing Classification filter, retaining all reads">
+##contig=<ID=20,length=5000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NORMAL	TUMOR
+20	1148	.	C	CTAT	.	PASS	AC=1;AF=0.25;AN=4;DP=48;GPV=1.0;SOMATIC;SPV=0.0010528;SS=2;SSC=29;set=varindel;CSQ=TAT|intergenic_variant|MODIFIER|||||||||||||||||||1||	GT:AD:DP:DP4:FREQ:RD	0/0:0:28:15,13,0,0:0%:28	0/1:7:20:5,8,3,4:35%:13
+20	1508	.	A	G	.	PASS	AC=0;AF=0.0;AN=0;DP=122;SOMATIC;set=strelka-varscan;CSQ=G|intergenic_variant|MODIFIER|||||||||||||||||||1||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	39,39:0,0:39:0:0,0:0:0:0,0	11,11:0,0:23:0:12,12:0:0:0,0
+20	1744	.	C	T	.	PASS	AC=0;AF=0.0;AN=0;DP=96;SOMATIC;set=strelka-varscan;CSQ=T|intergenic_variant|MODIFIER|||||||||||||||||||1||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:27,27:27:0:0,0:0:0:0,0	0,0:9,9:21:0:0,0:0:0:12,12
+20	1846	.	C	T	.	PASS	AC=0;AF=0.0;AN=0;DP=91;SOMATIC;set=strelka-varscan;CSQ=T|intergenic_variant|MODIFIER|||||||||||||||||||1||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:21,21:21:0:0,0:0:0:0,0	0,0:16,16:25:0:0,0:0:0:9,9
+20	2074	.	T	C	.	PASS	AC=0;AF=0.0;AN=0;DP=102;SOMATIC;set=strelka-varscan;CSQ=C|intergenic_variant|MODIFIER|||||||||||||||||||1||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:26:0:0,0:0:0:26,26	0,0:11,11:25:0:0,0:0:0:14,14
+20	2199	.	G	A	.	PASS	AC=0;AF=0.0;AN=0;DP=123;SOMATIC;set=strelka-varscan;CSQ=A|intergenic_variant|MODIFIER|||||||||||||||||||1||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:33:0:33,33:0:0:0,0	14,14:0,0:29:0:15,15:0:0:0,0
+20	2301	.	G	T	.	PASS	AC=0;AF=0.0;AN=0;DP=114;SOMATIC;set=strelka-varscan;CSQ=T|intergenic_variant|MODIFIER|||||||||||||||||||1||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:27:1:26,27:0:0:0,0	0,0:0,0:30:0:12,12:0:0:18,18
+20	2455	.	T	C	.	PASS	AC=0;AF=0.0;AN=0;DP=121;SOMATIC;set=strelka-varscan;CSQ=C|intergenic_variant|MODIFIER|||||||||||||||||||1||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:28:0:0,0:0:0:28,28	0,0:32,33:33:1:0,0:0:0:0,0
+20	2512	.	A	G	.	PASS	AC=0;AF=0.0;AN=0;DP=132;SOMATIC;set=strelka-varscan;CSQ=G|intergenic_variant|MODIFIER|||||||||||||||||||1||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	25,26:0,0:26:1:0,0:0:0:0,0	14,14:0,0:40:0:26,27:0:0:0,0
+20	2640	.	C	T	.	PASS	AC=0;AF=0.0;AN=0;DP=126;SOMATIC;set=strelka-varscan;CSQ=T|intergenic_variant|MODIFIER|||||||||||||||||||1||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:35,35:35:0:0,0:0:0:0,0	0,0:0,0:28:0:0,0:0:0:28,28
+20	2660	.	G	T	.	PASS	AC=0;AF=0.0;AN=0;DP=104;SOMATIC;set=strelka-varscan;CSQ=T|intergenic_variant|MODIFIER|||||||||||||||||||1||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:30:0:30,30:0:0:0,0	0,0:0,0:22:0:0,0:0:0:22,22
+20	3366	.	G	T	.	PASS	AC=0;AF=0.0;AN=0;DP=104;SOMATIC;set=strelka-varscan;CSQ=T|intergenic_variant|MODIFIER|||||||||||||||||||1||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:26:0:26,26:0:0:0,0	0,0:0,0:26:0:0,0:0:0:26,26
+20	3537	.	C	T	.	PASS	AC=0;AF=0.0;AN=0;DP=122;SOMATIC;set=strelka-varscan;CSQ=T|intergenic_variant|MODIFIER|||||||||||||||||||1||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:30,30:30:0:0,0:0:0:0,0	0,0:21,21:32:0:0,0:0:0:11,11
