@@ -6,7 +6,7 @@
 #   bash run_merged_filter.sh input.vcf output.vcf [args ...]
 # args are zero or more optional arguments:
 #   --bypass_merge and --bypass will skip merge filter
-#   --debug will print out debug info to STDERR
+#   --debug and --debug_merge will print out debug info to STDERR
 # If output.vcf is -, write to stdout
 
 VCF=$1; shift
@@ -22,12 +22,17 @@ export PYTHONPATH="/usr/local/somaticwrapper/vcf_filters:$PYTHONPATH"
 
 # parse XARG to catch bypass options.
 # --bypass and --bypass_merge will both bypass filter
+# similar logic for --debug and --debug_merge
 # if this is not a bypass arg then add it to both filters
 for ARG in $XARG; do
     if [ "$ARG" == "--bypass_merge" ]; then
         MERGE_ARG="$MERGE_ARG --bypass"
     elif [ "$ARG" == "--bypass" ]; then
         MERGE_ARG="$MERGE_ARG --bypass"
+    elif [ "$ARG" == "--debug_merge" ]; then
+        MERGE_ARG="$MERGE_ARG --debug"
+    elif [ "$ARG" == "--debug" ]; then
+        MERGE_ARG="$MERGE_ARG --debug"
     else
         MERGE_ARG="$MERGE_ARG $ARG"
     fi

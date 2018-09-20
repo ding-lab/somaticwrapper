@@ -24,6 +24,7 @@ sub parse_pindel {
     my $no_delete_temp = shift;
     my $bypass_cvs = shift;
     my $bypass_homopolymer = shift;
+    my $debug = shift;
 
     if (! $no_delete_temp) {
         $no_delete_temp = 0; 

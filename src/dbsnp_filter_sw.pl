@@ -20,7 +20,7 @@ sub dbsnp_filter {
     my $snpsift_jar = shift;
     my $input_vcf = shift;
     my $bypass = shift;
-
+    my $debug = shift;  # this doesn't actually do anything right now
     
     my $filter_results = "$results_dir/dbsnp_filter";
     print STDERR "Filter results: $filter_results\n";

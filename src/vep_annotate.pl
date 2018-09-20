@@ -73,6 +73,7 @@ sub vep_annotate {
     my $classification_filter_config = shift;
     my $bypass_af = shift;
     my $bypass_classification = shift;
+    my $debug = shift;
 
     # assembly and cache_version may be blank; if so, not passed on command line to vep
     # We now require all output to be vcf format (not vep), so that VCF filtering can take place 
@@ -113,6 +114,7 @@ sub vep_annotate {
 
     my $bypass = $bypass_af ? "--bypass_af" : "";
     $bypass = $bypass_classification ? "--bypass_classification $bypass" : "$bypass";
+    my $debug_str = $debug ? "--debug" : "";
 
     # Check to make sure filter config files exist
     die "AF filter config $af_filter_config does not exist\n" unless (-e $af_filter_config);
@@ -151,7 +153,7 @@ fi
 >&2 echo Filtering by AF and classification
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
 
-bash $filter_dir/run_combined_af_classification_filter.sh $vep_output_fn $af_filter_config $classification_filter_config $filtered_output_fn $bypass
+bash $filter_dir/run_combined_af_classification_filter.sh $vep_output_fn $af_filter_config $classification_filter_config $filtered_output_fn $bypass $debug_str
 
 EOF
 

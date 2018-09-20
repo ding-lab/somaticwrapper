@@ -6,7 +6,8 @@
 # args are zero or more optional arguments:
 #   --bypass_vaf, --bypass_depth, --bypass_length will skip just that filter
 #   --bypass will skip all filters
-#   --debug will print out debug info to STDERR
+#   --debug will print out debug info to STDERR for all filters
+#   --debug_vaf, debug_depth, debug_length - debug specific to filter
 # If output.vcf is -, write to stdout
 
 VCF=$1 ; shift
@@ -19,9 +20,9 @@ CALLER_ARG="--caller $CALLER"
 
 export PYTHONPATH="somaticwrapper.cwl/vcf_filters:$PYTHONPATH"
 
-# parse XARG to catch various bypass options.
+# parse XARG to catch various bypass and debug options.
 # --bypass will bypass all
-# if this is not a bypass arg then add it to both filters
+# if this is not a bypass or debug arg then add it to both filters
 for ARG in $XARG; do
     if [ "$ARG" == "--bypass_vaf" ]; then
         VAF_ARG="$VAF_ARG --bypass"
@@ -33,6 +34,16 @@ for ARG in $XARG; do
         VAF_ARG="$VAF_ARG --bypass"
         LENGTH_ARG="$LENGTH_ARG --bypass"
         DEPTH_ARG="$DEPTH_ARG --bypass"
+    elif [ "$ARG" == "--debug_vaf" ]; then
+        VAF_ARG="$VAF_ARG --debug"
+    elif [ "$ARG" == "--debug_length" ]; then
+        LENGTH_ARG="$LENGTH_ARG --debug"
+    elif [ "$ARG" == "--debug_depth" ]; then
+        DEPTH_ARG="$DEPTH_ARG --debug"
+    elif [ "$ARG" == "--debug" ]; then
+        VAF_ARG="$VAF_ARG --debug"
+        LENGTH_ARG="$LENGTH_ARG --debug"
+        DEPTH_ARG="$DEPTH_ARG --debug"
     else
         VAF_ARG="$VAF_ARG $ARG"
         LENGTH_ARG="$LENGTH_ARG $ARG"

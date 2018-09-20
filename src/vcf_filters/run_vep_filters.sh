@@ -5,6 +5,7 @@
 #   --bypass_af, --bypass_classification will skip just that filter
 #   --bypass will skip all filters
 #   --debug will print out debug info to STDERR
+#   --debug_af and --debug_classification specific to that filter
 
 VCF=$1 ; shift
 AF_CONFIG=$1 ; shift
@@ -12,8 +13,9 @@ CLASS_CONFIG=$1 ; shift
 OUT=$1 ; shift
 XARG="$@"  # optional argument passed to all filters, may be --debug
 
-# parse XARG to catch various bypass options.
+# parse XARG to catch various bypass and debug options.
 # --bypass will bypass both
+# --debug will debug both
 # if this is not a bypass arg then add it to both filters 
 for ARG in $XARG; do
     if [ "$ARG" == "--bypass_af" ]; then
@@ -23,6 +25,13 @@ for ARG in $XARG; do
     elif [ "$ARG" == "--bypass" ]; then
         AF_ARG="$AF_ARG --bypass"
         CLASS_ARG="$CLASS_ARG --bypass"
+    elif [ "$ARG" == "--debug_af" ]; then
+        AF_ARG="$AF_ARG --debug"
+    elif [ "$ARG" == "--debug_classification" ]; then
+        CLASS_ARG="$CLASS_ARG --debug"
+    elif [ "$ARG" == "--debug" ]; then
+        AF_ARG="$AF_ARG --debug"
+        CLASS_ARG="$CLASS_ARG --debug"
     else
         CLASS_ARG="$CLASS_ARG $ARG"
         AF_ARG="$AF_ARG $ARG"
