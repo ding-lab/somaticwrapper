@@ -163,9 +163,9 @@ COPY vimrc /root/.vimrc
 
 # change the hash below to force clone
 # get it with git rev-parse HEAD, though it doesn't matter what it is as long as it changes
-ENV latest_commit boo4
+ENV latest_commit boo102
 RUN cd /usr/local \
-    && git clone -b cwl https://github.com/ding-lab/somaticwrapper 
+    && git clone -b cwl-dev https://github.com/ding-lab/somaticwrapper 
 
 WORKDIR /usr/local/somaticwrapper
 
