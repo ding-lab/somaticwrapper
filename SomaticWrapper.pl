@@ -8,6 +8,7 @@ use Getopt::Long qw(GetOptions);
 use File::Basename;
 
 require('src/run_strelka.pl');
+require('src/run_strelka2.pl');
 require("src/run_varscan.pl");
 require("src/parse_varscan_snv.pl");
 require("src/parse_varscan_indel.pl");
@@ -26,16 +27,17 @@ Usage: perl $0 [options] step_number
 
 step_number executes given step of pipeline:
 * [run_strelka]  Run streka
+* [run_strelka2]  Run streka2
 * [run_varscan]  Run Varscan
+* [run_pindel]  Run Pindel
 * [parse_varscan_snv]  Parse VarScan snv result
 * [parse_varscan_indel]  Parse VarScan indel result
-* [run_pindel]  Run Pindel
 * [parse_pindel]  Parse Pindel
+* [vaf_length_depth_filters]  Filter VCF based on variant length, VAF, and read depth
 * [merge_vcf]  Merge vcf files 
+* [dbsnp_filter]  Remove dbSnP variants from VCF
 * [vep_annotate]  Run VEP annotation on a given file
 * [vcf_2_maf]  Run vcf_2_maf on VCF
-* [dbsnp_filter]  Remove dbSnP variants from VCF
-* [vaf_length_depth_filters]  Filter VCF based on variant length, VAF, and read depth
 
 Required and optional arguments per step
 
@@ -48,7 +50,11 @@ run_strelka:
     --normal_bam s: path to normal BAM.  Required
     --reference_fasta s: path to reference.  Required
     --strelka_config s: path to strelka.ini file.  Required
-    --is_strelka2: run stelka2 instead of strelka version 1 
+run_strelka2:
+    --tumor_bam s:  path to tumor BAM.  Required
+    --normal_bam s: path to normal BAM.  Required
+    --reference_fasta s: path to reference.  Required
+    --strelka_config s: path to strelka.ini file.  Required
     --manta_vcf: pass Manta VCF calls to Strelka2 as input.  Optional
 run_varscan:
     --tumor_bam s:  path to tumor BAM.  Required
@@ -137,7 +143,6 @@ vcf_2_maf:
         * if neither vep_cache_dir nor vep_cache_gz defined, error.  vcf_2_maf does not support online vep_cache lookups
     --exac:  ExAC database to pass to vcf_2_maf.pl as --filter-vcf for custom annotation
 
-Note that logic of boolean arguments can be reversed with "no" prefix, e.g. --nois_strelka2 
 OUT
 
 # Argument parsing reference: http://perldoc.perl.org/Getopt/Long.html
@@ -150,7 +155,6 @@ my $reference_fasta;
 my $results_dir = ".";  
 my $vep_cache_dir;
 my $vep_cache_gz;
-my $is_strelka2;    # Boolean
 my $bypass_vaf;    # Boolean
 my $bypass_length;    # Boolean
 my $bypass_depth;    # Boolean
@@ -229,7 +233,6 @@ GetOptions(
     'output_vcf=s' => \$output_vcf,
     'caller=s' => \$caller,
     'no_delete_temp!' => \$no_delete_temp,
-    'is_strelka2!' => \$is_strelka2,
     'bypass_vaf!' => \$bypass_vaf,
     'bypass_length!' => \$bypass_length,
     'bypass_depth!' => \$bypass_depth,
@@ -279,15 +282,15 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("normal_bam undefined \n") unless $normal_bam;
     die("strelka_config undefined \n") unless $strelka_config;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    my $strelka_bin;
-    if ($is_strelka2) {
-        print STDERR "Running Strelka 2\n";
-        $strelka_bin="$strelka2_dir/bin/configureStrelkaSomaticWorkflow.py";
-    } else {
-        print STDERR "Running Strelka 1\n";
-        $strelka_bin="$strelka_dir/bin/configureStrelkaWorkflow.pl";
-    }
-    run_strelka($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $strelka_bin, $reference_fasta, $strelka_config, $is_strelka2, $manta_vcf);
+    run_strelka($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $strelka_dir, $reference_fasta, $strelka_config);
+
+} elsif ($step_number eq 'run_strelka2') {
+    die("tumor_bam undefined \n") unless $tumor_bam;
+    die("normal_bam undefined \n") unless $normal_bam;
+    die("strelka_config undefined \n") unless $strelka_config;
+    die("reference_fasta undefined \n") unless $reference_fasta;
+    run_strelka2($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $strelka2_dir, $reference_fasta, $strelka_config, $manta_vcf);
+
 } elsif (($step_number eq '2') || ($step_number eq 'run_varscan')) {
     die("tumor_bam undefined \n") unless $tumor_bam;
     die("normal_bam undefined \n") unless $normal_bam;

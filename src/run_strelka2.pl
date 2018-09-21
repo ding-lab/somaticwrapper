@@ -1,18 +1,21 @@
-# Run Strelka 1
+# Run Strelka
 
-    # Strelka 1 results: $strelka_out/results/passed.somatic.snvs.vcf
+    # Strelka 2 results: $strelka_out/results/variants/somatic.snvs.vcf.gz
 
-sub run_strelka {
+# Optional arg manta_vcf is explained in best practice here; https://github.com/Illumina/strelka/blob/master/docs/userGuide/README.md#configuration
+# implemented only for is_strelka2
+sub run_strelka2 {
     my $IN_bam_T = shift;
     my $IN_bam_N = shift;
     my $results_dir = shift;
     my $job_files_dir = shift;
-    my $strelka_dir = shift;  
+    my $strelka2_dir = shift;  
     my $ref = shift;
     my $strelka_config = shift;
+    my $manta_vcf = shift;    
 
-    print STDERR "Running Strelka 1\n";
-    $strelka_bin="$strelka_dir/bin/configureStrelkaWorkflow.pl";
+    print STDERR "Running Strelka 2\n";
+    $strelka_bin="$strelka2_dir/bin/configureStrelkaSomaticWorkflow.py";
 
     die "Error: Tumor BAM $IN_bam_T does not exist\n" if (! -e $IN_bam_T);
     die "Error: Tumor BAM $IN_bam_T is empty\n" if (! -s $IN_bam_T);
@@ -30,6 +33,9 @@ sub run_strelka {
     if ($params{'is_exome'}) {
         $strelka_flags .= " --exome ";
     }
+    if ($manta_vcf) {
+        $strelka_flags .= " --indelCandidates $manta_vcf ";
+    }
 
     my $expected_out;
 
@@ -38,9 +44,9 @@ sub run_strelka {
     open(OUT, ">$runfn") or die $!;
 
 #
-# Strelka 1
+# strelka 2
 #
-    print STDERR "Executing Strelka 1\n";
+    print STDERR "Executing Strelka 2\n";
     print OUT <<"EOF";
 #!/bin/bash
 
@@ -48,7 +54,7 @@ if [ -d $strelka_out ] ; then
     rm -rf $strelka_out
 fi
 
-$strelka_bin --normal $IN_bam_N --tumor $IN_bam_T --ref $ref --config $strelka_config --output-dir $strelka_out
+$strelka_bin $strelka_flags --normalBam $IN_bam_N --tumorBam $IN_bam_T --referenceFasta $ref --config $strelka_config --runDir $strelka_out
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.
@@ -57,7 +63,8 @@ fi
 
 
 cd $strelka_out
-make -j 16
+ls
+./runWorkflow.py -m local -j 8 -g 4
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.
@@ -66,7 +73,8 @@ fi
 
 EOF
     close OUT;
-    $expected_out="$strelka_out/results/passed.somatic.snvs.vcf";
+
+    $expected_out="$strelka_out/results/variants/somatic.snvs.vcf.gz";
 
     my $cmd = "bash < $runfn\n";
 
