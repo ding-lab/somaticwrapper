@@ -1,6 +1,6 @@
 # Run Strelka 1
 
-    # Strelka 1 results: $strelka_out/results/passed.somatic.snvs.vcf
+    # Strelka 1 results: $results_dir/strelka/strelka_out/results/passed.somatic.snvs.vcf
 
 sub run_strelka {
     my $IN_bam_T = shift;

@@ -24,7 +24,7 @@ STEP="vep_annotate"
 #     --bypass: Bypass all filters
 #     --debug: print out processing details to STDERR
 
-INPUT_VCF="results/merged/merged.filtered.vcf"
+INPUT_VCF="results/dbsnp_filter/merged.filtered.vcf.dbsnp_pass.vcf"
 
 # We rely on online VEP cache lookup for StrelkaDemo testing, so vep_cache_dir is not specified
 # AF filtering cannot be performed as a result, since that requires cache

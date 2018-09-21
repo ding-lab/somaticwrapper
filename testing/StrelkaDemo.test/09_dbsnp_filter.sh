@@ -10,7 +10,7 @@ STEP="dbsnp_filter"
 #     --bypass: Same as --bypass_dbsnp
 #     --debug: print out processing details to STDERR
 
-INPUT_VCF="results/varscan/varscan_out/varscan.out.som_snv.vcf"
+INPUT_VCF="results/merged/merged.filtered.vcf"
 
 # We rely on online VEP cache lookup for StrelkaDemo testing, so vep_cache_dir is not specified
 # AF filtering cannot be performed as a result, since that requires cache

@@ -3,13 +3,11 @@ source project_config.sh $DATAD
 
 STEP="run_strelka"
 
-#1 run_strelka:
-#    --tumor_bam s:  path to tumor BAM.  Required
-#    --normal_bam s: path to normal BAM.  Required
-#    --reference_fasta s: path to reference.  Required
-#    --strelka_config s: path to strelka.ini file.  Required
-#    --results_dir s: Per-sample analysis results location. Often same as sample name [.] 
-#    --is_strelka2: run stelka2 instead of strelka version 1 
+# run_strelka:
+#     --tumor_bam s:  path to tumor BAM.  Required
+#     --normal_bam s: path to normal BAM.  Required
+#     --reference_fasta s: path to reference.  Required
+#     --strelka_config s: path to strelka.ini file.  Required
 
 ARGS="\
 --tumor_bam $TUMOR_BAM \
@@ -17,7 +15,6 @@ ARGS="\
 --reference_fasta $REFERENCE_FASTA \
 --strelka_config $STRELKA_CONFIG \
 --results_dir $RESULTS_DIR \
---is_strelka2 \
 "
 
 BIN="/usr/local/somaticwrapper/SomaticWrapper.pl"

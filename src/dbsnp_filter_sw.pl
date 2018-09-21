@@ -75,6 +75,8 @@ if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.
     exit \$rc;
 fi
+
+<&2 echo Written to $pass_fn
 EOF
     close OUT;
 
