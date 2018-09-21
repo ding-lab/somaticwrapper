@@ -1,6 +1,6 @@
 # Run Strelka
 
-    # Strelka 2 results: $strelka_out/results/variants/somatic.snvs.vcf.gz
+    # Strelka 2 results: $results_dir/strelka2/strelka_out/results/variants/somatic.snvs.vcf.gz
 
 # Optional arg manta_vcf is explained in best practice here; https://github.com/Illumina/strelka/blob/master/docs/userGuide/README.md#configuration
 # implemented only for is_strelka2
@@ -22,7 +22,7 @@ sub run_strelka2 {
     die "Error: Normal BAM $IN_bam_N does not exist\n" if (! -e $IN_bam_N);
     die "Error: Normal BAM $IN_bam_N is empty\n" if (! -s $IN_bam_N);
 
-    my $strelka_out=$results_dir."/strelka/strelka_out";
+    my $strelka_out=$results_dir."/strelka2/strelka_out";
 
     # Read configuration file into %params
     # Same format as used for varscan 

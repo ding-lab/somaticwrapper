@@ -31,7 +31,7 @@ perl $BIN $ARGS $STEP
 
 }
 
-INPUT_VCF="results/strelka/strelka_out/results/variants/somatic.snvs.vcf.gz"
+INPUT_VCF="results/strelka2/strelka_out/results/variants/somatic.snvs.vcf.gz"
 run_vld_filter strelka $INPUT_VCF strelka.snv.vcf $STRELKA_VCF_FILTER_CONFIG
 
 INPUT_VCF="results/varscan/varscan_out/varscan.out.som_snv.vcf"
