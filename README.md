@@ -12,14 +12,15 @@ about installation and usage of SomaticWrapper
 
 ## Implementation
 
+Visual outline of cwl-dev workflow.
 ### Strelka
-![Somatic Wrapper Strelka Details](docs/SomaticWrapper.CWL.Strelka.png)
+![Somatic Wrapper Strelka Details](docs/Strelka Detail.png)
 ### Varscan
-![Somatic Wrapper Varscan Details](docs/SomaticWrapper.CWL.Varscan.png)
+![Somatic Wrapper Varscan Details](docs/Varscan Detail.png)
 ### Pindel
-![Somatic Wrapper Pindel Details](docs/SomaticWrapper.CWL.Pindel.png)
+![Somatic Wrapper Pindel Details](docs/Pindel Detail.png)
 ### Merging
-![Somatic Wrapper Overview](docs/SomaticWrapper.CWL.Merge.png)
+![Somatic Wrapper Overview](docs/Merging.png)
 
 ## CWL branch
 

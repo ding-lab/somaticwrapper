@@ -4,11 +4,11 @@ source project_config.sh $DATAD
 STEP="dbsnp_filter"
 
 # dbsnp_filter:
-# --dbsnp_db s: database for dbSNP filtering.  Step will be skipped if not defined
-# --input_vcf s: VCF file to process.  Required
-# --bypass: Apply dbSnP annotation to VCF with no further filtering
-# --results_dir s: Per-sample analysis results location. Often same as sample name [.] 
-# --skip s: If defined, skip this step and print argument as reason for skipping.  Helpful for interaction with CWL workflow.
+#     --dbsnp_db s: database for dbSNP filtering.  Step will be skipped if not defined
+#     --input_vcf s: VCF file to process.  Required
+#     --bypass_dbsnp: Apply dbSnP annotation to VCF with no further filtering
+#     --bypass: Same as --bypass_dbsnp
+#     --debug: print out processing details to STDERR
 
 INPUT_VCF="results/varscan/varscan_out/varscan.out.som_snv.vcf"
 
@@ -23,8 +23,8 @@ INPUT_VCF="results/varscan/varscan_out/varscan.out.som_snv.vcf"
 ARGS="\
 --input_vcf $INPUT_VCF \
 --results_dir $RESULTS_DIR \
+--dbsnp_db $DBSNP_DB \
 "
-#--dbsnp_db $DBSNP_DB \
 #--bypass \
 
 

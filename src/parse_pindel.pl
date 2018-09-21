@@ -11,6 +11,7 @@
 #
 # if bypass_cvs is true, skip filtering for CvgVafStrand in pindel_filter
 # if bypass_homopolymer is true, skip diltering for Homopolymer in pindel_filter
+# If bypass is true, both filters are bypassed
 
 sub parse_pindel {
     my $results_dir = shift;
@@ -24,6 +25,7 @@ sub parse_pindel {
     my $no_delete_temp = shift;
     my $bypass_cvs = shift;
     my $bypass_homopolymer = shift;
+    my $bypass = shift;
     my $debug = shift;
 
     if (! $no_delete_temp) {
@@ -39,6 +41,10 @@ sub parse_pindel {
     my $pindel_raw = make_data_link($pindel_raw_in, $filter_results);
 
     # bypass flag will skip two filters in parse_pindel, and vcf_filter.  
+    if ($bypass) {
+        $bypass_cvs = 1;
+        $bypass_homopolymer = 1;
+    }
     my $bypass_cvs_str = $bypass_cvs ? "pindel.filter.skip_filter1 = true" : "";
     my $bypass_homopolymer_str = $bypass_homopolymer ? "pindel.filter.skip_filter2 = true" : "";
 

@@ -3,7 +3,7 @@ source project_config.sh $DATAD
 
 STEP="vep_annotate"
 
-# 9 vep_annotate:  
+# vep_annotate:  
 #     --input_vcf s: VCF file to be annotated with vep_annotate.  Required
 #     --reference_fasta s: path to reference.  Required
 #     --assembly s: either "GRCh37" or "GRCh38", used to identify cache file. Optional if not ambigous 
@@ -17,9 +17,12 @@ STEP="vep_annotate"
 #         NOTE: Online VEP database lookups a) uses online database (so cache isn't installed) b) does not use tmp files
 #           It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
 #           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
-#     --af_filter_config s: configuration file for af (allele frequency) filter
-#     --classification_filter_config s: configuration file for classification filter
-#     --bypass: Bypass filter by retaining all reads
+#     --af_filter_config s: configuration file for af (allele frequency) filter.  Required.
+#     --classification_filter_config s: configuration file for classification filter.  Required.
+#     --bypass_af: Bypass AF filter by retaining all reads
+#     --bypass_classification: Bypass Classification filter by retaining all reads
+#     --bypass: Bypass all filters
+#     --debug: print out processing details to STDERR
 
 INPUT_VCF="results/merged/merged.filtered.vcf"
 
@@ -37,8 +40,8 @@ ARGS="\
 --results_dir $RESULTS_DIR \
 --af_filter_config $AF_FILTER_CONFIG \
 --classification_filter_config $CLASS_FILTER_CONFIG \
---bypass \
 "
+#--bypass \
 
 
 BIN="/usr/local/somaticwrapper/SomaticWrapper.pl"

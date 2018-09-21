@@ -17,11 +17,13 @@ sub vaf_length_depth_filters {
     my $bypass_vaf = shift;  # boolean: will skip filtering if defined
     my $bypass_length = shift;  # boolean: will skip filtering if defined
     my $bypass_depth = shift;  # boolean: will skip filtering if defined
+    my $bypass = shift;  # boolean: will skip all filtering if defined
     my $debug = shift;  # boolean: will skip filtering if defined
 
-    my $bypass = $bypass_vaf ? "--bypass_vaf" : "";
-    $bypass = $bypass_length ? "--bypass_length $bypass" : "$bypass";
-    $bypass = $bypass_depth ? "--bypass_depth $bypass" : "$bypass";
+    my $bypass_str = $bypass ? "--bypass" : "";
+    $bypass_str = $bypass_vaf ? "--bypass_vaf $bypass_str" : "$bypass_str";
+    $bypass_str = $bypass_length ? "--bypass_length $bypass_str" : "$bypass_str";
+    $bypass_str = $bypass_depth ? "--bypass_depth $bypass_str" : "$bypass_str";
     my $debug_str = $debug ? "--debug" : "";
     die "Error: Input data file $input_vcf does not exist\n" if (! -e $input_vcf);
     die "Error: Caller not defined\n" if (! $caller);
@@ -43,7 +45,7 @@ sub vaf_length_depth_filters {
 
 >&2 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
 export PYTHONPATH="$filter_dir:\$PYTHONPATH"
-bash $filter_dir/run_vaf_length_depth_filters.sh $dbsnp_filtered_fn $caller $vcf_filter_config $vcf_filtered_fn $bypass $debug_str
+bash $filter_dir/run_vaf_length_depth_filters.sh $input_vcf $caller $vcf_filter_config $vcf_filtered_fn $bypass_str $debug_str
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.

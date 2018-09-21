@@ -1,6 +1,6 @@
 # run VAF, length, and read depth filters on a VCF
 # Usage:
-#   bash run_combined_filter.sh input.vcf CALLER config.ini output.vcf [args]
+#   bash run_combined_filter.sh input.vcf caller config.ini output.vcf [args]
 # where CALLER is one of strelka, varscan, or pindel
 # config.ini is configuration file used by all filters
 # args are zero or more optional arguments:
@@ -9,6 +9,14 @@
 #   --debug will print out debug info to STDERR for all filters
 #   --debug_vaf, debug_depth, debug_length - debug specific to filter
 # If output.vcf is -, write to stdout
+
+if [ "$#" -lt 4 ]; then
+    >&2 echo Error: Wrong number of arguments
+    >&2 echo Usage:  bash run_combined_filter.sh input.vcf caller config.ini output.vcf [args]
+
+    exit 1
+fi
+
 
 VCF=$1 ; shift
 CALLER=$1 ; shift
