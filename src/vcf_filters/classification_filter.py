@@ -30,6 +30,8 @@ import sys
 #
 # Note that the input_vcf file will in general be specified twice, once as input into vcf_filter.py
 # and once as input into this filter directly.
+#
+# See also docs/retained_classification.txt
 
 class ClassificationFilter(VEPFilter):
     'Filter variant sites by classification field as provided by VEP annotation'
