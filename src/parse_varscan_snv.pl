@@ -75,7 +75,6 @@ sub make_data_link {
 sub parse_varscan_snv {
     my $results_dir = shift;
     my $job_files_dir = shift;
-    my $varscan_jar = shift;
     my $varscan_indel_raw = shift; 
     my $varscan_snv_raw = shift;  
     my $varscan_config = shift;
@@ -110,7 +109,7 @@ sub parse_varscan_snv {
     # Filename processSomaticOut determined by `varscan processSomatic` based on $snv_raw
     my $processSomaticOut="$filter_results_dir/varscan.out.som_snv.Somatic.hc.vcf";  
 
-    my $process_somatic_cmd = "java \${JAVA_OPTS} -jar $varscan_jar processSomatic $snv_raw $somatic_snv_params ";
+    my $process_somatic_cmd = "java \${JAVA_OPTS} -jar $SWpaths::varscan_jar processSomatic $snv_raw $somatic_snv_params ";
 
     #
     # Somatic Filter parameters and command 
@@ -122,7 +121,7 @@ sub parse_varscan_snv {
     print STDERR "Somatic Filter Params:\n$somatic_filter_params\n";
     # we define filename of somatic_filter_out :
     my $somatic_filter_out ="$filter_results_dir/varscan.out.som_snv.Somatic.hc.somfilter_pass.vcf";
-    my $somatic_filter_cmd = "java \${JAVA_OPTS} -jar $varscan_jar somaticFilter $processSomaticOut $somatic_filter_params --indel-file $indel_raw --output-file $somatic_filter_out ";
+    my $somatic_filter_cmd = "java \${JAVA_OPTS} -jar $SWpaths::varscan_jar somaticFilter $processSomaticOut $somatic_filter_params --indel-file $indel_raw --output-file $somatic_filter_out ";
 
     #
     # Construct composite script

@@ -9,13 +9,12 @@ sub run_strelka2 {
     my $IN_bam_N = shift;
     my $results_dir = shift;
     my $job_files_dir = shift;
-    my $strelka2_dir = shift;  
     my $ref = shift;
     my $strelka_config = shift;
     my $manta_vcf = shift;    
 
     print STDERR "Running Strelka 2\n";
-    $strelka_bin="$strelka2_dir/bin/configureStrelkaSomaticWorkflow.py";
+    $strelka_bin="$SWpaths::strelka2_dir/bin/configureStrelkaSomaticWorkflow.py";
 
     die "Error: Tumor BAM $IN_bam_T does not exist\n" if (! -e $IN_bam_T);
     die "Error: Tumor BAM $IN_bam_T is empty\n" if (! -s $IN_bam_T);
@@ -39,7 +38,7 @@ sub run_strelka2 {
 
     my $expected_out;
 
-    my $runfn = "$job_files_dir/j1_streka.sh"; 
+    my $runfn = "$job_files_dir/j1b_streka2.sh"; 
     print STDERR "Writing to $runfn\n";
     open(OUT, ">$runfn") or die $!;
 

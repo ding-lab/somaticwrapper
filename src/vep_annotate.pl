@@ -1,16 +1,5 @@
-# Annotate VCF file using vcf and and apply AF (allele frequency) and classification (e.g., exon-only) filter.
+# Annotate VCF file using vcf 
 #
-# Required Arguments (from command line):
-# * input_vcf 
-# * reference_fasta 
-# 
-# Optional Arguments
-# * assembly
-# * cache_version
-# * cache_dir
-# * cache_gz
-# * preserve_cache_gz
-
 # Annotation is performed using vep.  We can use either a local cache or online
 # ('db') lookups 
 #
@@ -49,39 +38,21 @@
 #       --flag_pick_allele_gene) and to   post-filter results.
 # As a result, we add the --flag_pick flag to vep_opts, then post-filter according to the PICK field
 # 
-#   --bypass_af will skip AF filter by retaining all reads
-#   --bypass_classification will skip classification filter by retaining all reads
-#   --bypass will skip all reads
-
-# Output is $results_dir/vep/output.vcf
-
-my $perl = "/usr/bin/perl";  # this is for docker environment
+# Output is $results_dir/vep/output_vep.vcf
 
 sub vep_annotate {
     my $results_dir = shift;
     my $job_files_dir = shift;
     my $reference = shift;
-    my $gvip_dir = shift;
-    my $filter_dir = shift;
-    my $vep_cmd = shift;
     my $assembly = shift;
     my $cache_version = shift; # e.g., 90
     my $cache_dir = shift;  
     my $cache_gz = shift;  
-    my $preserve_cache_gz = shift;  # NEW: don't delete cache at end of step if true
-    my $input_vcf = shift;  # Name of input VCF to process
-    my $af_filter_config = shift;
-    my $classification_filter_config = shift;
-    my $bypass_af = shift;
-    my $bypass_classification = shift;
-    my $bypass = shift;
-    my $debug = shift;
+    my $preserve_cache_gz = shift;  
+    my $input_vcf = shift;  
 
     # assembly and cache_version may be blank; if so, not passed on command line to vep
     # We now require all output to be vcf format (not vep), so that VCF filtering can take place 
-
-
-    $current_job_file = "j9_vep_annotate.sh";
 
     my $filter_results = "$results_dir/vep";
     system("mkdir -p $filter_results");
@@ -107,33 +78,19 @@ sub vep_annotate {
         die("Exiting ($rc).\n") if $rc != 0;
         $use_vep_db = 0;
     } else {
-        # VEP DB does not generate MAX_AF field, which is needed by AF filter.
-        # To prevent this from crashing, force bypass of the AF filter
-        print STDERR "NOTE: AF filter will be bypassed because using online VEP DB\n";
-        $bypass_af = 1;
+        print STDERR "Using online VEP DB.  Note that MAX_AF (used by af filter) will not be evaluated\n";
     }
 
-    my $bypass_str = $bypass ? "--bypass" : "";
-    $bypass_str = $bypass_af ? "--bypass_af $bypass_str" : "$bypass_str";
-    $bypass_str = $bypass_classification ? "--bypass_classification $bypass_str" : "$bypass_str";
-    my $debug_str = $debug ? "--debug" : "";
-
-    # Check to make sure filter config files exist
-    die "AF filter config $af_filter_config does not exist\n" unless (-e $af_filter_config);
-    die "Classification filter config $classification_filter_config does not exist\n" unless (-e $classification_filter_config);
-
-    my $vep_output_fn = "$filter_results/output.unfiltered.vcf";
-    my $filtered_output_fn = "$filter_results/output.vcf";
+    my $vep_output_fn = "$filter_results/output_vep.vcf";
 
     # annotating merged output with VEP annotation
-    # followed by AF (allele frequency) and Consequence filter
     # Output is always VCF format
     write_vep_input(
         $config_fn,          # Config fn
         "merged.vep",                               # Module
         $input_vcf,                # VCF (input)
         $vep_output_fn,           # output
-        $vep_cmd, $cache_dir, $reference, $assembly, $cache_version, $use_vep_db, 0);
+        $cache_dir, $reference, $assembly, $cache_version, $use_vep_db, 0);
 
     my $runfn = "$job_files_dir/j10_vep.sh";
     print STDERR "Writing to $runfn\n";
@@ -142,7 +99,7 @@ sub vep_annotate {
 #!/bin/bash
 
 export JAVA_OPTS=\"-Xms256m -Xmx512m\"
-$perl $gvip_dir/vep_annotator.pl $config_fn
+$SWpaths::perl $SWpaths::gvip_dir/vep_annotator.pl $config_fn
 
 rc=\$? 
 if [[ \$rc != 0 ]]; then 
@@ -150,12 +107,7 @@ if [[ \$rc != 0 ]]; then
     exit \$rc; 
 fi
 
->&2 echo Unfiltered VEP-annotated VCF written to $vep_output_fn
-
->&2 echo Filtering by AF and classification
-export PYTHONPATH="$filter_dir:\$PYTHONPATH"
-
-bash $filter_dir/run_vep_filters.sh $vep_output_fn $af_filter_config $classification_filter_config $filtered_output_fn $bypass_str $debug_str
+>&2 echo VEP-annotated VCF written to $vep_output_fn
 
 EOF
 
@@ -176,7 +128,6 @@ EOF
             die("Exiting ($rc).\n") if $rc != 0;
         }
     }
-    print STDERR "Final results written to $filtered_output_fn\n";
 }
 
 # helper function
@@ -185,7 +136,6 @@ sub write_vep_input {
     my $module = shift;  # e.g. varscan.vep or strelka.vep
     my $vcf = shift;
     my $output_fn = shift; 
-    my $vep_cmd = shift;
     my $cache_dir = shift;   
     my $reference = shift;
     my $assembly = shift;
@@ -194,7 +144,6 @@ sub write_vep_input {
     my $output_is_vep = shift;  # True if vep_output is "vep"
 
     # assembly and cache_version are optional; if value is empty, not written to config file
-
     my $output_vep_int = 0;
     if ($output_is_vep) {
         $output_vep_int = 1; 
@@ -205,7 +154,7 @@ sub write_vep_input {
     print OUT <<"EOF";
 $module.vcf = $vcf
 $module.output = $output_fn
-$module.vep_cmd = $vep_cmd
+$module.vep_cmd = $SWpaths::vep_cmd
 $module.cachedir = $cache_dir
 $module.reffasta = $reference
 $module.usedb = $use_vep_db  
@@ -216,7 +165,6 @@ EOF
     # optional parameters
     print OUT "$module.assembly = $assembly\n" if ($assembly);
     print OUT "$module.cache_version = $cache_version\n" if ($cache_version);
-
 }
 
 1;

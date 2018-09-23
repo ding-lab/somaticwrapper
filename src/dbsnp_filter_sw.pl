@@ -14,10 +14,7 @@ use File::Basename;
 sub dbsnp_filter {
     my $results_dir = shift;
     my $job_files_dir = shift;
-    my $perl = shift;
-    my $gvip_dir = shift;
     my $dbsnp_db = shift;
-    my $snpsift_jar = shift;
     my $input_vcf = shift;
     my $bypass = shift;
     my $debug = shift;  # this doesn't actually do anything right now
@@ -53,7 +50,7 @@ sub dbsnp_filter {
     print STDERR "Writing to $config_fn\n";
     open(OUT, ">$config_fn") or die $!;
     print OUT <<"EOF";
-varscan.dbsnp.snv.annotator = $snpsift_jar
+varscan.dbsnp.snv.annotator = $SWpaths::snpsift_jar
 varscan.dbsnp.snv.db = $dbsnp_db
 varscan.dbsnp.snv.rawvcf = $input_vcf
 varscan.dbsnp.snv.mode = $mode_str
@@ -69,7 +66,7 @@ EOF
 #!/bin/bash
 export JAVA_OPTS=\"-Xms256m -Xmx10g\"
 
-$perl $gvip_dir/dbsnp_filter.pl  $config_fn
+$SWpaths::perl $SWpaths::gvip_dir/dbsnp_filter.pl  $config_fn
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.

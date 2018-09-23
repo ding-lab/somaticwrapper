@@ -32,15 +32,10 @@
 # 
 # Output is $results_dir/maf/output.maf
 
-
-my $perl = "/usr/bin/perl";  # this is for docker environment
-
 sub vcf_2_maf {
     my $results_dir = shift;
     my $job_files_dir = shift;
     my $reference = shift;
-    my $gvip_dir = shift;
-    my $vep_cmd = shift;
     # assembly and cache_version may be blank; if so, not passed on command line to vep
     my $assembly = shift;
     my $cache_version = shift; # e.g., 90
@@ -48,8 +43,6 @@ sub vcf_2_maf {
     my $cache_gz = shift;  
     my $input_vcf = shift;  # Name of input VCF to process
     my $exac_vcf = shift;   # passed as --filter-vcf
-
-    $current_job_file = "j10_vcf_2_maf.sh";
 
     my $filter_results = "$results_dir/maf";
     system("mkdir -p $filter_results");
@@ -87,10 +80,10 @@ sub vcf_2_maf {
         $opts = "$opts --filter-vcf \"\" "; 
     }
 
-    my $vep_path = dirname($vep_cmd);
-    my $cmd = "$perl /usr/local/mskcc-vcf2maf/vcf2maf.pl $opts --input-vcf $input_vcf --output-maf $output_fn --ref-fasta $reference --vep-path $vep_path --tmp-dir $filter_results";
+    my $vep_path = dirname($SWpaths::vep_cmd);
+    my $cmd = "$SWpaths::perl $SWpaths::vcf2maf $opts --input-vcf $input_vcf --output-maf $output_fn --ref-fasta $reference --vep-path $vep_path --tmp-dir $filter_results";
 
-    my $runfn = "$job_files_dir/j9_vcf_2_maf.sh";
+    my $runfn = "$job_files_dir/j_vcf_2_maf.sh";
     print STDERR "Writing to $runfn\n";
     open(OUT, ">$runfn") or die $!;
     print OUT <<"EOF";

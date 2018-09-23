@@ -7,6 +7,10 @@ use warnings;
 use Getopt::Long qw(GetOptions);
 use File::Basename;
 
+# All paths are defined in SWpaths.pm
+# They are accessed as, e.g., $SWpaths::sw_dir
+use SWpaths;
+
 require('src/run_strelka.pl');
 require('src/run_strelka2.pl');
 require("src/run_varscan.pl");
@@ -16,6 +20,7 @@ require("src/run_pindel.pl");
 require("src/parse_pindel.pl");
 require("src/merge_vcf.pl");
 require("src/vep_annotate.pl");
+require("src/vep_filter.pl");
 require("src/vcf_2_maf.pl");
 require("src/dbsnp_filter_sw.pl");
 require("src/vaf_length_depth_filters.pl");
@@ -124,6 +129,8 @@ vep_annotate:
         NOTE: Online VEP database lookups a) uses online database (so cache isn't installed) b) does not use tmp files
           It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
+vep_filter:  
+    --input_vcf s: VCF file to be annotated with vep_annotate.  Required
     --af_filter_config s: configuration file for af (allele frequency) filter.  Required.
     --classification_filter_config s: configuration file for classification filter.  Required.
     --bypass_af: Bypass AF filter by retaining all reads
@@ -191,19 +198,6 @@ my $skip;
 my $pindel_chrom;
 my $manta_vcf;
 
-# parameters below based on Docker image locations.  It would perhaps be useful to define these in a configuration file.
-my $sw_dir = "/usr/local/somaticwrapper";
-my $gvip_dir="$sw_dir/src/GenomeVIP";
-my $filter_dir="$sw_dir/src/vcf_filters";
-my $strelka_dir = "/usr/local/strelka";
-my $strelka2_dir = "/usr/local/strelka2";
-my $gatk_jar = "/usr/local/GenomeAnalysisTK/GenomeAnalysisTK.jar";
-my $perl = "/usr/bin/perl";
-my $vep_cmd = "/usr/local/ensembl-vep/vep";
-my $pindel_dir = "/usr/local/pindel";
-my $snpsift_jar = "/usr/local/snpEff/SnpSift.jar";
-my $varscan_jar = "/usr/local/VarScan.jar";
-
 
 GetOptions(
     'tumor_bam=s' => \$tumor_bam,
@@ -218,8 +212,8 @@ GetOptions(
     'varscan_config=s' => \$varscan_config,
     'pindel_config=s' => \$pindel_config,
     'centromere_bed=s' => \$centromere_bed,
-    'strelka_dir=s' => \$strelka_dir,
-    'strelka2_dir=s' => \$strelka2_dir,
+#    'strelka_dir=s' => \$strelka_dir,
+#    'strelka2_dir=s' => \$strelka2_dir,
     'dbsnp_db=s' => \$dbsnp_db,
     'strelka_snv_raw=s' => \$strelka_snv_raw,
     'varscan_indel_raw=s' => \$varscan_indel_raw,
@@ -260,11 +254,9 @@ my ( $step_number ) = @ARGV;
 my $job_files_dir="$results_dir/runtime";  # OUTPUT PORT
 system("mkdir -p $job_files_dir");
 
-#print("Using reference $reference_fasta\n");
-print STDERR "SomaticWrapper git revision: \n";
-#print STDERR `git -C $sw_dir log -1`;
-print STDERR `git -C $sw_dir log --pretty="commit %H on %ai %d" -1`; # https://git-scm.com/docs/pretty-formats
-print STDERR "\nSomaticWrapper dir: $sw_dir \n";
+print STDERR "\nRunning SomaticWrapper revision: \n";
+print STDERR `git -C $SWpaths::sw_dir log --pretty="commit %H on %ai %d" -1`; # https://git-scm.com/docs/pretty-formats
+print STDERR "\nSomaticWrapper dir: $SWpaths::sw_dir \n";
 print STDERR "Analysis dir: $results_dir\n";
 print STDERR "Run script dir: $job_files_dir\n";
 
@@ -282,51 +274,51 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("normal_bam undefined \n") unless $normal_bam;
     die("strelka_config undefined \n") unless $strelka_config;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    run_strelka($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $strelka_dir, $reference_fasta, $strelka_config);
+    run_strelka($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $strelka_config);
 
 } elsif ($step_number eq 'run_strelka2') {
     die("tumor_bam undefined \n") unless $tumor_bam;
     die("normal_bam undefined \n") unless $normal_bam;
     die("strelka_config undefined \n") unless $strelka_config;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    run_strelka2($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $strelka2_dir, $reference_fasta, $strelka_config, $manta_vcf);
+    run_strelka2($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $strelka_config, $manta_vcf);
 
 } elsif (($step_number eq '2') || ($step_number eq 'run_varscan')) {
     die("tumor_bam undefined \n") unless $tumor_bam;
     die("normal_bam undefined \n") unless $normal_bam;
     die("varscan_config undefined \n") unless $varscan_config;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    run_varscan($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $varscan_config, $varscan_jar);
+    run_varscan($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $varscan_config);
 
 } elsif (($step_number eq '5') || ($step_number eq 'run_pindel')) {
     die("tumor_bam undefined \n") unless $tumor_bam;
     die("normal_bam undefined \n") unless $normal_bam;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    run_pindel($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $pindel_dir, $centromere_bed, $no_delete_temp, $pindel_chrom);
+    run_pindel($tumor_bam, $normal_bam, $results_dir, $job_files_dir, $reference_fasta, $centromere_bed, $no_delete_temp, $pindel_chrom);
 
 } elsif (($step_number eq '4a') || ($step_number eq 'parse_varscan_snv')) {
     die("Varscan Indel Raw input file not specified \n") unless $varscan_indel_raw;
     die("Varscan SNV Raw input file not specified \n") unless $varscan_snv_raw;
     die("varscan_config undefined \n") unless $varscan_config;
-    parse_varscan_snv($results_dir, $job_files_dir, $varscan_jar, $varscan_indel_raw, $varscan_snv_raw, $varscan_config);
+    parse_varscan_snv($results_dir, $job_files_dir, $varscan_indel_raw, $varscan_snv_raw, $varscan_config);
 
 } elsif (($step_number eq '4b') || ($step_number eq 'parse_varscan_indel')) {
     die("Varscan Indel Raw input file not specified \n") unless $varscan_indel_raw;
     die("varscan_config undefined \n") unless $varscan_config;
-    parse_varscan_indel($results_dir, $job_files_dir, $varscan_jar, $varscan_indel_raw, $varscan_config);
+    parse_varscan_indel($results_dir, $job_files_dir, $varscan_indel_raw, $varscan_config);
 
 } elsif (($step_number eq '7') || ($step_number eq 'parse_pindel')) {
     die("pindel_config undefined \n") unless $pindel_config;
     die("pindel raw input file not specified \n") unless $pindel_raw;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    parse_pindel($results_dir, $job_files_dir, $reference_fasta, $perl, $gvip_dir, $pindel_dir, $pindel_config, $pindel_raw, $no_delete_temp, $bypass_cvs, $bypass_homopolymer, $bypass, $debug);
+    parse_pindel($results_dir, $job_files_dir, $reference_fasta, $pindel_config, $pindel_raw, $no_delete_temp, $bypass_cvs, $bypass_homopolymer, $bypass, $debug);
 
 } elsif ($step_number eq 'vaf_length_depth_filters') {
     die("input_vcf undefined \n") unless $input_vcf;
     die("output_vcf undefined \n") unless $output_vcf;
     die("caller undefined \n") unless $caller;
     die("vcf_filter_config undefined \n") unless $vcf_filter_config;
-    vaf_length_depth_filters($results_dir, $job_files_dir, $filter_dir, $input_vcf, $output_vcf, $caller, $vcf_filter_config, $bypass_vaf, $bypass_length, $bypass_depth, $bypass, $debug);
+    vaf_length_depth_filters($results_dir, $job_files_dir, $input_vcf, $output_vcf, $caller, $vcf_filter_config, $bypass_vaf, $bypass_length, $bypass_depth, $bypass, $debug);
 
 } elsif (($step_number eq '8') || ($step_number eq 'merge_vcf')) {
     die("strelka_snv_vcf undefined \n") unless $strelka_snv_vcf;
@@ -335,23 +327,27 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
     die("varscan_indel_vcf undefined \n") unless $varscan_indel_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
     if ($bypass) { $bypass_merge = 1; }
-    merge_vcf($results_dir, $job_files_dir, $filter_dir, $reference_fasta, $gatk_jar, $strelka_snv_vcf, $varscan_indel_vcf, $varscan_snv_vcf, $pindel_vcf, $bypass_merge, $debug);
+    merge_vcf($results_dir, $job_files_dir, $reference_fasta, $strelka_snv_vcf, $varscan_indel_vcf, $varscan_snv_vcf, $pindel_vcf, $bypass_merge, $debug);
 
 } elsif ($step_number eq 'dbsnp_filter') {
     die("input_vcf undefined \n") unless $input_vcf;
     if ($bypass) { $bypass_dbsnp = 1; } 
-    dbsnp_filter($results_dir, $job_files_dir, $perl, $gvip_dir, $dbsnp_db, $snpsift_jar, $input_vcf, $bypass_dbsnp, $debug);
+    dbsnp_filter($results_dir, $job_files_dir, $dbsnp_db, $input_vcf, $bypass_dbsnp, $debug);
 
 } elsif (($step_number eq '9') || ($step_number eq 'vep_annotate')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
     my $preserve_cache_gz = 0;  # get rid of uncompressed cache directory if expanded from .tar.gz
-    vep_annotate($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $filter_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $preserve_cache_gz, $input_vcf, $af_filter_config, $classification_filter_config, $bypass_af, $bypass_classification, $bypass, $debug)
+    vep_annotate($results_dir, $job_files_dir, $reference_fasta, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $preserve_cache_gz, $input_vcf);
+
+} elsif ($step_number eq 'vep_filter') {
+    die("input_vcf undefined \n") unless $input_vcf;
+    vep_filter($results_dir, $job_files_dir, $input_vcf, $af_filter_config, $classification_filter_config, $bypass_af, $bypass_classification, $bypass, $debug);
 
 } elsif (($step_number eq '10') || ($step_number eq 'vcf_2_maf')) {
     die("input_vcf undefined \n") unless $input_vcf;
     die("reference_fasta undefined \n") unless $reference_fasta;
-    vcf_2_maf($results_dir, $job_files_dir, $reference_fasta, $gvip_dir, $vep_cmd, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $input_vcf, $exac);
+    vcf_2_maf($results_dir, $job_files_dir, $reference_fasta, $assembly, $vep_cache_version, $vep_cache_dir, $vep_cache_gz, $input_vcf, $exac);
 
 } else {
     die("Unknown step number $step_number\n");

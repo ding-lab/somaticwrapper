@@ -7,12 +7,11 @@ sub run_strelka {
     my $IN_bam_N = shift;
     my $results_dir = shift;
     my $job_files_dir = shift;
-    my $strelka_dir = shift;  
     my $ref = shift;
     my $strelka_config = shift;
 
     print STDERR "Running Strelka 1\n";
-    $strelka_bin="$strelka_dir/bin/configureStrelkaWorkflow.pl";
+    $strelka_bin="$SWpaths::strelka_dir/bin/configureStrelkaWorkflow.pl";
 
     die "Error: Tumor BAM $IN_bam_T does not exist\n" if (! -e $IN_bam_T);
     die "Error: Tumor BAM $IN_bam_T is empty\n" if (! -s $IN_bam_T);

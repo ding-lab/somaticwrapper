@@ -17,12 +17,6 @@ STEP="vep_annotate"
 #         NOTE: Online VEP database lookups a) uses online database (so cache isn't installed) b) does not use tmp files
 #           It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
 #           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
-#     --af_filter_config s: configuration file for af (allele frequency) filter.  Required.
-#     --classification_filter_config s: configuration file for classification filter.  Required.
-#     --bypass_af: Bypass AF filter by retaining all reads
-#     --bypass_classification: Bypass Classification filter by retaining all reads
-#     --bypass: Bypass all filters
-#     --debug: print out processing details to STDERR
 
 INPUT_VCF="results/dbsnp_filter/merged.filtered.vcf.dbsnp_pass.vcf"
 
@@ -38,8 +32,6 @@ ARGS="\
 --input_vcf $INPUT_VCF \
 --reference_fasta $REFERENCE_FASTA \
 --results_dir $RESULTS_DIR \
---af_filter_config $AF_FILTER_CONFIG \
---classification_filter_config $CLASS_FILTER_CONFIG \
 "
 #--bypass \
 
@@ -47,4 +39,4 @@ ARGS="\
 BIN="/usr/local/somaticwrapper/SomaticWrapper.pl"
 perl $BIN $ARGS $STEP
 
-# output: results/vep/output.vcf
+# output: results/vep/output_vep.vcf

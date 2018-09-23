@@ -9,7 +9,6 @@
 sub vaf_length_depth_filters {
     my $results_dir = shift;
     my $job_files_dir = shift;
-    my $filter_dir = shift;
     my $input_vcf = shift;  
     my $output_vcf = shift;  #
     my $caller = shift;  # strelka, varscan, or pindel
@@ -44,8 +43,8 @@ sub vaf_length_depth_filters {
 #!/bin/bash
 
 >&2 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
-export PYTHONPATH="$filter_dir:\$PYTHONPATH"
-bash $filter_dir/run_vaf_length_depth_filters.sh $input_vcf $caller $vcf_filter_config $vcf_filtered_fn $bypass_str $debug_str
+export PYTHONPATH="$SWpaths::filter_dir:\$PYTHONPATH"
+bash $SWpaths::filter_dir/run_vaf_length_depth_filters.sh $input_vcf $caller $vcf_filter_config $vcf_filtered_fn $bypass_str $debug_str
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.

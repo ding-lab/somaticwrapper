@@ -43,8 +43,9 @@ export PYTHONPATH="/usr/local/somaticwrapper/src/vcf_filters:$PYTHONPATH"
 MAIN_FILTER="vcf_filter.py --no-filtered" # Assuming in path
 
 # Arguments to AF filter
+# --bypass_if_missing will keep filter from exiting if AF_MAX is missing from e.g. VEP DB annotation
 AF_FILTER="vcf_filter.py --no-filtered --local-script af_filter.py"  # filter module
-AF_FILTER_ARGS="af $AF_ARG --config $AF_CONFIG --input_vcf $VCF" 
+AF_FILTER_ARGS="af $AF_ARG --config $AF_CONFIG --input_vcf $VCF --bypass_if_missing"
 
 # Arguments to classification filter
 CLASS_FILTER="vcf_filter.py --no-filtered --local-script classification_filter.py"  # filter module

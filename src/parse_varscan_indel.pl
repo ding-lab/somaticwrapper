@@ -40,8 +40,7 @@ sub test_config_parameters_varscan_parse {
 sub parse_varscan_indel {
     my $results_dir = shift;
     my $job_files_dir = shift;
-    my $varscan_jar = shift;
-    my $varscan_indel_raw = shift; # indeloutgvip
+    my $varscan_indel_raw = shift; 
     my $varscan_config = shift;
     
     my $filter_results = "$results_dir/varscan/filter_indel_out";
@@ -72,7 +71,7 @@ sub parse_varscan_indel {
         # varscan.out.som_indel.Somatic.vcf        
     # all this based on assumption that indel_raw filename is varscan.out.som_indel.vcf
     my $process_somatic_out ="$filter_results/varscan.out.som_indel.Somatic.hc.vcf";  
-    my $process_somatic_cmd = "java \${JAVA_OPTS} -jar $varscan_jar processSomatic $indel_raw $somatic_indel_params";
+    my $process_somatic_cmd = "java \${JAVA_OPTS} -jar $SWpaths::varscan_jar processSomatic $indel_raw $somatic_indel_params";
 
     my $runfn = "$job_files_dir/j4b_parse_varscan_indel.sh";
     print STDERR "Writing to $runfn\n";

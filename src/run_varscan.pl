@@ -77,9 +77,6 @@ sub run_varscan{
     my $job_files_dir = shift;
     my $REF = shift;
     my $varscan_config = shift;
-    my $varscan_jar = shift;
-
-    my $samtools="/usr/local/bin/samtools";
 
     die "Error: Tumor BAM $IN_bam_T does not exist\n" if (! -e $IN_bam_T);
     die "Error: Tumor BAM $IN_bam_T is empty\n" if (! -s $IN_bam_T);
@@ -153,9 +150,9 @@ JAVA_OPTS="-Xms256m -Xmx512m"
 
 #echo Log to $log
 
-SAMTOOLS_CMD="$samtools mpileup -q 1 -Q 13 -B -f $REF -b $bam_list "
+SAMTOOLS_CMD="$SWpaths::samtools mpileup -q 1 -Q 13 -B -f $REF -b $bam_list "
 
-JAVA_CMD="java \$JAVA_OPTS -jar $varscan_jar somatic - $run_name $varscan_args --output-snp $snvout --output-indel $indelout"
+JAVA_CMD="java \$JAVA_OPTS -jar $SWpaths::varscan_jar somatic - $run_name $varscan_args --output-snp $snvout --output-indel $indelout"
 
 \$SAMTOOLS_CMD | \$JAVA_CMD # &> $log
 

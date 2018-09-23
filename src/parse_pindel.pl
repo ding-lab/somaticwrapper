@@ -17,9 +17,6 @@ sub parse_pindel {
     my $results_dir = shift;
     my $job_files_dir = shift;
     my $reference = shift;
-    my $perl = shift;
-    my $gvip_dir = shift;
-    my $pindel_dir = shift;
     my $pindel_config = shift;
     my $pindel_raw_in = shift; 
     my $no_delete_temp = shift;
@@ -56,7 +53,7 @@ sub parse_pindel {
     die ("Error executing: $cmd \n $! \n") if ($errcode);
     open(OUT, ">>$config_fn") or die $!;
     print OUT <<"EOF";
-pindel.filter.pindel2vcf = $pindel_dir/pindel2vcf
+pindel.filter.pindel2vcf = $SWpaths::pindel_dir/pindel2vcf
 pindel.filter.variants_file = $pindel_raw
 pindel.filter.REF = $reference
 pindel.filter.date = 000000
@@ -70,7 +67,7 @@ EOF
     #    pindel.out.raw.CvgVafStrand_pass.Homopolymer_pass.vcf  -> this is input into dbSnP filter
     #    pindel.out.raw.CvgVafStrand_pass.Homopolymer_fail.vcf  
     my $pindel_filter_out="$pindel_raw.CvgVafStrand_pass.Homopolymer_pass.vcf";  # This is the output of the script
-    my $pindel_filter_cmd = "$perl $gvip_dir/pindel_filter.pl $config_fn";
+    my $pindel_filter_cmd = "$SWpaths::perl $SWpaths::gvip_dir/pindel_filter.pl $config_fn";
 
     my $outfn = "$job_files_dir/j7_parse_pindel.sh";
     print STDERR "Writing to $outfn\n";

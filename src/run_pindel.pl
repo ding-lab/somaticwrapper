@@ -33,7 +33,6 @@ sub run_pindel {
     my $results_dir = shift;
     my $job_files_dir = shift;
     my $REF = shift;
-    my $pindel_dir = shift;
     my $f_centromere = shift;
     my $no_delete_temp = shift;
     my $pindel_chrom = shift;
@@ -87,7 +86,7 @@ EOF
     print OUT <<"EOF";
 #!/bin/bash
 
-$pindel_dir/pindel -f $REF -i $config_fn -o $pindel_out/pindel $pindel_args $centromere_arg
+$SWpaths::pindel_dir/pindel -f $REF -i $config_fn -o $pindel_out/pindel $pindel_args $centromere_arg
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.
