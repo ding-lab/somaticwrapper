@@ -1,0 +1,1 @@
+perl somatic_calling_v1.1.pl --rdir /gscmnt/gc2737/ding/yize.li/3.PKD/WXS/BAM/data_test --ref /gscmnt/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.fa --log /gscmnt/gc2524/dinglab/test_mutect1.7 --step 9 --q research-hpc

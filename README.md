@@ -1,7 +1,7 @@
 # somaticwrapper version 2.1 ##
 ### for HG38 ##
 
-Detect coding somatic variants from tumor and normal WXS or WGS data
+Detect coding somatic variants from tumor and normal WXS data
 
 ### Song Cao ###
 
