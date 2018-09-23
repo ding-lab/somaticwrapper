@@ -184,7 +184,7 @@ my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/dat
 my $DB_SNP="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.snp142.GRCh37.mutect.vcf";
 my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicCodingMuts.vcf";
 my $gatkexe3="/gscmnt/gc2525/dinglab/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
-
+my $mutect1="/gscmnt/gc2518/dinglab/scao/tools/mutect/mutect-1.1.7.jar";
 my $first_line=`head -n 1 $h37_REF`;
 
 if($first_line=~/^\>chr/) { $chr_status=1; }
@@ -1335,10 +1335,11 @@ sub bsub_mutect{
     {
     	my $chr1=$chr;
     	if($chr_status==1) { $chr1="chr".$chr; }
-		print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.$chr.vcf\n";
+		print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";
 		print MUTECT '  if [ ! -s $rawvcf ]',"\n";
     	print MUTECT "  then\n";
-		print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3 -T MuTect2 -nct 4  -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+	#	print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3 -T MuTect2 -nct 4  -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
 	    print MUTECT "  fi\n";
 	} 
 
@@ -1353,10 +1354,11 @@ sub bsub_mutect{
     {
 	my $chr1=$chr;
     if($chr_status==1) { $chr1="chr".$chr; }
-	print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.$chr.vcf\n";	
+	print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";	
 	print MUTECT '  if [ ! -s $rawvcf ]',"\n"; 
     print MUTECT "  then\n";
-	print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3  -T MuTect2 -nct 4 -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
+	#print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3  -T MuTect2 -nct 4 -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
  	print MUTECT "  fi\n"; 
 	}
 
@@ -1364,13 +1366,15 @@ sub bsub_mutect{
 
    	foreach my $chr (@chrlist)
     {
-	print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.$chr.vcf\n";
-	print MUTECT "filtervcf=".$sample_full_path."/mutect/mutect.raw.filtered.$chr.vcf\n";
-	print MUTECT "filtervcfsnv=".$sample_full_path."/mutect/mutect.filter.snv.$chr.vcf\n";
-    print MUTECT "filtervcfindel=".$sample_full_path."/mutect/mutect.filter.indel.$chr.vcf\n";	
-	print MUTECT "     ".$run_script_path."filter_mutect.pl \${rawvcf} \${filtervcf}\n";
-	print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
-    print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
+	print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";
+	print MUTECT "filtervcf=".$sample_full_path."/mutect1/mutect.raw.filtered.$chr.vcf\n";
+	print MUTECT "filtervcfsnv=".$sample_full_path."/mutect1/mutect.filter.snv.$chr.vcf\n";
+    print MUTECT "filtervcfindel=".$sample_full_path."/mutect1/mutect.filter.indel.$chr.vcf\n";	
+	print MUTECT "     ".$run_script_path."filter_mutect1.7.pl \${rawvcf} \${filtervcf}\n";
+#	print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
+ #   print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
+    print MUTECT "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h38_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
+    print MUTECT "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h38_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
 	}
 
 	#print MUTECT "     ".$run_script_path."merge_mutect.pl $sample_full_path\n";	
