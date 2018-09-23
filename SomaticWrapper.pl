@@ -254,8 +254,9 @@ my ( $step_number ) = @ARGV;
 my $job_files_dir="$results_dir/runtime";  # OUTPUT PORT
 system("mkdir -p $job_files_dir");
 
-print STDERR "\nRunning SomaticWrapper revision: \n";
+print STDERR "\nRunning SomaticWrapper step $step_number \n";
 print STDERR `git -C $SWpaths::sw_dir log --pretty="commit %H on %ai %d" -1`; # https://git-scm.com/docs/pretty-formats
+print STDERR ": \n";
 print STDERR "\nSomaticWrapper dir: $SWpaths::sw_dir \n";
 print STDERR "Analysis dir: $results_dir\n";
 print STDERR "Run script dir: $job_files_dir\n";
