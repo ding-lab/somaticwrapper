@@ -7,14 +7,12 @@ import sys
 # * min_depth
 # * tumor_name
 # * normal_name
+# * caller caller - specifies tool used for variant call. 'strelka', 'varscan', 'pindel'
 #
 # These may be specified on the command line (e.g., --min_depth 10) or in
 # configuration file, as specified by --config config.ini  Sample contents of config file:
 #   [read_depth]
 #   min_depth = 10
-#
-# Required command line parameter:
-# --caller caller - specifies tool used for variant call. 'strelka', 'varscan', 'pindel'
 #
 # optional command line parameters
 # --debug
@@ -35,14 +33,13 @@ class DepthFilter(ConfigFileFilter):
         parser.add_argument('--min_depth', type=int, help='Retain sites where read depth for tumor and normal > given value')
         parser.add_argument('--tumor_name', type=str, help='Tumor sample name in VCF')
         parser.add_argument('--normal_name', type=str, help='Normal sample name in VCF')
-        parser.add_argument('--caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel'], help='Caller type')
+        parser.add_argument('--caller', type=str, choices=['strelka', 'varscan', 'pindel'], help='Caller type')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
         parser.add_argument('--config', type=str, help='Optional configuration file')
         parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
 
     def __init__(self, args):
         # These will not be set from config file (though could be)
-        self.caller = args.caller
         self.debug = args.debug
         self.bypass = args.bypass
 
@@ -52,6 +49,7 @@ class DepthFilter(ConfigFileFilter):
         #   clobber configuration file values so are not defined
         config = self.read_config_file(args.config)
 
+        self.set_args(config, args, "caller")
         self.set_args(config, args, "min_depth", arg_type="int")
         self.set_args(config, args, "tumor_name")
         self.set_args(config, args, "normal_name")

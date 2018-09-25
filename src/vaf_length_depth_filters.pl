@@ -11,7 +11,7 @@ sub vaf_length_depth_filters {
     my $job_files_dir = shift;
     my $input_vcf = shift;  
     my $output_vcf = shift;  #
-    my $caller = shift;  # strelka, varscan, or pindel
+    my $caller = shift;  # optional.  If defined, should be strelka, varscan, or pindel
     my $vcf_filter_config = shift;
     my $bypass_vaf = shift;  # boolean: will skip filtering if defined
     my $bypass_length = shift;  # boolean: will skip filtering if defined
@@ -25,7 +25,9 @@ sub vaf_length_depth_filters {
     $bypass_str = $bypass_depth ? "--bypass_depth $bypass_str" : "$bypass_str";
     my $debug_str = $debug ? "--debug" : "";
     die "Error: Input data file $input_vcf does not exist\n" if (! -e $input_vcf);
-    die "Error: Caller not defined\n" if (! $caller);
+
+    # Caller can be defined on command line or in config file.  Here, command line definition
+    my $caller_str = $caller ? "--caller $caller" : "";
 
     my $filter_results = "$results_dir/vaf_length_depth_filters";
     system("mkdir -p $filter_results");
@@ -44,7 +46,7 @@ sub vaf_length_depth_filters {
 
 >&2 echo Running combined vcf_filter.py filters: VAF, read depth, and indel length
 export PYTHONPATH="$SWpaths::filter_dir:\$PYTHONPATH"
-bash $SWpaths::filter_dir/run_vaf_length_depth_filters.sh $input_vcf $caller $vcf_filter_config $vcf_filtered_fn $bypass_str $debug_str
+bash $SWpaths::filter_dir/run_vaf_length_depth_filters.sh $input_vcf $vcf_filter_config $vcf_filtered_fn $bypass_str $debug_str $caller_str
 rc=\$?
 if [[ \$rc != 0 ]]; then
     >&2 echo Fatal error \$rc: \$!.  Exiting.

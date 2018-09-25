@@ -1,30 +1,27 @@
 # run VAF, length, and read depth filters on a VCF
 # Usage:
-#   bash run_combined_filter.sh input.vcf caller config.ini output.vcf [args]
-# where CALLER is one of strelka, varscan, or pindel
+#   bash run_combined_filter.sh input.vcf config.ini output.vcf [args]
 # config.ini is configuration file used by all filters
 # args are zero or more optional arguments:
 #   --bypass_vaf, --bypass_depth, --bypass_length will skip just that filter
 #   --bypass will skip all filters
 #   --debug will print out debug info to STDERR for all filters
 #   --debug_vaf, debug_depth, debug_length - debug specific to filter
+#   --caller CALLER - one of strelka, varscan, or pindel. Alternatively, this may be specified in config file
 # If output.vcf is -, write to stdout
 
-if [ "$#" -lt 4 ]; then
+if [ "$#" -lt 3 ]; then
     >&2 echo Error: Wrong number of arguments
-    >&2 echo Usage:  bash run_combined_filter.sh input.vcf caller config.ini output.vcf [args]
+    >&2 echo Usage:  bash run_combined_filter.sh input.vcf config.ini output.vcf \[args\]
 
     exit 1
 fi
 
 
 VCF=$1 ; shift
-CALLER=$1 ; shift
 CONFIG_FN=$1 ; shift
 OUT=$1 ; shift
 XARG="$@"  # optional arguments
-
-CALLER_ARG="--caller $CALLER"
 
 export PYTHONPATH="somaticwrapper.cwl/vcf_filters:$PYTHONPATH"
 
@@ -67,7 +64,7 @@ CONFIG="--config $CONFIG_FN"
 
 # Arguments to VAF filter
 VAF_FILTER="vcf_filter.py --no-filtered --local-script vaf_filter.py"  # filter module
-VAF_FILTER_ARGS="vaf $VAF_ARG $CONFIG $CALLER_ARG" 
+VAF_FILTER_ARGS="vaf $VAF_ARG $CONFIG " 
 
 # Arguments to length filter
 LENGTH_FILTER="vcf_filter.py --no-filtered --local-script length_filter.py"  # filter module
@@ -75,7 +72,7 @@ LENGTH_FILTER_ARGS="length $LENGTH_ARG $CONFIG"
 
 # Arguments to depth filter
 DEPTH_FILTER="vcf_filter.py --no-filtered --local-script depth_filter.py"  # filter module
-DEPTH_FILTER_ARGS="read_depth $DEPTH_ARG $CONFIG $CALLER_ARG" 
+DEPTH_FILTER_ARGS="read_depth $DEPTH_ARG $CONFIG " 
 
 if [ $OUT == '-' ]; then
 

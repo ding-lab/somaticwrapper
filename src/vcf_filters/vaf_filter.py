@@ -9,14 +9,12 @@ import sys
 # * max_vaf_germline
 # * tumor_name
 # * normal_name
+# * caller - specifies tool used for variant call. 'strelka', 'varscan', 'pindel', 'merged'
 #
 # These may be specified on the command line (e.g., --min_vaf_somatic 0.05) or in
 # configuration file, as specified by --config config.ini  Sample contents of config file:
 #   [vaf]
 #   min_vaf_somatic = 0.05
-#
-# Required command line parameter:
-# --caller caller - specifies tool used for variant call. 'strelka', 'varscan', 'pindel', 'merged'
 #
 # optional command line parameters
 # --debug
@@ -38,14 +36,13 @@ class TumorNormal_VAF(ConfigFileFilter):
         parser.add_argument('--max_vaf_germline', type=float, help='Retain sites where normal VAF <= than given value')
         parser.add_argument('--tumor_name', type=str, help='Tumor sample name in VCF')
         parser.add_argument('--normal_name', type=str, help='Normal sample name in VCF')
-        parser.add_argument('--caller', type=str, required=True, choices=['strelka', 'varscan', 'pindel', 'merged'], help='Caller type')
+        parser.add_argument('--caller', type=str, choices=['strelka', 'varscan', 'pindel', 'merged'], help='Caller type')
         parser.add_argument('--config', type=str, help='Optional configuration file')
         parser.add_argument('--debug', action="store_true", default=False, help='Print debugging information to stderr')
         parser.add_argument('--bypass', action="store_true", default=False, help='Bypass filter by retaining all variants')
         
     def __init__(self, args):
         # These will not be set from config file (though could be)
-        self.caller = args.caller
         self.debug = args.debug
         self.bypass = args.bypass
 
@@ -55,6 +52,7 @@ class TumorNormal_VAF(ConfigFileFilter):
         #   clobber configuration file values so are not defined
         config = self.read_config_file(args.config)
 
+        self.set_args(config, args, "caller")
         self.set_args(config, args, "min_vaf_somatic", arg_type="float")
         self.set_args(config, args, "max_vaf_germline", arg_type="float")
         self.set_args(config, args, "tumor_name")

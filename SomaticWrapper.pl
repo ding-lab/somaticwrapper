@@ -93,7 +93,7 @@ parse_pindel:
 vaf_length_depth_filters: apply VAF, indel length, and read depth filters to a VCF
     --input_vcf s: VCF file to process.  Required
     --output_vcf s: Name of output VCF file (written to results_dir/vaf_length_depth_filters/output_vcf).  Required.
-    --caller s: one of strelka, pindel, varscan
+    --caller s: one of strelka, pindel, varscan.  May be defined here or in config file
     --vcf_filter_config: Configuration file for VCF filtering (depth, VAF, read count).  Required
     --bypass_vaf: skip VAF filter
     --bypass_length: skip length filter
@@ -212,8 +212,6 @@ GetOptions(
     'varscan_config=s' => \$varscan_config,
     'pindel_config=s' => \$pindel_config,
     'centromere_bed=s' => \$centromere_bed,
-#    'strelka_dir=s' => \$strelka_dir,
-#    'strelka2_dir=s' => \$strelka2_dir,
     'dbsnp_db=s' => \$dbsnp_db,
     'strelka_snv_raw=s' => \$strelka_snv_raw,
     'varscan_indel_raw=s' => \$varscan_indel_raw,
@@ -317,7 +315,6 @@ if (($step_number eq '1') || ($step_number eq 'run_strelka')) {
 } elsif ($step_number eq 'vaf_length_depth_filters') {
     die("input_vcf undefined \n") unless $input_vcf;
     die("output_vcf undefined \n") unless $output_vcf;
-    die("caller undefined \n") unless $caller;
     die("vcf_filter_config undefined \n") unless $vcf_filter_config;
     vaf_length_depth_filters($results_dir, $job_files_dir, $input_vcf, $output_vcf, $caller, $vcf_filter_config, $bypass_vaf, $bypass_length, $bypass_depth, $bypass, $debug);
 
