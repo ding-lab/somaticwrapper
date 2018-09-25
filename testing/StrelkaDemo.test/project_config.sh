@@ -17,9 +17,9 @@ CENTROMERE_BED="$DATAD/ucsc-centromere.GRCh37.bed"
 #VEP_CACHE_DIR=/home/mwyczalk_test/data/docker/data/D_VEP
 ASSEMBLY="GRCh37"
 
-STRELKA_VCF_FILTER_CONFIG="$PARAMS/vcf_filter_config.ini"
-VARSCAN_VCF_FILTER_CONFIG="$PARAMS/vcf_filter_config.ini"
-PINDEL_VCF_FILTER_CONFIG="$PARAMS/pindel-vcf_filter_config.ini"
+STRELKA_VCF_FILTER_CONFIG="$PARAMS/vcf_filter_config-strelka.ini"
+VARSCAN_VCF_FILTER_CONFIG="$PARAMS/vcf_filter_config-varscan.ini"
+PINDEL_VCF_FILTER_CONFIG="$PARAMS/vcf_filter_config-pindel.ini"
 AF_FILTER_CONFIG="$PARAMS/af_filter_config.ini"
 CLASS_FILTER_CONFIG="$PARAMS/classification_filter_config.ini"
 

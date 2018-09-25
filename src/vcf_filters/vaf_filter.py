@@ -60,9 +60,9 @@ class TumorNormal_VAF(ConfigFileFilter):
 
         # below becomes Description field in VCF
         if self.bypass:
-            self.__doc__ = "Bypassing Tumor Normal VAF filter, retaining all reads"
+            self.__doc__ = "Bypassing Tumor Normal VAF filter, retaining all reads.  Caller = %s" % (self.caller)
         else:
-            self.__doc__ = "Retain calls where normal VAF <= %f and tumor VAF >= %f " % (self.max_vaf_germline, self.min_vaf_somatic)
+            self.__doc__ = "Retain calls where normal VAF <= %f and tumor VAF >= %f.  Caller = %s " % (self.max_vaf_germline, self.min_vaf_somatic, self.caller)
             
     def filter_name(self):
         return self.name
