@@ -16,11 +16,11 @@ Visual outline of cwl-dev workflow.
 ### Overall
 ![Somatic Wrapper Overview](docs/Overall.png)
 ### Strelka
-![Somatic Wrapper Strelka Details](docs/Strelka Detail.png)
+![Somatic Wrapper Strelka Details](docs/Strelka_Detail.png)
 ### Varscan
-![Somatic Wrapper Varscan Details](docs/Varscan Detail.png)
+![Somatic Wrapper Varscan Details](docs/Varscan_Detail.png)
 ### Pindel
-![Somatic Wrapper Pindel Details](docs/Pindel Detail.png)
+![Somatic Wrapper Pindel Details](docs/Pindel_Detail.png)
 
 ## CWL branch
 
@@ -48,7 +48,7 @@ Further development takes place on `cwl-dev` branch.  Currently, splitting varsc
 all dbsnp filtering to one filtering step.  Addition of new callers will take place too.  This branch is unstable and 
 changes may sometimes break things.
 
-
+New version tagged with 20180926.  This will be merged into CWL branch in the future.
 
 ### `run_vep`
 
