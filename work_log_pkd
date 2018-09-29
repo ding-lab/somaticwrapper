@@ -1,1 +1,1 @@
-perl somatic_calling_v1.1.pl --rdir /gscmnt/gc2737/ding/scao/pkd/hg19/r4 --log /gscmnt/gc2737/ding/scao/pkd/hg19 --ref /gscmnt/gc2737/ding/yize.li/3.PKD/Reference/hg19_reference/genome.fa --step 1 --q research-hpc 
+perl somatic_calling_v1.1.pl --rdir /gscmnt/gc2737/ding/scao/pkd/hg19/r4 --log /gscmnt/gc2737/ding/scao/pkd/hg19 --ref /gscmnt/gc2737/ding/yize.li/3.PKD/Reference/hg19_reference/genome.fa --step 9 --q research-hpc --sre 1 
