@@ -189,6 +189,7 @@ my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v85";
 my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 my $gatkexe3="/gscmnt/gc2525/dinglab/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
 my $mutect1="/gscmnt/gc2518/dinglab/scao/tools/mutect/mutect-1.1.7.jar";
+my $TSL_DB="/gscmnt/gc2518/dinglab/scao/db/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
 
 my $first_line=`head -n 1 $h38_REF`;
 
@@ -1348,11 +1349,11 @@ sub bsub_vcf_2_maf{
     print MAF "merged.vep.reffasta = $f_ref_annot\n";
     print MAF "merged.vep.assembly = GRCh38\n";
     print MAF "EOF\n";
-    print MAF "     ".$run_script_path."vaf_filter_v1.2.pl \${RUNDIR} $inds\n";
+    #print MAF "     ".$run_script_path."vaf_filter_v1.2.pl \${RUNDIR} $inds\n";
     print MAF "cd \${RUNDIR}\n";
     print MAF ". $script_dir/set_envvars\n";
     print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";
-	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --filter-vcf $f_exac\n";
+	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --filter-vcf $f_exac --file-tsl $TSL_DB\n";
     close MAF;
   	my $sh_file=$job_files_dir."/".$current_job_file;
 
