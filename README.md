@@ -1,6 +1,6 @@
 # somaticwrapper version 1.1 ##
 
-Detect somatic variants from tumor and normal WXS or WGS data
+Detect somatic variants from tumor and normal WXS
 
 ### Song Cao ###
 
