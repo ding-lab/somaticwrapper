@@ -2,6 +2,8 @@
 
 # vcf2maf - Convert a VCF into a MAF by mapping each variant to only one of all possible gene isoforms
 
+## song modified on 09/28/18 to add tsl supporting file ##
+
 use strict;
 use warnings;
 use IO::File;
@@ -190,6 +192,7 @@ unless( @ARGV and $ARGV[0] =~ m/^-/ ) {
 my ( $man, $help ) = ( 0, 0 );
 my ( $input_vcf, $output_maf, $tmp_dir, $custom_enst_file );
 my ( $vcf_tumor_id, $vcf_normal_id, $remap_chain );
+my $file_tsl; 
 GetOptions(
     'help!' => \$help,
     'man!' => \$man,
@@ -201,6 +204,7 @@ GetOptions(
     'vcf-tumor-id=s' => \$vcf_tumor_id,
     'vcf-normal-id=s' => \$vcf_normal_id,
     'custom-enst=s' => \$custom_enst_file,
+	'file-tsl=s' => \$file_tsl,
     'vep-path=s' => \$vep_path,
     'vep-data=s' => \$vep_data,
     'vep-forks=s' => \$vep_forks,
@@ -220,13 +224,31 @@ pod2usage( -verbose => 2, -input => \*DATA, -exitval => 0 ) if( $man );
 
 # Check if required arguments are missing or problematic
 ( defined $input_vcf ) or die "ERROR: --input-vcf must be defined!\n";
+( defined $file_tsl ) or die "ERROR: --file-tsl must be defined!\n";
 ( -s $input_vcf ) or die "ERROR: Provided --input-vcf is missing or empty: $input_vcf\n";
 ( -s $ref_fasta ) or die "ERROR: Provided --ref-fasta is missing or empty: $ref_fasta\n";
 ( $input_vcf !~ m/\.(gz|bz2|bcf)$/ ) or die "ERROR: Unfortunately, --input-vcf cannot be in a compressed format\n";
 
+
 # Unless specified, assume that the VCF uses the same sample IDs that the MAF will contain
 $vcf_tumor_id = $tumor_id unless( $vcf_tumor_id );
 $vcf_normal_id = $normal_id unless( $vcf_normal_id );
+
+## read in tsl level for transcript ##
+open(IN_TSL,"<$file_tsl"); 
+
+my %ENST_TSL_LEVEL;
+
+while(<IN_TSL>)
+	{
+		my $line=$_; 
+		chomp($line);
+		my @temp=split("\t",$line); 
+		my $enst=(split(/\./,$temp[0]))[0]; 
+		$ENST_TSL_LEVEL{$enst}=$temp[1]; 	
+		#print $enst,"\t",$temp[1],"\n"; 
+		#<STDIN>;  
+	}
 
 # Load up the custom isoform overrides if provided:
 my %custom_enst;
@@ -472,6 +494,10 @@ while( my $line = $annotated_vcf_fh->getline ) {
         next;
     }
 
+	### song added read vep file ##
+
+#	if($pos==52621464) { print $pos,"\t",$ref,"\t",$alt,"\t",$info_line,"\n"; <STDIN>; }	
+
     # Parse out the data in the info column, and store into a hash
     my %info = map {( m/=/ ? ( split( /=/, $_, 2 )) : ( $_, "1" ))} split( /\;/, $info_line );
 
@@ -576,7 +602,10 @@ while( my $line = $annotated_vcf_fh->getline ) {
         foreach my $ann_line ( split( /,/, $ann_lines )) {
             my $idx = 0;
             my %effect = map{s/\&/,/g; ( $ann_cols_format[$idx++], ( defined $_ ? $_ : '' ))} split( /\|/, $ann_line );
-
+			#if($pos==52621464) { print $ann_line,"\n"; 
+			#foreach my $e (sort keys %effect) { print $e,"\t",$effect{$e},"\n"; }
+		#	<STDIN>;
+		#	}
             # Remove transcript ID from HGVS codon/protein changes, to make it easier on the eye
             $effect{HGVSc} =~ s/^.*:// if( $effect{HGVSc} );
             $effect{HGVSp} =~ s/^.*:// if( $effect{HGVSp} );
@@ -585,7 +614,9 @@ while( my $line = $annotated_vcf_fh->getline ) {
             $effect{HGVSp} =~ s/^.*\((p\.\S+)\)/$1/ if( $effect{HGVSp} and $effect{HGVSp} =~ m/^c\./ );
 
             # If there are several consequences listed for a transcript, choose the most severe one
+		   #if($pos==52621464) { print "Consequence","\t",$effect{Consequence},"\n"; }
             ( $effect{One_Consequence} ) = sort { GetEffectPriority($a) <=> GetEffectPriority($b) } split( ",", $effect{Consequence} );
+		   #if($pos==52621464) { print "One_Consequence","\t",$effect{One_Consequence},"\n"; }
 
             # When VEP fails to provide any value in Consequence, tag it as an intergenic variant
             $effect{One_Consequence} = "intergenic_variant" unless( $effect{Consequence} );
@@ -600,7 +631,7 @@ while( my $line = $annotated_vcf_fh->getline ) {
             }
 
             # Fix HGVSp_Short, CDS_position, and Protein_position for splice acceptor/donor variants
-            if( $effect{One_Consequence} =~ m/^(splice_acceptor_variant|splice_donor_variant)$/ ) {
+            if($effect{One_Consequence} =~ m/^(splice_acceptor_variant|splice_donor_variant)$/ ) {
                 my ( $c_pos ) = $effect{HGVSc} =~ m/^c.(\d+)/;
                 if( defined $c_pos ) {
                     $c_pos = 1 if( $c_pos < 1 ); # Handle negative cDNA positions used in 5' UTRs
@@ -638,6 +669,8 @@ while( my $line = $annotated_vcf_fh->getline ) {
             # Skip effects on other ALT alleles. If ALLELE_NUM is undefined (e.g. for INFO:SVTYPE), don't skip any
             push( @all_effects, \%effect ) unless( $effect{ALLELE_NUM} and $effect{ALLELE_NUM} != $var_allele_idx );
         }
+		
+		
 
         # Sort effects first by transcript biotype, then by severity, and then by longest transcript
         @all_effects = sort {
@@ -645,25 +678,44 @@ while( my $line = $annotated_vcf_fh->getline ) {
             GetEffectPriority( $a->{One_Consequence} ) <=> GetEffectPriority( $b->{One_Consequence} ) ||
             $b->{Transcript_Length} <=> $a->{Transcript_Length}
         } @all_effects;
-
+		
         # Find the highest priority effect with a gene symbol (usually the first one)
         my ( $effect_with_gene_name ) = grep { $_->{SYMBOL} } @all_effects;
+		#if($pos==52621464) { print $_->{SYMBOL},"\n"; <STDIN>; }
+
         my $maf_gene = $effect_with_gene_name->{SYMBOL} if( $effect_with_gene_name );
 
+		#if($pos==52621464) { print $maf_gene,"\n"; <STDIN>; }
+	
         # If the gene has user-defined custom isoform overrides, choose that instead
         ( $maf_effect ) = grep { $_->{SYMBOL} and $_->{SYMBOL} eq $maf_gene and $_->{Transcript_ID} and $custom_enst{$_->{Transcript_ID}} } @all_effects;
-
+	
         # Find the effect on the canonical transcript of that highest priority gene
         ( $maf_effect ) = grep { $_->{SYMBOL} and $_->{SYMBOL} eq $maf_gene and $_->{CANONICAL} and $_->{CANONICAL} eq "YES" } @all_effects unless( $maf_effect );
 
         # If that gene has no canonical transcript tagged, choose the highest priority canonical effect on any gene
         ( $maf_effect ) = grep { $_->{CANONICAL} and $_->{CANONICAL} eq "YES" } @all_effects unless( $maf_effect );
+		#if($pos==52621464) { print "before maf_effect all_effect[0]","\t",$maf_effect->{SYMBOL},"\t",$maf_effect->{Transcript_ID},"\t",$maf_effect->{One_Consequence},"\n";  <STDIN>; }
 
         # If none of the effects are tagged as canonical, then just report the top priority effect
         $maf_effect = $all_effects[0] unless( $maf_effect );
-    }
 
-    # Construct the MAF columns from the $maf_effect hash
+		### if annotated as non-coding based on cannonical, use the first annotation from vep ##
+		## song added to fix the following annotation error##
+		#3   52621518    .   ATT A   .   PASS    AC=0;AF=0.00;AN=0;DP=205;GPV=1E0;IC=3;IHP=5;NT=ref;QSI=71;QSI_NT=71;RC=5;RU=T;SGT=ref->het;SOMATIC;SPV=7.0322E-7;SS=2;SSC=61;TQSI=1;TQSI_NT=1;set=sindel-;CSQ=-|frameshift_variant|HIGH|PBRM1|ENSG00000163939|Transcript|ENST00000296302|protein_coding|19/30||ENST00000296302.7:c.2972_2973delAA|ENSP00000296302.7:p.Lys991MetfsTer12|2974-2975/5145|2972-2973/5070|991/1689|K/X|aAA/a||1||-1|||deletion|1|HGNC|30064||||ENSP00000296302|Q86U86|C9JQF1&C9JPI5&C9JCJ2&C9J9L6&C9J409&C9J053|UPI000019A59F|||Pfam_domain:PF01426&PROSITE_profiles:PS51038&hmmpanther:PTHR16062&SMART_domains:SM00439|||||,-|frameshift_variant|HIGH|PBRM1|ENSG00000163939|Transcript|ENST00000337303|protein_coding|19/28||ENST00000337303.4:c.2972_2973delAA|ENSP00000338302.4:p.Lys991MetfsTer12|2975-2976/4825|2972-2973/4749|991/1582|K/X|aAA/a||1||-1|||deletion|1|HGNC|30064||||ENSP00000338302|Q86U86|C9JQF1&C9JPI5&C9JCJ2&C9J9L6&C9J409&C9J053|UPI000007335B|||Pfam_domain:PF01426&PROSITE_profiles:PS51038&hmmpanther:PTHR16062&SMART_domains:SM00439|||||,-|frameshift_variant|HIGH|PBRM1|ENSG00000163939|Transcript|ENST00000356770|protein_coding|18/28||ENST00000356770.4:c.2876_2877delAA|ENSP00000349213.4:p.Lys959MetfsTer12|2879-2880/7523|2876-2877/4809|959/1602|K/X|aAA/a||1||-1|||deletion|1|HGNC|30064||||ENSP00000349213|Q86U86|Q9NVM2&Q5EBM5&C9JQF1&C9JPI5&C9JCJ2&C9J9L6&C9J409&C9J053|UPI00000705E4|||SMART_domains:SM00439&Pfam_domain:PF01426&hmmpanther:PTHR16062&PROSITE_profiles:PS51038|||||,-|intron_variant|MODIFIER|PBRM1|ENSG00000163939|Transcript|ENST00000394830|protein_coding||19/29|ENST00000394830.3:c.2966-69_2966-68delAA||-/5071|-/4749|-/1582||||1||-1||1|deletion|1|HGNC|30064|YES||CCDS43099.1|ENSP00000378307|Q86U86|C9JQF1&C9JPI5&C9JCJ2&C9J9L6&C9J409&C9J053|UPI000013E31E|NM_018313.4|||||||,-|frameshift_variant|HIGH|PBRM1|ENSG00000163939|Transcript|ENST00000409057|protein_coding|19/29||ENST00000409057.1:c.2972_2973delAA|ENSP00000386593.1:p.Lys991MetfsTer12|2975-2976/4980|2972-2973/4905|991/1634|K/X|aAA/a||1||-1|||deletion|1|HGNC|30064||||ENSP00000386593|Q86U86|Q9NVM2&Q5EBM5&C9JQF1&C9JPI5&C9JCJ2&C9J9L6&C9J409&C9J053|UPI000006EC9E|||PROSITE_profiles:PS51038&hmmpanther:PTHR16062&Pfam_domain:PF01426&SMART_domains:SM00439|||||,-|frameshift_variant|HIGH|PBRM1|ENSG00000163939|Transcript|ENST00000409114|protein_coding|20/30||ENST00000409114.3:c.3017_3018delAA|ENSP00000386643.3:p.Lys1006MetfsTer12|3020-3021/5015|3017-3018/4959|1006/1652|K/X|aAA/a||1||-1|||deletion|1|HGNC|30064||||ENSP00000386643|Q86U86|C9JQF1&C9JPI5&C9JCJ2&C9J9L6&C9J409&C9J053|UPI0000ECF240|||Pfam_domain:PF01426&PROSITE_profiles:PS51038&hmmpanther:PTHR16062&SMART_domains:SM00439|||||,-|frameshift_variant|HIGH|PBRM1|ENSG00000163939|Transcript|ENST00000409767|protein_coding|20/29||ENST00000409767.1:c.3017_3018delAA|ENSP00000386601.1:p.Lys1006MetfsTer12|3020-3021/4849|3017-3018/4794|1006/1597|K/X|aAA/a||1||-1|||deletion|1|HGNC|30064||||ENSP00000386601|Q86U86|C9JQF1&C9JPI5&C9JCJ2&C9J9L6&C9J409&C9J053|UPI0000ECF241|||PROSITE_profiles:PS51038&hmmpanther:PTHR16062&Pfam_domain:PF01426&SMART_domains:SM00439|||||,-|intron_variant|MODIFIER|PBRM1|ENSG00000163939|Transcript|ENST00000410007|protein_coding||18/28|ENST00000410007.1:c.2966-69_2966-68delAA||-/4905|-/4830|-/1609||||1||-1|||deletion|1|HGNC|30064||||ENSP00000386529|Q86U86|Q9NVM2&Q5EBM5&C9JQF1&C9JPI5&C9JCJ2&C9J9L6&C9J409&C9J053|UPI00017E131B||||||||,-|3_prime_UTR_variant&NMD_transcript_variant|MODIFIER|PBRM1|ENSG00000163939|Transcript|ENST00000412587|nonsense_mediated_decay|18/28||ENST00000412587.1:c.*186_*187delAA||2760-2761/4766|-/2571|-/856||||1||-1|||deletion|1|HGNC|30064||||ENSP00000404579|Q86U86|C9JQF1&C9JPI5&C9JCJ2&C9J9L6&C9J409&C9J053|UPI0000072EF2||||||||,-|frameshift_variant|HIGH|PBRM1|ENSG00000163939|Transcript|ENST00000423351|protein_coding|19/26||ENST00000423351.1:c.2969_2970delAA|ENSP00000387775.1:p.Lys990MetfsTer12|2972-2973/4385|2969-2970/4382|990/1460|K/X|aAA/a||1||-1|cds_end_NF||deletion|1|HGNC|30064||||ENSP00000387775||E7EVG2&C9JQF1&C9JPI5&C9JCJ2&C9J9L6&C9J409&C9J053|UPI00018814F0|||Pfam_domain:PF01426&PROSITE_profiles:PS51038&hmmpanther:PTHR16062&SMART_domains:SM00439|||||,-|frameshift_variant|HIGH|PBRM1|ENSG00000163939|Transcript|ENST00000446103|protein_coding|19/20||ENST00000446103.1:c.2846_2847delAA|ENSP00000397662.1:p.Lys949MetfsTer12|2846-2847/3256|2846-2847/3256|949/1085|K/X|aAA/a||1||-1|cds_start_NF&cds_end_NF||deletion|1|HGNC|30064||||ENSP00000397662||H0Y5B5|UPI00018814F4|||Pfam_domain:PF01426&PROSITE_profiles:PS51038&hmmpanther:PTHR16062&hmmpanther:PTHR16062:SF10&SMART_domains:SM00439|||||,-|non_coding_transcript_exon_variant&non_coding_transcript_variant|MODIFIER|PBRM1|ENSG00000163939|Transcript|ENST00000462207|retained_intron|4/5||ENST00000462207.1:n.554_555delAA||554-555/1921||||||1||-1|||deletion|1|HGNC|30064|||||||||||||||
+		
+	   my $transcript_id=$maf_effect->{Transcript_ID}; 
+				
+	   if($maf_effect->{One_Consequence}=~ /^(transcript_amplification|intron_variant|INTRAGENIC|intragenic_variant|initiator_codon_variant|start_lost|mature_miRNA_variant|exon_variant|non_coding_exon_variant|non_coding_transcript_exon_variant|non_coding_transcript_variant|nc_transcript_variant|5_prime_UTR_variant|5_prime_UTR_premature_start_codon_gain_variant|3_prime_UTR_variant|F_binding_site_variant|regulatory_region_variant|regulatory_region|intergenic_variant|intergenic_region|upstream_gene_variant|downstream_gene_variant)$/ && (defined $ENST_TSL_LEVEL{$transcript_id} && $ENST_TSL_LEVEL{$transcript_id}==1) &&  $all_effects[0]->{One_Consequence}=~ /^(splice_acceptor_variant|splice_donor_variant|transcript_ablation|exon_loss_variant|stop_gained|frameshift_variant|protein_altering_variant|stop_lost|inframe_insertion|disruptive_inframe_insertion|missense_variant|coding_sequence_variant|conservative_missense_variant|rare_amino_acid_variant|incomplete_terminal_codon_variant|synonymous_variant|stop_retained_variant|NMD_transcript_variant)$/) { $maf_effect = $all_effects[0]; }
+
+		#if($pos==52621464) { print "after maf_effect all_effect[0]","\t",$maf_effect->{One_Consequence},"\n";  <STDIN>; }	
+    	}
+
+	### song added for debug 3#
+	
+	#if($pos==52621464) { print "maf_effect","\t",$maf_effect->{One_Consequence},"\t", $var_type, "\t", $inframe,"\n"; <STDIN>; }
+    
+# Construct the MAF columns from the $maf_effect hash
     %maf_line = map{( $_, ( $maf_effect->{$_} ? $maf_effect->{$_} : '' ))} @maf_header;
     $maf_line{Hugo_Symbol} = $maf_effect->{Transcript_ID} unless( $maf_effect->{Hugo_Symbol} );
     $maf_line{Hugo_Symbol} = 'Unknown' unless( $maf_effect->{Transcript_ID} );

@@ -11,13 +11,14 @@ use warnings;
 die unless @ARGV == 1;
 my ($run_dir)=@ARGV; 
 
-my $f_m=$run_dir."/merged.vcf"; 
-my $f_filter_out=$run_dir."/merged.filtered.vcf";
-my $f_vaf_out=$run_dir."/merged.vaf";
+my $f_m=$run_dir."/merged.withmutect.vcf"; 
+my $f_filter_out=$run_dir."/merged.filtered.withmutect.vcf";
+my $f_vaf_out=$run_dir."/merged.withmutect.vaf";
 my $min_vaf_somatic=0.05;
 my $min_vaf_pindel=0.1;
 my $max_vaf_germline=0.02; 
 my $min_coverage=20; 
+my $indel_max_size=100; 
 
 open(OUT1,">$f_filter_out");
 open(OUT2,">$f_vaf_out"); 
@@ -52,10 +53,10 @@ foreach my $l (`cat $f_m`)
          $ref=$temp[3];
          $var=$temp[4];
 
-         if(length($ref)>=20 || length($var)>=20)  { next; }
+         if(length($ref)>=$indel_max_size || length($var)>=$indel_max_size)  { next; }
  
 		 #if($info=~/strelka-varscan/) 
-		if($info=~/set\=strelka-varscan/ || $info=~/set\=strelka-mutect/)
+		if($info=~/set\=strelka-varscan/ || $info=~/set\=strelka-mutect/ || $info=~/set\=pindel-sindel/)
 		 {
 			#print $info,"\n"; 
 			#<STDIN>;
@@ -121,7 +122,7 @@ foreach my $l (`cat $f_m`)
 			} 	
 		}
 	
-		elsif($info=~/set\=varscan-mutect/ || $info=~/set\=varindel-mindel/)
+		elsif($info=~/set\=varscan-mutect/ || $info=~/set\=varindel-sindel/ || $info=~/set\=pindel-varindel/ )
 		{
 		   	$vaf_n=$temp[11];
         	$vaf_t=$temp[12];
@@ -147,8 +148,8 @@ foreach my $l (`cat $f_m`)
 			}
 		}
 
-        elsif($info=~/set\=pindel-varindel/ || $info=~/set\=pindel-mindel/)
-        {
+        elsif($info=~/set\=pindel/)
+          {
 
 			$vaf_t=$temp[10];
             $vaf_n=$temp[9];
@@ -171,8 +172,8 @@ foreach my $l (`cat $f_m`)
 		if($tdp_var/($tdp_var+$tdp_ref)>=$min_vaf_pindel && $ndp_var/($ndp_ref+$ndp_var)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 
 		{
 			#print $ltr,"\n";    
- $ltr=~s/SVTYPE=//g;		 
-  print OUT1 $ltr,"\n";	
+ 		$ltr=~s/SVTYPE=//g;		 
+  		print OUT1 $ltr,"\n";	
 		}
 		
 	}

@@ -11,13 +11,43 @@ my ($f_m,$f_filter_out)=@ARGV;
 #my $f_m=$run_dir."/mutect/mutect.raw.vcf";
 #my $f_filter_out=$run_dir."/mutect/mutect.filtered.vcf";
 
-### minimum vaf for tumor 0.05 ###
-## maximum vaf for normal 0.02 ###
+### minimum vaf for tumor 0.05, column 10 ###
+## maximum vaf for normal 0.02, column 11 ###
 ## minimum coverage 20 ###
 
+### get the bam path ##
+my @temp=split(/\//,$f_m); 
+
+my $path_d="/"; 
+
+for(my $i=1;$i<scalar @temp-2; $i++)
+{
+   $path_d.=$temp[$i]."/";
+}
+
+my $f_bam_n=$path_d.$temp[-3].".N.bam";
+my $f_bam_t=$path_d.$temp[-3].".T.bam";
+
+## read absolute path ##
+my $f_bam_n_abs=`readlink -f $f_bam_n`; 
+my $f_bam_t_abs=`readlink -f $f_bam_t`; 
+chomp($f_bam_n_abs); 
+chomp($f_bam_t_abs); 
+#print $f_bam_n_abs,"\n";
+#print $f_bam_t_abs,"\n";
+my $last_bam_n_abs=(split(/\//,$f_bam_n_abs))[-1];
+my $last_bam_t_abs=(split(/\//,$f_bam_t_abs))[-1];
+
+my $sn_n=(split(/\./,$last_bam_n_abs))[0];
+my $sn_t=(split(/\./,$last_bam_t_abs))[0];
+
+#print $sn_n,"\t",$sn_t,"\n";
+
+#<STDIN>;
 my $min_vaf_somatic=0.05;
 my $max_vaf_germline=0.02;
 my $min_coverage=20;
+my $tumor_normal_order=-1; 
 
 open(IN,"<$f_m");
 open(OUT,">$f_filter_out");
@@ -26,12 +56,34 @@ while(<IN>)
 	{
 		my $l=$_; 
 		chomp($l); 
-		if($l=~/^#/) { print OUT $l,"\n"; }
-		else {
- 
+		if($l=~/^#/) { #print OUT $l,"\n";
+   		if($l=~/^#CHROM/) {  
+		my @temphead=split("\t",$l); 
+		print OUT $temphead[0]; 
+		for(my $i=1;$i<=8;$i++) 
+		{
+		print OUT "\t",$temphead[$i]; 
+		}
+
+		if($temphead[9] eq $sn_t && $temphead[10] eq $sn_n) { print OUT "\t","TUMOR","\t","NORMAL","\n"; $tumor_normal_order=1; }
+		if($temphead[9] eq $sn_n && $temphead[10] eq $sn_t) { print OUT "\t","NORMAL","\t","TUMOR","\n"; $tumor_normal_order=0; }
+		}
+		else { print OUT $l,"\n"; } 
+ 		}
+
+		else { 
+		#print $tumor_normal_order,"\n"; 
+		#<STDIN>;
 		my @temp=split("\t",$l); 
-		my $tumor=$temp[10]; 
-		my $normal=$temp[9]; 
+		if($tumor_normal_order==-1) { last; }	
+		my $tumor=$temp[9]; 
+		my $normal=$temp[10];
+
+		if($tumor_normal_order==0) { 
+			$tumor=$temp[10];
+			$normal=$temp[9]; 
+		}
+
 		my @tempt=split(":",$tumor); 
 		my @tempn=split(":",$normal); 
 		my @readt=split(",",$tempt[1]); 
