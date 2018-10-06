@@ -14,5 +14,9 @@ which includes SomaticWrapper:CWL
 
 ## Tags
 
-This was done at some point: 
-`docker tag cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:cwl cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:cwl-v1.0`
+Images are tagged with,
+
+`docker tag cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:cwl-dev cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:20180926`
+
+and then pushed with 
+`docker push cgc-images.sbgenomics.com/m_wyczalkowski/somatic-wrapper:20180926`
