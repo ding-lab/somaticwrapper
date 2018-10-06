@@ -170,6 +170,7 @@ RUN cd /usr/local \
 WORKDIR /usr/local/somaticwrapper
 
 ENV PERL5LIB=/usr/local/somaticwrapper
+ENV LC_ALL="C"
 
 
 # following invocation will create common data dir in ./
