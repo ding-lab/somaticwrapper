@@ -19,7 +19,6 @@ ARGS="\
 --pindel_config $PINDEL_CONFIG \
 --pindel_raw $PINDEL_RAW \
 --reference_fasta $REFERENCE_FASTA \
---dbsnp_db $DBSNP_DB \
 --results_dir $RESULTS_DIR \
 --no_delete_temp \
 --bypass \
