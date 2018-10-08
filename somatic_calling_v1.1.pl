@@ -178,7 +178,7 @@ my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
 #my $h37_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
 #my $pindel="/gscuser/qgao/tools/pindel/pindel";
 my $pindel="/gscuser/scao/tools/pindel/pindel";
-my $PINDEL_DIR="/gscuser/qgao/tools/pindel";
+my $PINDEL_DIR="/gscuser/scao/tools/pindel";
 my $picardexe="/gscuser/scao/tools/picard.jar";
 my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
 my $java_dir="/gscuser/scao/tools/jre1.8.0_121";
@@ -278,7 +278,7 @@ if($step_number==11 || $step_number==0)
     my $working_name= (split(/\//,$run_dir))[-1];
     my $f_maf=$run_dir."/".$working_name.".withmutect.maf";
     my $f_maf_rc=$f_maf.".rc";
-
+	my $f_maf_rc_caller=$f_maf_rc.".caller";
 	open(REPRUN, ">$job_files_dir/$current_job_file") or die $!;
 	print REPRUN "#!/bin/bash\n";
     #print REPRUN "#BSUB -n 1\n";
@@ -293,6 +293,7 @@ if($step_number==11 || $step_number==0)
 	#print REPRUN "#BSUB -w \"$hold_job_file\"","\n";
 	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir."\n";
     print REPRUN "      ".$run_script_path."add_rc.pl ".$run_dir." ".$f_maf." ".$f_maf_rc."\n";
+    print REPRUN "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
 	close REPRUN;
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
 	#system ($bsub_com);

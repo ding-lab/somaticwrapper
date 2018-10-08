@@ -17,7 +17,7 @@ my $f_vaf_out=$run_dir."/merged.withmutect.vaf";
 my $min_vaf_somatic=0.05;
 my $min_vaf_pindel=0.1;
 my $max_vaf_germline=0.02; 
-my $min_coverage=10; 
+my $min_coverage=20; 
 my $indel_max_size=100; 
 
 open(OUT1,">$f_filter_out");
