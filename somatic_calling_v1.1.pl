@@ -37,7 +37,7 @@ my $normal = "\e[0m";
 (my $usage = <<OUT) =~ s/\t+//g;
 Somatic variant calling pipeline 
 Pipeline version: $version
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --refname --log --q --wgs 
+$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --wgs
 
 $normal
 
@@ -45,7 +45,6 @@ $normal
 <log> = full path of the folder for saving log file; usually upper folder of rdir
 <srg> = bam having read group or not: 1, yes and 0, no (default 1)
 <sre> = re-run: 1, yes and 0, no  (default 0)
-<refname> = GRCh37 or Hg19
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
@@ -83,8 +82,8 @@ my $s_wgs="";
 #__FILE NAME (STRING, NO DEFAULT)
 my $run_dir="";
 my $log_dir="";
-my $h37_REF="";
-my $ref_name="";
+my $h38_REF="";
+#my $ref_name="";
 my $chr_status=0;
 
 #__PARSE COMMAND LINE
@@ -93,9 +92,9 @@ my $status = &GetOptions (
       "srg=i" => \$status_rg,
       "sre=i" => \$status_rerun,	
       "rdir=s" => \$run_dir,
-	  "ref=s"  => \$h37_REF,
+	  "ref=s"  => \$h38_REF,
 	  "log=s"  => \$log_dir,
-      "refname=s"  => \$ref_name,
+ #     "refname=s"  => \$ref_name,
       "wgs=i"  => \$s_wgs,	    	
 	  "q=s" => \$q_name,
    	  "help" => \$help, 
@@ -103,7 +102,7 @@ my $status = &GetOptions (
  
 #print $status,"\n";
 
-if ($help || $run_dir eq "" ||  $ref_name eq "" || $log_dir eq "" || $step_number<0) {
+if ($help || $run_dir eq "" || $log_dir eq "" || $step_number<0) {
 	  print $usage;
       exit;
    }
@@ -175,7 +174,9 @@ my $sample_name = "";
 
 my $mutect="/gscuser/scao/tools/mutect-1.1.7.jar";
 my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
-#my $h37_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
+my $STRELKA_DIR2="/gscmnt/gc2518/dinglab/scao/tools/strelka2_linux/strelka-2.9.2.centos6_x86_64/bin";
+#/configureStrelkaSomaticWorkflow.py";
+#my $h38_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
 #my $pindel="/gscuser/qgao/tools/pindel/pindel";
 my $pindel="/gscuser/scao/tools/pindel/pindel";
 my $PINDEL_DIR="/gscuser/scao/tools/pindel";
@@ -191,19 +192,19 @@ my $samtools="/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin";
 my $varscan="/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8";
 my $bamreadcount="/gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount";
 my $vepannot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
-my $vepcache="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache";
+my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v85";
 
 ## Reference and Database ###
 my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
 my $DB_SNP="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.snp142.GRCh37.mutect.vcf";
 my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicCodingMuts.vcf";
-my $DB_SNP_NO_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.pass.cosmic.song.GRCh37.vcf";
+my $DB_SNP_NO_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.HG38.pass.cosmic.vcf";
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
-my $f_ref_annot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa";
-my $TSL_DB="/gscmnt/gc2518/dinglab/scao/db/tsl/wgEncodeGencodeTranscriptionSupportLevelV19.txt";
-my $h37_REF_bai=$h37_REF.".fai";
+my $f_ref_annot="/gscmnt/gc2518/dinglab/scao/tools/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
+my $TSL_DB="/gscmnt/gc2518/dinglab/scao/db/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
+my $h38_REF_bai=$h38_REF.".fai";
 
-my $first_line=`head -n 1 $h37_REF`;
+my $first_line=`head -n 1 $h38_REF`;
 
 if($first_line=~/^\>chr/) { $chr_status=1; }
 
@@ -452,15 +453,17 @@ sub bsub_strelka{
    # print STREKA 	
     print STREKA "if [ $s_wgs -eq 1 ]\n";
     print STREKA "  then\n";
-    print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config $script_dir/strelka.ini.wgs --output-dir \$STRELKA_OUT\n";
+    print STREKA "   ".$STRELKA_DIR2."/configureStrelkaSomaticWorkflow.py --normalBam=\$NBAM --tumorBam=\$TBAM --referenceFasta=$h38_REF --callMemMb=1024 --runDir=\$STRELKA_OUT\n";
   	print STREKA "else\n";	
-	print STREKA "   ".$STRELKA_DIR."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h37_REF." --config $script_dir/strelka.ini --output-dir \$STRELKA_OUT\n";
+    print STREKA "   ".$STRELKA_DIR2."/configureStrelkaSomaticWorkflow.py --normalBam=\$NBAM --tumorBam=\$TBAM --referenceFasta=$h38_REF --callMemMb=1024 --exome --runDir=\$STRELKA_OUT\n";
+	#print STREKA "   ".$STRELKA_DIR2."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h38_REF." --config $script_dir/strelka.ini --output-dir \$STRELKA_OUT\n";
 	print STREKA "fi\n";
 	print STREKA "cd \$STRELKA_OUT\n";
-	print STREKA "make -j 16\n";
+	print STREKA "\$STRELKA_OUT/runWorkflow.py -m local -j 8 -g 4\n";
 	print STREKA "touch \${TASK_STATUS}\n";
 	print STREKA "fi\n";
     close STREKA;
+
     my $sh_file=$job_files_dir."/".$current_job_file;
 
 	if($q_name eq "research-hpc")
@@ -469,10 +472,10 @@ sub bsub_strelka{
 	else { 
 	    $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err bash $sh_file\n"; 
 	}
+
 	print $bsub_com;
     system ($bsub_com);
-    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    #system ( $bsub_com );
+
 }
 
 sub bsub_varscan{
@@ -586,13 +589,13 @@ sub bsub_varscan{
     #print VARSCAN ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
    # print VARSCAN '  if [ ! -s $LOG ]',"\n";
     #print VARSCAN "  then\n";	
-	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
+	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
    	#print VARSCAN "  else\n";
     print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";# one possible blast error (see the end of this script). 
     print VARSCAN '      CHECK=$?',"\n";
     print VARSCAN '      while [ ${CHECK} -eq 0 ]',"\n";
     print VARSCAN "      do\n";
-    print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h37_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
+    print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal 20 --min-coverage-tumor 20 --min-var-freq 0.05 --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
     print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";
     print VARSCAN '          CHECK=$?',"\n";
     print VARSCAN "      done\n";
@@ -688,7 +691,7 @@ sub bsub_parse_strelka{
 	print STREKAP "strelka.fpfilter.snv.bam_readcount = $bamreadcount\n";
 #/gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount\n";
 	print STREKAP "strelka.fpfilter.snv.bam_file = $IN_bam_T\n";
-	print STREKAP "strelka.fpfilter.snv.REF = $h37_REF\n"; 
+	print STREKAP "strelka.fpfilter.snv.REF = $h38_REF\n"; 
 	print STREKAP "strelka.fpfilter.snv.variants_file = \${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
 	print STREKAP "strelka.fpfilter.snv.passfile = \${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp_pass.vcf\n";
 	print STREKAP "strelka.fpfilter.snv.failfile = \${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.fp_fail.vcf\n";
@@ -825,7 +828,7 @@ sub bsub_parse_varscan{
 	print VARSCANP "cat > \${RUNDIR}/varscan/vs_fpfilter.somatic.snv.input <<EOF\n";
 	print VARSCANP "varscan.fpfilter.snv.bam_readcount = $bamreadcount\n";
 	print VARSCANP "varscan.fpfilter.snv.bam_file = \${FP_BAM}\n";
-	print VARSCANP "varscan.fpfilter.snv.REF = $h37_REF\n";
+	print VARSCANP "varscan.fpfilter.snv.REF = $h38_REF\n";
 	print VARSCANP "varscan.fpfilter.snv.variants_file = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
 	print VARSCANP "varscan.fpfilter.snv.passfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.fp_pass.vcf\n";
 	print VARSCANP "varscan.fpfilter.snv.failfile = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.fp_fail.vcf\n";
@@ -993,7 +996,7 @@ sub bsub_pindel{
     #print PINDEL "fi\n";
 	print PINDEL "echo \"$IN_bam_T\t500\t$sample_name.T\" > \${CONFIG}\n";
     print PINDEL "echo \"$IN_bam_N\t500\t$sample_name.N\" >> \${CONFIG}\n";
-	print PINDEL "$pindel -T 4 -f $h37_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere\n";
+	print PINDEL "$pindel -T 4 -f $h38_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere\n";
 	print PINDEL "touch \${localstatus}\n";
 	print PINDEL "fi\n";
 	close PINDEL;
@@ -1176,7 +1179,7 @@ sub bsub_parse_pindel {
 	print PP "cat > \${RUNDIR}/pindel/pindel_filter.input <<EOF\n";
 	print PP "pindel.filter.pindel2vcf = $PINDEL_DIR/pindel2vcf\n";
 	print PP "pindel.filter.variants_file = \${RUNDIR}/pindel/pindel.out.raw\n";
-	print PP "pindel.filter.REF = $h37_REF\n";
+	print PP "pindel.filter.REF = $h38_REF\n";
 	print PP "pindel.filter.date = 000000\n";
 	print PP "pindel.filter.heterozyg_min_var_allele_freq = 0.2\n";
 	print PP "pindel.filter.homozyg_min_var_allele_freq = 0.8\n";
@@ -1351,11 +1354,11 @@ sub bsub_mutect{
     print MUTECT "samtools index \${NBAM_rg}\n";
     print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${TBAM} O=\${TBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
     print MUTECT "samtools index \${TBAM_rg}\n";
-	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";
-#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --vcf \${rawvcf}\n";
-    #print MUTECT "java  \${JAVA_OPTS} -jar $mutect --analysis_type MuTect --reference_sequence $h37_REF -B:dbsnp,VCF $DB_SNP -B:cosmic,VCF $DB_COSMIC --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out /data/patient/example_MuTect.call_stats.txt --vcf \${rawvcf}\n";
-#  	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h37_REF  -T MuTect2 -I:tumor \${TBAM_rg} -I:normal \${NBAM_rg}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";
-   #print MUTECT "$gatkexe4 -T MuTect2 -R $h37_REF --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";
+#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --vcf \${rawvcf}\n";
+    #print MUTECT "java  \${JAVA_OPTS} -jar $mutect --analysis_type MuTect --reference_sequence $h38_REF -B:dbsnp,VCF $DB_SNP -B:cosmic,VCF $DB_COSMIC --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out /data/patient/example_MuTect.call_stats.txt --vcf \${rawvcf}\n";
+#  	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  -R $h38_REF  -T MuTect2 -I:tumor \${TBAM_rg} -I:normal \${NBAM_rg}  -mbq  10  -rf DuplicateRead    -rf UnmappedRead    -stand_call_conf  10.0    -o  \${rawvcf}\n";
+   #print MUTECT "$gatkexe4 -T MuTect2 -R $h38_REF --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
    #print MUTECT "rawvcf=".$sample_full_path."/mutect/mutect.raw.vcf\n";
 
 	foreach my $chr (@chrlist)
@@ -1365,8 +1368,8 @@ sub bsub_mutect{
 		print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";
 		print MUTECT '  if [ ! -s $rawvcf ]',"\n";
     	print MUTECT "  then\n";
-	#	print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3 -T MuTect2 -nct 4  -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
-    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
+	#	print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3 -T MuTect2 -nct 4  -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
 	    print MUTECT "  fi\n";
 	} 
 
@@ -1375,8 +1378,8 @@ sub bsub_mutect{
 	print MUTECT "rm \${TBAM_rg}\n";
     print MUTECT "rm \${TBAM_rg_bai}\n";
 	print MUTECT "else\n";
-#	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
- #   print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h37_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
+#	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
+ #   print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
 	foreach my $chr (@chrlist)
     {
 	my $chr1=$chr;
@@ -1384,8 +1387,8 @@ sub bsub_mutect{
 	print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";	
 	print MUTECT '  if [ ! -s $rawvcf ]',"\n"; 
     print MUTECT "  then\n";
-    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
-	#print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3  -T MuTect2 -nct 4 -R $h37_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
+	#print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3  -T MuTect2 -nct 4 -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
  	print MUTECT "  fi\n"; 
 	}
 
@@ -1398,10 +1401,10 @@ sub bsub_mutect{
 	#print MUTECT "filtervcfsnv=".$sample_full_path."/mutect1/mutect.filter.snv.$chr.vcf\n";
     #print MUTECT "filtervcfindel=".$sample_full_path."/mutect1/mutect.filter.indel.$chr.vcf\n";	
 	#print MUTECT "     ".$run_script_path."filter_mutect1.7.pl \${rawvcf} \${filtervcf}\n";
-#	print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
- #   print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
-    #print MUTECT "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h37_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
-    #print MUTECT "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h37_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
+#	print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h38_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
+ #   print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h38_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
+    #print MUTECT "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h38_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
+    #print MUTECT "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h38_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
 
 	#}
 
@@ -1458,10 +1461,10 @@ sub bsub_parse_mutect{
     print PM "filtervcfsnv=".$sample_full_path."/mutect1/mutect.filter.snv.$chr.vcf\n";
     print PM "filtervcfindel=".$sample_full_path."/mutect1/mutect.filter.indel.$chr.vcf\n";
     print PM "     ".$run_script_path."filter_mutect1.7.pl \${rawvcf} \${filtervcf}\n";
-#   print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
- #   print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h37_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
-    print PM "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h37_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
-    print PM "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h37_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
+#   print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h38_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
+ #   print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h38_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
+    print PM "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h38_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
+    print PM "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h38_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
     }
 
     print PM "     ".$run_script_path."merge_mutect.pl $sample_full_path\n";   
@@ -1540,8 +1543,8 @@ sub bsub_merge_vcf{
     #print MERGE "merged.vep.assembly = GRCh37\n";
     #print MERGE "EOF\n";
     print MERGE "     ".$run_script_path."filter_large_indel.pl \${PINDEL_VCF} \${PINDEL_VCF_FILTER}\n";
-    print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:sindel \${STRELKA_INDEL} --variant:pindel \${PINDEL_VCF_FILTER} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,mutect,sindel,varindel,pindel\n"; 
-    #print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h37_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:sindel \${STRELKA_INDEL} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,mutect,pindel,varindel,sindel\n";
+    print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h38_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:sindel \${STRELKA_INDEL} --variant:pindel \${PINDEL_VCF_FILTER} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,mutect,sindel,varindel,pindel\n"; 
+    #print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h38_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:sindel \${STRELKA_INDEL} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,mutect,pindel,varindel,sindel\n";
   #	print MERGE "if [ $ref_name = $hg19 ]\n";
    # print MERGE "then\n";	
 #	print MERGE "     ".$run_script_path."vaf_filter_v1.1.pl \${RUNDIR}\n";
