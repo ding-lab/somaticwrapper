@@ -21,16 +21,16 @@ Usage: perl $0  --srg --step --sre --rdir --ref  --log --q
 
 hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
-[0]  Run all steps
-[1]  Run streka
-[2]  Run Varscan
-[3]  Run Pindel
-[4]  Run mutect
-[5]  Parse mutect result
-[6]  Parse streka result
-[7]  Parse VarScan result
-[8]  Parse Pindel
-[9]  Merge vcf files  
-[10] Generate maf file 
-[11] Generate merged maf file
+[0]  Run all steps 
+[1]  Run streka 
+[2]  Run Varscan 
+[3]  Run Pindel 
+[4]  Run mutect 
+[5]  Parse mutect result 
+[6]  Parse streka result 
+[7]  Parse VarScan result 
+[8]  Parse Pindel 
+[9]  Merge vcf files   
+[10] Generate maf file  
+[11] Generate merged maf file 
  
