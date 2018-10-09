@@ -3,8 +3,8 @@
 # dbSnP filter processes a VCF and removes/retains variants based on whether they are present
 # in a variant database (e.g., dbSnP)
 # Given input data "/path/to/data/INPUT.vcf",
-#   * Create '$results_dir/dbsnp_filter/INPUT.dbsnp_pass.vcf' with all entries which are NOT present in variant db
-#   * Create '$results_dir/dbsnp_filter/INPUT.dbsnp_present.vcf' with all entries which ARE present in variant db
+#   * Create '$results_dir/dbsnp_filter/dbsnp_pass.vcf' with all entries which are NOT present in variant db
+#   * Create '$results_dir/dbsnp_filter/dbsnp_present.vcf' with all entries which ARE present in variant db
 # If $bypass is true, then dbsnp_pass.vcf will have ALL variants.  Note that VCF will be annotated with variant names
 #   (ID column) obtained from dbsnp_db
 # If dbsnp_db is not defined, skip processing altogether and the output passfile is simply a link to the input
@@ -23,10 +23,8 @@ sub dbsnp_filter {
     print STDERR "Filter results: $filter_results\n";
     system("mkdir -p $filter_results");
 
-    # Strip the path and extension from $input_vcf, and create the dbsnp_pass and dbsnp_present files from it
-    my($filename, $dirs, $suffix) = fileparse($input_vcf);
-    my $pass_fn = $filter_results . "/" . $filename . ".dbsnp_pass.vcf";
-    my $present_fn = $filter_results . "/" . $filename . ".dbsnp_present.vcf";
+    my $pass_fn = $filter_results . "/dbsnp_pass.vcf";
+    my $present_fn = $filter_results . "/dbsnp_present.vcf";
 
     # Test if dbsnp_db is defined and whether it is a file
     if ($dbsnp_db eq "") {

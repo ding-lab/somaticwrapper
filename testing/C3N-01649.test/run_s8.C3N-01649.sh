@@ -10,10 +10,10 @@ SAMPLE="C3N-01649"
 STEP=8
 
 DATAD="/data/root"
-STRELKA_SNV_VCF="$DATAD/s3_parse_strelka/results/strelka/filter_out/strelka.somatic.snv.all.dbsnp_pass.filtered.vcf"
-VARSCAN_SNV_VCF="$DATAD/s4_parse_varscan/results/varscan/filter_out/varscan.out.som_snv.Somatic.hc.somfilter_pass.dbsnp_pass.filtered.vcf"
-VARSCAN_INDEL_VCF="$DATAD/s4_parse_varscan/results/varscan/filter_out/varscan.out.som_indel.Somatic.hc.dbsnp_pass.filtered.vcf"
-PINDEL_VCF="$DATAD/s7_parse_pindel/results/pindel/filter_out/pindel.out.current_final.dbsnp_pass.filtered.vcf"
+STRELKA_SNV_VCF="$DATAD/s3_parse_strelka/results/strelka/filter_out/dbsnp_pass.filtered.vcf"
+VARSCAN_SNV_VCF="$DATAD/s4_parse_varscan/results/varscan/filter_out/dbsnp_pass.filtered.vcf"
+VARSCAN_INDEL_VCF="$DATAD/s4_parse_varscan/results/varscan/filter_out/dbsnp_pass.filtered.vcf"
+PINDEL_VCF="$DATAD/s7_parse_pindel/results/pindel/filter_out/dbsnp_pass.filtered.vcf"
 
 ARGS="\
 --reference_fasta $REFERENCE_FASTA \

@@ -18,7 +18,7 @@ STEP="vep_annotate"
 #           It is meant to be used for testing and lightweight applications.  Use the cache for better performance.
 #           See discussion: https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html 
 
-INPUT_VCF="results/dbsnp_filter/merged.filtered.vcf.dbsnp_pass.vcf"
+INPUT_VCF="results/dbsnp_filter/dbsnp_pass.vcf"
 
 # We rely on online VEP cache lookup for StrelkaDemo testing, so vep_cache_dir is not specified
 # AF filtering cannot be performed as a result, since that requires cache
