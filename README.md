@@ -1,6 +1,6 @@
 # somaticwrapper version 1.1 ##
 
-Detect somatic variants from tumor and normal WXS
+Detect somatic variants from tumor and normal WXS for HG38 reference
 
 ### Song Cao ###
 
@@ -8,9 +8,8 @@ SomaticWrapper pipeline is a fully automated and modular software package design
 
 Pipeline version: 1.1
 
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref  --log --q 
+Usage: perl $0  --srg --step --sre --rdir --ref  --log --q 
 
-$normal
 
 <rdir> = full path of the folder holding files for this sequence run (user must provide)
 <log> = full path of the folder for saving log file; usually upper folder of rdir
@@ -22,17 +21,16 @@ $normal
 
 hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
-$red         [0]  Run all steps
-$green       [1]  Run streka
-$green       [2]  Run Varscan
-$green       [3]  Run Pindel
-$green       [4]  Run mutect
-$yellow      [5]  Parse mutect result
-$yellow      [6]  Parse streka result
-$yellow      [7]  Parse VarScan result
-$yellow      [8]  Parse Pindel
-$cyan        [9]  Merge vcf files  
-$cyan        [10] Generate maf file 
-$cyan        [11] Generate merged maf file
-$normal
+[0]  Run all steps
+[1]  Run streka
+[2]  Run Varscan
+[3]  Run Pindel
+[4]  Run mutect
+[5]  Parse mutect result
+[6]  Parse streka result
+[7]  Parse VarScan result
+[8]  Parse Pindel
+[9]  Merge vcf files  
+[10] Generate maf file 
+[11] Generate merged maf file
  
