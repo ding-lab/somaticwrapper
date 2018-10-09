@@ -50,11 +50,8 @@ $normal
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
 <wgs> ==  1 for yes and 0 for no 
 
-with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
-without chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite.fa
-mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
-hg19: /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta 
-
+hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
+ 
 $red 	     [0]  Run all steps
 $green       [1]  Run streka
 $green 		 [2]  Run Varscan
@@ -195,9 +192,9 @@ my $vepannot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-r
 my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v85";
 
 ## Reference and Database ###
-my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
-my $DB_SNP="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.brief.snp142.GRCh37.mutect.vcf";
-my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicCodingMuts.vcf";
+#my $f_centromere="/gscmnt/gc3015/dinglab/medseq/Jiayin_Germline_Project/PCGP/data/pindel-centromere-exclude.bed";
+my $DB_SNP="/gscmnt/gc2737/ding/hg38_database/DBSNP/00-All.chr.vcf";
+my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
 my $DB_SNP_NO_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.HG38.pass.cosmic.vcf";
 my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $f_ref_annot="/gscmnt/gc2518/dinglab/scao/tools/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
@@ -996,7 +993,8 @@ sub bsub_pindel{
     #print PINDEL "fi\n";
 	print PINDEL "echo \"$IN_bam_T\t500\t$sample_name.T\" > \${CONFIG}\n";
     print PINDEL "echo \"$IN_bam_N\t500\t$sample_name.N\" >> \${CONFIG}\n";
-	print PINDEL "$pindel -T 4 -f $h38_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere\n";
+#	print PINDEL "$pindel -T 4 -f $h38_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1 -J $f_centromere\n";
+print PINDEL "$pindel -T 4 -f $h38_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_name"." -m 6 -w 1\n";
 	print PINDEL "touch \${localstatus}\n";
 	print PINDEL "fi\n";
 	close PINDEL;
