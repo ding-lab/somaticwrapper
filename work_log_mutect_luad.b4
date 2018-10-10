@@ -1,11 +1,11 @@
 ## wxs ##
-perl somatic_calling_v1.1.pl --rdir /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs/somatic2 --log /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 1 --refname Hg19 --sre 1
+perl somatic_calling_v1.1.pl --rdir /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs/somatic2 --log /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 5 --refname Hg19 --sre 1
 
-perl somatic_calling_v1.1.pl --rdir /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs/somatic2 --log /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 2 --refname Hg19 --sre 1
+perl somatic_calling_v1.1.pl --rdir /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs/somatic2 --log /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 6 --refname Hg19 --sre 1
 
-perl somatic_calling_v1.1.pl --rdir /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs/somatic2 --log /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 3 --refname Hg19 --sre 1
+perl somatic_calling_v1.1.pl --rdir /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs/somatic2 --log /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 7 --refname Hg19 --sre 1
 
-perl somatic_calling_v1.1.pl --rdir /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs/somatic2 --log /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 4 --refname Hg19 --sre 1
+perl somatic_calling_v1.1.pl --rdir /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs/somatic2 --log /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 8 --refname Hg19 --sre 1
 
 #perl somatic_calling_v1.1.pl --rdir /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs/somatic2 --log /gscmnt/gc2737/ding/scao/cptac3/luad.b4.ccrc.left/wxs --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 8 --refname Hg19 --sre 1
 
