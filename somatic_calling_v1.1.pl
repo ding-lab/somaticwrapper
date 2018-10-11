@@ -37,7 +37,7 @@ my $normal = "\e[0m";
 (my $usage = <<OUT) =~ s/\t+//g;
 Somatic variant calling pipeline 
 Pipeline version: $version
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --wgs
+$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q
 
 $normal
 
@@ -48,7 +48,6 @@ $normal
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
-<wgs> ==  1 for yes and 0 for no 
 
 hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
  
@@ -92,7 +91,7 @@ my $status = &GetOptions (
 	  "ref=s"  => \$h38_REF,
 	  "log=s"  => \$log_dir,
  #     "refname=s"  => \$ref_name,
-      "wgs=i"  => \$s_wgs,	    	
+#      "wgs=i"  => \$s_wgs,	    	
 	  "q=s" => \$q_name,
    	  "help" => \$help, 
 	);
@@ -196,7 +195,7 @@ my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v85";
 my $DB_SNP="/gscmnt/gc2737/ding/hg38_database/DBSNP/00-All.chr.vcf";
 my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
 my $DB_SNP_NO_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.HG38.pass.cosmic.vcf";
-my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
+#my $f_exac="/gscmnt/gc2741/ding/qgao/tools/vcf2maf-1.6.11/ExAC_nonTCGA.r0.3.1.sites.vep.vcf.gz";
 my $f_ref_annot="/gscmnt/gc2518/dinglab/scao/tools/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
 my $TSL_DB="/gscmnt/gc2518/dinglab/scao/db/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
 my $h38_REF_bai=$h38_REF.".fai";
@@ -713,10 +712,12 @@ sub bsub_parse_strelka{
     print STREKAP "strelka.fpfilter.snv.max_avg_mapping_qual_difference = 50\n";
     print STREKAP "EOF\n";
 	print STREKAP "cd \${STRELKA_OUT}/results\n";
-	print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.snvs.vcf ./strelka.somatic.snv.all.gvip.vcf\n";
-    print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.indels.vcf ./strelka.somatic.indel.all.gvip.vcf\n";
+	print STREKAP "		".$run_script_path."get_strelka_passed_snv_indel.pl ./variants/somatic.snvs.vcf.gz ./variants/somatic.indels.vcf.gz ./passed.somatic.snvs.vcf ./passed.somatic.indels.vcf\n";
+	#print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.snvs.vcf ./strelka.somatic.snv.all.gvip.vcf\n";
+    #print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./all.somatic.indels.vcf ./strelka.somatic.indel.all.gvip.vcf\n";
 	print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.snvs.vcf ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
-    print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.indels.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";    print STREKAP "strekasnvout=\${STRELKA_OUT}/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
+    print STREKAP "     ".$run_script_path."genomevip_label.pl Strelka ./passed.somatic.indels.vcf ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";    
+	print STREKAP "strekasnvout=\${STRELKA_OUT}/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
 	print STREKAP "strekaindelout=\${STRELKA_OUT}/results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
     print STREKAP "statfile=complete.streka_parser\n";
     print STREKAP "localstatus=\${STRELKA_OUT}\/\${statfile}\n";
@@ -1637,8 +1638,9 @@ sub bsub_vcf_2_maf{
     print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
     print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
 #	print MAF "cd 
-	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --filter-vcf $f_exac --file-tsl $TSL_DB\n";
- 	#print MAF "     ".$run_script_path."splice_site_check.pl $sample_full_path\n"; 
+#	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --filter-vcf $f_exac --file-tsl $TSL_DB\n";
+print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n"; 
+	#print MAF "     ".$run_script_path."splice_site_check.pl $sample_full_path\n"; 
     close MAF;
 
   	my $sh_file=$job_files_dir."/".$current_job_file;
