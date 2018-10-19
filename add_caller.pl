@@ -16,6 +16,13 @@ my $sn_1="";
 my $sn_2=""; 
 my %caller=(); 
 
+my @allchr=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","X","Y"); 
+my %chrlist=();  
+foreach my $c (@allchr) 
+	{
+	$chrlist{$c}=1; 
+		
+	}
 open(OUT,">$f_out");
 
 foreach my $l (`cat $f_maf`) 
@@ -29,6 +36,10 @@ foreach my $l (`cat $f_maf`)
 
 	else {
 
+		my $chr=$temp[4]; 
+		$chr=~s/chr//g; 
+		if(!defined $chrlist{$chr}) { next; } 
+				
 	 	$sn_1=$temp[15]; $sn_1=~s/_T//g; 
 
 		if($sn_2 eq "" || $sn_2 ne $sn_1)

@@ -5,8 +5,10 @@
 
 use strict;
 use warnings;
-die unless @ARGV == 2;
-my ($f_m,$f_filter_out)=@ARGV;
+die unless @ARGV == 3;
+### samtools ##
+
+my ($samtools,$f_m,$f_filter_out)=@ARGV;
 
 #my $f_m=$run_dir."/mutect/mutect.raw.vcf";
 #my $f_filter_out=$run_dir."/mutect/mutect.filtered.vcf";
@@ -29,17 +31,38 @@ my $f_bam_n=$path_d.$temp[-3].".N.bam";
 my $f_bam_t=$path_d.$temp[-3].".T.bam";
 
 ## read absolute path ##
-my $f_bam_n_abs=`readlink -f $f_bam_n`; 
-my $f_bam_t_abs=`readlink -f $f_bam_t`; 
-chomp($f_bam_n_abs); 
-chomp($f_bam_t_abs); 
+#my $f_bam_n_abs=`readlink -f $f_bam_n`; 
+#my $f_bam_t_abs=`readlink -f $f_bam_t`; 
+#chomp($f_bam_n_abs); 
+#chomp($f_bam_t_abs); 
 #print $f_bam_n_abs,"\n";
 #print $f_bam_t_abs,"\n";
-my $last_bam_n_abs=(split(/\//,$f_bam_n_abs))[-1];
-my $last_bam_t_abs=(split(/\//,$f_bam_t_abs))[-1];
+#my $last_bam_n_abs=(split(/\//,$f_bam_n_abs))[-1];
+#my $last_bam_t_abs=(split(/\//,$f_bam_t_abs))[-1];
+my $sn_n; 
+my $sn_t; 
+foreach my $l (`$samtools view -H $f_bam_n`) 
+	{
+		my $ltr=$l; 
+		chomp($ltr); 
+		if($ltr=~/^\@RG/) { 
+			my @temp2=split("\t",$ltr); 
+			$sn_n=(split(/\:/,$temp2[7]))[1];
+	    	last; 
+		  }
+	}
 
-my $sn_n=(split(/\./,$last_bam_n_abs))[0];
-my $sn_t=(split(/\./,$last_bam_t_abs))[0];
+
+foreach my $l (`$samtools view -H $f_bam_t`)
+    {
+        my $ltr=$l;
+        chomp($ltr);
+        if($ltr=~/^\@RG/) {
+            my @temp2=split("\t",$ltr);
+            $sn_t=(split(/\:/,$temp2[7]))[1];
+			last; 
+          }
+    }
 
 #print $sn_n,"\t",$sn_t,"\n";
 

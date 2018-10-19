@@ -1459,7 +1459,7 @@ sub bsub_parse_mutect{
     print PM "filtervcf=".$sample_full_path."/mutect1/mutect.raw.filtered.$chr.vcf\n";
     print PM "filtervcfsnv=".$sample_full_path."/mutect1/mutect.filter.snv.$chr.vcf\n";
     print PM "filtervcfindel=".$sample_full_path."/mutect1/mutect.filter.indel.$chr.vcf\n";
-    print PM "     ".$run_script_path."filter_mutect1.7.pl \${rawvcf} \${filtervcf}\n";
+    print PM "     ".$run_script_path."filter_mutect1.7.pl $samtools/samtools \${rawvcf} \${filtervcf}\n";
 #   print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h38_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
  #   print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h38_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
     print PM "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h38_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
@@ -1603,6 +1603,8 @@ sub bsub_vcf_2_maf{
     #print MAF "#BSUB -q research-hpc\n";
     #print MAF "#BSUB -w \"$hold_job_file\"","\n";
     print MAF "F_VCF_1=".$sample_full_path."/merged.filtered.withmutect.vcf\n";
+#	print MAF "F_VCF_1=".$sample_full_path."/merged.withmutect.vcf\n";
+#	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".withmutect.vcf\n";
 	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".withmutect.vcf\n";
     print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.withmutect.vcf\n";
     print MAF "F_VEP_2=".$sample_full_path."/".$sample_name.".withmutect.vep.vcf\n";
@@ -1612,12 +1614,13 @@ sub bsub_vcf_2_maf{
 
     print MAF "cat > \${RUNDIR}/vep.merged.withmutect.input <<EOF\n";
     print MAF "merged.vep.vcf = ./merged.filtered.withmutect.vcf\n";
+#	print MAF "merged.vep.vcf = ./merged.withmutect.vcf\n";
     print MAF "merged.vep.output = ./merged.VEP.withmutect.vcf\n";
     print MAF "merged.vep.vep_cmd = $vepannot\n";
     print MAF "merged.vep.cachedir = $vepcache\n";
     #print MERGE "merged.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache/homo_sapiens/85_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
     print MAF "merged.vep.reffasta = $f_ref_annot\n";
-    print MAF "merged.vep.assembly = GRCh37\n";
+    print MAF "merged.vep.assembly = GRCh38\n";
     print MAF "EOF\n";
 	print MAF "rm \${F_log}\n";	
 #    print MAF "merged.vep.vcf = ./merged.filtered.vcf\n";
@@ -1629,7 +1632,9 @@ sub bsub_vcf_2_maf{
  #   print MAF "merged.vep.assembly = GRCh37\n";
  #   print MAF "EOF\n";
  #   print MERGE "else\n";
-    print MAF "     ".$run_script_path."vaf_filter_v1.2.pl \${RUNDIR}\n";
+    print MAF "     ".$run_script_path."vaf_filter_v1.3.pl \${RUNDIR}\n";
+	#print MAF "     ".$run_script_path."vaf_filter_michigan_washu.pl \${RUNDIR}\n";
+	#print MAF "     ".$run_script_path."vaf_all_callers.pl \${RUNDIR}\n";
     print MAF "cd \${RUNDIR}\n";
     print MAF ". $script_dir/set_envvars\n";
     print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.input >&./vep.merged.withmutect.log\n";
