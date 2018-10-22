@@ -2,9 +2,9 @@
 use strict;
 use warnings;
 
-my ($f_indel_in,$f_indel_out)=@ARGV;
+my ($f_indel_in,$f_indel_out,$indel_max_size)=@ARGV;
 
-my $indel_max_size=100;
+#my $indel_max_size=100;
 
 open(IN,"<$f_indel_in"); 
 open(OUT,">$f_indel_out"); 
@@ -34,7 +34,7 @@ while(<IN>)
 		my $ref=$temp[3];
         my $var=$temp[4];
 
-        if(length($ref)>=$indel_max_size || length($var)>=$indel_max_size)  { next; }
+        if(length($ref)>$indel_max_size || length($var)>$indel_max_size)  { next; }
 	    else
 		{
 			print OUT $ltr,"\n"; 

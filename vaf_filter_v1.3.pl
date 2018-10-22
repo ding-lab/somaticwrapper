@@ -8,17 +8,17 @@
 
 use strict;
 use warnings;
-die unless @ARGV == 1;
-my ($run_dir)=@ARGV; 
+die unless @ARGV == 4;
+my ($run_dir,$min_vaf_somatic,$min_coverage,$indel_max_size)=@ARGV; 
 
 my $f_m=$run_dir."/merged.withmutect.vcf"; 
 my $f_filter_out=$run_dir."/merged.filtered.withmutect.vcf";
 my $f_vaf_out=$run_dir."/merged.withmutect.vaf";
-my $min_vaf_somatic=0.05;
+#my $min_vaf_somatic=0.05;
 #my $min_vaf_pindel=0.1;
 my $max_vaf_germline=0.02; 
-my $min_coverage=20; 
-my $indel_max_size=100; 
+#my $min_coverage=20; 
+#my $indel_max_size=100; 
 
 open(OUT1,">$f_filter_out");
 open(OUT2,">$f_vaf_out"); 
@@ -52,7 +52,7 @@ foreach my $l (`cat $f_m`)
          $ref=$temp[3];
          $var=$temp[4];
 
-         if(length($ref)>=$indel_max_size || length($var)>=$indel_max_size)  { next; }
+         if(length($ref)>$indel_max_size || length($var)>$indel_max_size)  { next; }
  
 		 #if($info=~/strelka-varscan/) and strelka-mutect ##
 		 #if($info=~/set\=sindel-varindel/ || $info=~/set\=sindel-pindel/ ##

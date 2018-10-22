@@ -5,10 +5,10 @@
 
 use strict;
 use warnings;
-die unless @ARGV == 3;
+die unless @ARGV == 5;
 ### samtools ##
 
-my ($samtools,$f_m,$f_filter_out)=@ARGV;
+my ($samtools,$f_m,$f_filter_out,$mincov,$minvaf)=@ARGV;
 
 #my $f_m=$run_dir."/mutect/mutect.raw.vcf";
 #my $f_filter_out=$run_dir."/mutect/mutect.filtered.vcf";
@@ -47,7 +47,7 @@ foreach my $l (`$samtools view -H $f_bam_n`)
 		chomp($ltr); 
 		if($ltr=~/^\@RG/) { 
 			my @temp2=split("\t",$ltr); 
-			$sn_n=(split(/\:/,$temp2[7]))[1];
+			$sn_n=(split(/\:/,$temp2[-1]))[1];
 	    	last; 
 		  }
 	}
@@ -59,7 +59,7 @@ foreach my $l (`$samtools view -H $f_bam_t`)
         chomp($ltr);
         if($ltr=~/^\@RG/) {
             my @temp2=split("\t",$ltr);
-            $sn_t=(split(/\:/,$temp2[7]))[1];
+            $sn_t=(split(/\:/,$temp2[-1]))[1];
 			last; 
           }
     }
@@ -67,9 +67,9 @@ foreach my $l (`$samtools view -H $f_bam_t`)
 #print $sn_n,"\t",$sn_t,"\n";
 
 #<STDIN>;
-my $min_vaf_somatic=0.05;
+my $min_vaf_somatic=$minvaf;
 my $max_vaf_germline=0.02;
-my $min_coverage=20;
+my $min_coverage=$mincov;
 my $tumor_normal_order=-1; 
 
 open(IN,"<$f_m");
