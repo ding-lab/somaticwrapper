@@ -12,25 +12,25 @@ Pipeline version: 1.2
 
 Usage: perl somatic_calling_v1.2.pl  --srg --step --sre --rdir --ref --log --q --mincov --minvaf --maxindsize
 
-<rdir> = full path of the folder holding files for this sequence run (user must provide)
+rdir = full path of the folder holding files for this sequence run (user must provide)
 
-<log> = full path of the folder for saving log file; usually upper folder of rdir
+log = full path of the folder for saving log file; usually upper folder of rdir
 
-<srg> = bam having read group or not: 1, yes and 0, no (default 1)
+srg = bam having read group or not: 1, yes and 0, no (default 1)
 
-<sre> = re-run: 1, yes and 0, no  (default 0)
+sre = re-run: 1, yes and 0, no  (default 0)
 
-<step> run this pipeline step by step. (user must provide)
+step run this pipeline step by step. (user must provide)
 
-<ref> the human reference: 
+ref: the human reference: 
 
-<q> which queue for submitting job; research-hpc, ding-lab, long (default)
+q: which queue for submitting job; research-hpc, ding-lab, long (default)
 
-<mincov> minimum coverage: default >=20
+mincov: minimum coverage: default >=20
 
-<minvaf> minimum somatic vaf: default >=0.05
+minvaf: minimum somatic vaf: default >=0.05
 
-<maxindsize> default <=100
+maxindsize: default <=100
 
 hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
