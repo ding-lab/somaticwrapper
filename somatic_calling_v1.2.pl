@@ -199,8 +199,12 @@ my $bamreadcount="/gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4
 my $vepannot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
 my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v85";
 
+my $DB_SNP_NO_CHR="/gscmnt/gc2737/ding/hg38_database/DBSNP/00-All.vcf";
 my $DB_SNP="/gscmnt/gc2737/ding/hg38_database/DBSNP/00-All.chr.vcf";
+
 my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
+my $DB_COSMIC_NO_CHR="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicAllMuts.HG38.sort.vcf"; 
+
 my $DB_SNP_NO_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.HG38.pass.cosmic.vcf";
 my $f_ref_annot="/gscmnt/gc2518/dinglab/scao/tools/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
 my $TSL_DB="/gscmnt/gc2518/dinglab/scao/db/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
@@ -1369,12 +1373,19 @@ sub bsub_mutect{
 	foreach my $chr (@chrlist)
     {
     	my $chr1=$chr;
-    	if($chr_status==1) { $chr1="chr".$chr; }
+		my $DB_SNP_MUTECT=$DB_SNP_NO_CHR;
+		my $DB_COSMIC_MUTECT=$DB_COSMIC_NO_CHR; 
+    	if($chr_status==1) 
+		{ 
+		$chr1="chr".$chr; 
+		$DB_SNP_MUTECT=$DB_SNP;
+		$DB_COSMIC_MUTECT=$DB_COSMIC; 
+		}
 		print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";
 		print MUTECT '  if [ ! -s $rawvcf ]',"\n";
     	print MUTECT "  then\n";
 	#	print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3 -T MuTect2 -nct 4  -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
-    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP_MUTECT --cosmic $DB_COSMIC_MUTECT -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
 	    print MUTECT "  fi\n";
 	} 
 
@@ -1387,12 +1398,22 @@ sub bsub_mutect{
  #   print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
 	foreach my $chr (@chrlist)
     {
-	my $chr1=$chr;
-    if($chr_status==1) { $chr1="chr".$chr; }
+	 my $chr1=$chr;
+	 my $DB_SNP_MUTECT=$DB_SNP_NO_CHR;
+     my $DB_COSMIC_MUTECT=$DB_COSMIC_NO_CHR;
+     if($chr_status==1) 
+        { 
+        $chr1="chr".$chr;
+        $DB_SNP_MUTECT=$DB_SNP;
+        $DB_COSMIC_MUTECT=$DB_COSMIC;
+        }
+
+#    if($chr_status==1) { $chr1="chr".$chr; }
+
 	print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";	
 	print MUTECT '  if [ ! -s $rawvcf ]',"\n"; 
     print MUTECT "  then\n";
-    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP_MUTECT --cosmic $DB_COSMIC_MUTECT -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
 	#print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3  -T MuTect2 -nct 4 -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
  	print MUTECT "  fi\n"; 
 	}
