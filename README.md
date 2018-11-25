@@ -1,3 +1,5 @@
+**This branch is deprecated.** See [TinDaisy-Core](https://github.com/ding-lab/TinDaisy-Core) for more recent work.
+
 # somaticwrapper
 Detect somatic variants from tumor and normal exome data
 
