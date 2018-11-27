@@ -37,7 +37,8 @@ my $normal = "\e[0m";
 (my $usage = <<OUT) =~ s/\t+//g;
 Somatic variant calling pipeline 
 Pipeline version: $version
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --mincov --minvaf --maxindsize
+
+$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize
 
 $normal
 
@@ -48,7 +49,8 @@ $normal
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
-<mincov> minimum coverage: default >=20
+<mincovt> minimum coverage for tumor: default >=14
+<mincovn> minimum coverage for normal: default >=8
 <minvaf> minimum somatic vaf: default >=0.05
 <maxindsize> default <=100
 
@@ -85,7 +87,8 @@ my $h38_REF="";
 #my $ref_name="";
 my $chr_status=0;
 my $maxindsize=100; 
-my $mincov=20; 
+my $mincov_t=14; 
+my $mincov_n=8; 
 my $minvaf=0.05;
 
 #__PARSE COMMAND LINE
@@ -97,7 +100,8 @@ my $status = &GetOptions (
 	  "ref=s"  => \$h38_REF,
 	  "log=s"  => \$log_dir,
 	  "q=s" => \$q_name,
-	  "mincov=i"  => \$mincov,
+	  "mincovt=i"  => \$mincov_t,
+      "mincovn=i"  => \$mincov_n,		
 	  "minvaf=i"  => \$minvaf,
 	  "maxindsize=i"  => \$maxindsize,
       "log=s"  => \$log_dir,
@@ -595,13 +599,13 @@ sub bsub_varscan{
     #print VARSCAN ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
    # print VARSCAN '  if [ ! -s $LOG ]',"\n";
     #print VARSCAN "  then\n";	
-	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal $mincov --min-coverage-tumor $mincov --min-var-freq $minvaf --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
+	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal $mincov_n --min-coverage-tumor $mincov_t --min-var-freq $minvaf --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
    	#print VARSCAN "  else\n";
     print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";# one possible blast error (see the end of this script). 
     print VARSCAN '      CHECK=$?',"\n";
     print VARSCAN '      while [ ${CHECK} -eq 0 ]',"\n";
     print VARSCAN "      do\n";
-    print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal $mincov --min-coverage-tumor $mincov --min-var-freq $minvaf --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
+    print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal $mincov_n --min-coverage-tumor $mincov_t --min-var-freq $minvaf --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
     print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";
     print VARSCAN '          CHECK=$?',"\n";
     print VARSCAN "      done\n";
@@ -930,7 +934,9 @@ sub bsub_parse_varscan{
 	print VARSCANP "myindelorig=\${indeloutbase}.gvip.vcf\n";
 	print VARSCANP "thissnvpass=\${snvoutbase}.gvip.Somatic.hc.somfilter_pass.vcf\n";
 	print VARSCANP "thissnvfail=\${snvoutbase}.gvip.Somatic.hc.somfilter_fail.vcf\n";
-	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somaticFilter  ./\${thissnvorig} --min-coverage  $mincov   --min-reads2  4   --min-strands2  1   --min-avg-qual  20   --min-var-freq  $minvaf --p-value  0.05   --indel-file  ./\${myindelorig} --output-file  ./\${thissnvpass}  &>> \${LOG}\n";
+### remove mincov cut-off ##
+    print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somaticFilter  ./\${thissnvorig} --min-reads2  4   --min-strands2  1   --min-avg-qual  20   --min-var-freq  $minvaf --p-value  0.05   --indel-file  ./\${myindelorig} --output-file  ./\${thissnvpass}  &>> \${LOG}\n";
+	#print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somaticFilter  ./\${thissnvorig} --min-coverage  $mincov  --min-reads2  4   --min-strands2  1   --min-avg-qual  20   --min-var-freq  $minvaf --p-value  0.05   --indel-file  ./\${myindelorig} --output-file  ./\${thissnvpass}  &>> \${LOG}\n";
 	print VARSCANP "     ".$run_script_path."dbsnp_filter.pl  \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input\n";
 	print VARSCANP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/varscan/vs_dbsnp_filter.indel.input\n";
     print VARSCANP "touch \${localstatus}\n";
@@ -1194,7 +1200,8 @@ sub bsub_parse_pindel {
 	print PP "pindel.filter.homozyg_min_var_allele_freq = 0.8\n";
 	print PP "pindel.filter.mode = somatic\n";
 	print PP "pindel.filter.apply_filter = true\n";
-	print PP "pindel.filter.somatic.min_coverages = $mincov\n";
+	print PP "pindel.filter.somatic.min_coverages_t = $mincov_t\n";
+	print PP "pindel.filter.somatic.min_coverages_n = $mincov_n\n";
 	print PP "pindel.filter.somatic.min_var_allele_freq = $minvaf\n";
 ## changed true to false ##
 	print PP "pindel.filter.somatic.require_balanced_reads = \"false\"\n";
@@ -1486,7 +1493,7 @@ sub bsub_parse_mutect{
     print PM "filtervcf=".$sample_full_path."/mutect1/mutect.raw.filtered.$chr.vcf\n";
     print PM "filtervcfsnv=".$sample_full_path."/mutect1/mutect.filter.snv.$chr.vcf\n";
     print PM "filtervcfindel=".$sample_full_path."/mutect1/mutect.filter.indel.$chr.vcf\n";
-    print PM "     ".$run_script_path."filter_mutect1.7.pl $samtools/samtools \${rawvcf} \${filtervcf} $mincov $minvaf\n";
+    print PM "     ".$run_script_path."filter_mutect1.7.pl $samtools/samtools \${rawvcf} \${filtervcf} $mincov_t $mincov_n $minvaf\n";
 #   print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h38_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
  #   print MUTECT "java \${JAVA_OPTS} -jar "."$gatkexe3  -T SelectVariants -R $h38_REF -V  \${filtervcf}  -o  \${filtervcfindel}  -selectType INDEL"."\n";
     print PM "java \${JAVA_OPTS} -jar "."$mutect1  -T SelectVariants -R $h38_REF -V \${filtervcf}  -o  \${filtervcfsnv}  -selectType SNP -selectType MNP"."\n";
@@ -1659,7 +1666,7 @@ sub bsub_vcf_2_maf{
  #   print MAF "merged.vep.assembly = GRCh37\n";
  #   print MAF "EOF\n";
  #   print MERGE "else\n";
-    print MAF "     ".$run_script_path."vaf_filter_v1.3.pl \${RUNDIR} $minvaf $mincov $maxindsize\n";
+    print MAF "     ".$run_script_path."vaf_filter_v1.3.pl \${RUNDIR} $minvaf $mincov_t $mincov_n $maxindsize\n";
 	#print MAF "     ".$run_script_path."vaf_filter_michigan_washu.pl \${RUNDIR}\n";
 	#print MAF "     ".$run_script_path."vaf_all_callers.pl \${RUNDIR}\n";
     print MAF "cd \${RUNDIR}\n";
@@ -1671,7 +1678,7 @@ sub bsub_vcf_2_maf{
     print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
 #	print MAF "cd 
 #	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf	\${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --filter-vcf $f_exac --file-tsl $TSL_DB\n";
-print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n"; 
+	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n"; 
 	#print MAF "     ".$run_script_path."splice_site_check.pl $sample_full_path\n"; 
     close MAF;
 

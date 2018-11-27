@@ -94,7 +94,7 @@ if ($paras{'apply_filter'} eq "true"  &&  $paras{'mode'} ne "pooled") {
 	while (<$input_fh>) {
 	    chomp; 
 	    my @t = split /\s+/;
-	    if(  ($t[32] + $t[34] + $t[36] <  $paras{'min_coverages'}) || ($t[33] + $t[34] + $t[36] <  $paras{'min_coverages'})  ) {
+	    if(  ($t[32] + $t[34] + $t[36] <  $paras{'min_coverages_n'}) || ($t[33] + $t[34] + $t[36] <  $paras{'min_coverages_n'})  ) {
 		$filter1_fail_fh->print($_."\n");
 		next;
 	    }
@@ -119,7 +119,7 @@ if ($paras{'apply_filter'} eq "true"  &&  $paras{'mode'} ne "pooled") {
 	while (<$input_fh>) {
 	    chomp; 
 	    my @t = split /\s+/;
-	    if(  ($t[32] + $t[34] + $t[36] <  $paras{'min_coverages'}) || ($t[33] + $t[34] + $t[36] <  $paras{'min_coverages'})  || ($t[39] + $t[41] + $t[43] < $paras{'min_coverages'}) ||  ($t[40] + $t[41] + $t[43] <  $paras{'min_coverages'})) {
+	    if(  ($t[32] + $t[34] + $t[36] <  $paras{'min_coverages_n'}) || ($t[33] + $t[34] + $t[36] <  $paras{'min_coverages_n'})  || ($t[39] + $t[41] + $t[43] < $paras{'min_coverages_t'}) ||  ($t[40] + $t[41] + $t[43] <  $paras{'min_coverages_t'})) {
 		$filter1_fail_fh->print($_."\n");
 		next;
 	    }
@@ -156,11 +156,14 @@ if ($paras{'apply_filter'} eq "true"  &&  $paras{'mode'} ne "pooled") {
     # Trio filtering options:
     # This calculation assumes sample column order is parent/parent/child, as done in GenomeVIP.
     # minimum coverage met for all samples; VAF threshold in child; maximum allowed variant support in parents combined; reads are considered balanced as long as there is nonzero read support in both directions in child
-    if ($paras{'mode'} eq "trio") {   # trio
+
+  ## not needed for somatic variant callings ##
+
+   if ($paras{'mode'} eq "trio") {   # trio
 	while (<$input_fh>) {
 	    chomp; 
 	    my @t = split /\s+/;
-	    if(  ($t[32] + $t[34] + $t[36] <  $paras{'min_coverages'}) || ($t[33] + $t[34] + $t[36] <  $paras{'min_coverages'})  || ($t[39] + $t[41] + $t[43] < $paras{'min_coverages'}) ||  ($t[40] + $t[41] + $t[43] <  $paras{'min_coverages'}) ||   ($t[46] + $t[48] + $t[50] < $paras{'min_coverages'}) ||  ($t[47] + $t[48] + $t[50] <  $paras{'min_coverages'}) ) {
+	    if(  ($t[32] + $t[34] + $t[36] <  $paras{'min_coverages_n'}) || ($t[33] + $t[34] + $t[36] <  $paras{'min_coverages_n'})  || ($t[39] + $t[41] + $t[43] < $paras{'min_coverages_n'}) ||  ($t[40] + $t[41] + $t[43] <  $paras{'min_coverages_n'}) ||   ($t[46] + $t[48] + $t[50] < $paras{'min_coverages_n'}) ||  ($t[47] + $t[48] + $t[50] <  $paras{'min_coverages_n'}) ) {
 		$filter1_fail_fh->print($_."\n");
 		next;
 	    }

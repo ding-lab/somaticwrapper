@@ -2,6 +2,9 @@
 use strict;
 use warnings;
 
+## filter large indel (>100) in pindel output ##
+## remove END pos in pindel vcf output, which can cause gatk merging problems ##
+
 my ($f_indel_in,$f_indel_out,$indel_max_size)=@ARGV;
 
 #my $indel_max_size=100;
@@ -33,11 +36,22 @@ while(<IN>)
 	    my @temp=split("\t",$ltr);
 		my $ref=$temp[3];
         my $var=$temp[4];
-
+		my $info=$temp[7]; 
+		$info=~s/END=\d+;//g;  
         if(length($ref)>$indel_max_size || length($var)>$indel_max_size)  { next; }
 	    else
 		{
-			print OUT $ltr,"\n"; 
+			print OUT $temp[0];
+			for(my $i=1;$i<=6;$i++) 
+			{
+				print OUT "\t",$temp[$i];   
+			} 
+			print OUT "\t",$info;
+		    for(my $i=8;$i<=10; $i++)  
+            {
+                print OUT "\t",$temp[$i];   
+            } 
+			print OUT "\n"; 
 		}
 		} 
 	}

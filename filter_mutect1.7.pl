@@ -1,14 +1,14 @@
 #!/usr/bin/perl
 
-## tumor >= 5% and normal <=1% 
+## tumor >= 5% and normal <=2% 
 ### mutect1.7 filtering ###
 
 use strict;
 use warnings;
-die unless @ARGV == 5;
+die unless @ARGV == 6;
 ### samtools ##
 
-my ($samtools,$f_m,$f_filter_out,$mincov,$minvaf)=@ARGV;
+my ($samtools,$f_m,$f_filter_out,$mincov_t,$mincov_n,$minvaf)=@ARGV;
 
 #my $f_m=$run_dir."/mutect/mutect.raw.vcf";
 #my $f_filter_out=$run_dir."/mutect/mutect.filtered.vcf";
@@ -69,7 +69,7 @@ foreach my $l (`$samtools view -H $f_bam_t`)
 #<STDIN>;
 my $min_vaf_somatic=$minvaf;
 my $max_vaf_germline=0.02;
-my $min_coverage=$mincov;
+#my $min_coverage=$mincov;
 my $tumor_normal_order=-1; 
 
 open(IN,"<$f_m");
@@ -131,7 +131,7 @@ while(<IN>)
 		my $vaf_n=$readn[1]/$tot_n;
 		#print $vaf_t,"\t",$vaf_n,"\n";
 ## apply filtering ##
-		if($temp[6] eq "PASS" && $vaf_t>=$min_vaf_somatic && $vaf_n<=$max_vaf_germline && $tot_n>=$min_coverage && $tot_t>=$min_coverage) 
+		if($temp[6] eq "PASS" && $vaf_t>=$min_vaf_somatic && $vaf_n<=$max_vaf_germline && $tot_n>=$mincov_n && $tot_t>=$mincov_t) 
 			{
 				print OUT $l,"\n"; 
 			}	

@@ -8,8 +8,8 @@
 
 use strict;
 use warnings;
-die unless @ARGV == 4;
-my ($run_dir,$min_vaf_somatic,$min_coverage,$indel_max_size)=@ARGV; 
+die unless @ARGV == 5;
+my ($run_dir,$min_vaf_somatic,$min_coverage_t,$min_coverage_n,$indel_max_size)=@ARGV; 
 
 my $f_m=$run_dir."/merged.withmutect.vcf"; 
 my $f_filter_out=$run_dir."/merged.filtered.withmutect.vcf";
@@ -124,7 +124,7 @@ foreach my $l (`cat $f_m`)
 		#<STDIN>;
 			print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$rcref,"\t",$rcref/$rctot,"\t",$rcvar,"\t",$rcvar/$rctot,"\t",$rc2ref,"\t",$rc2ref/$rc2tot,"\t",$rc2var,"\t",$rc2var/$rc2tot,"\n"; 
 
-			if($rc2var/$rc2tot>=$min_vaf_somatic && $rcvar/$rctot<=$max_vaf_germline && $rc2tot>=$min_coverage && $rctot>=$min_coverage) 
+			if($rc2var/$rc2tot>=$min_vaf_somatic && $rcvar/$rctot<=$max_vaf_germline && $rc2tot>=$min_coverage_t && $rctot>=$min_coverage_n) 
 			{
 				$ltr=~s/SVTYPE=//g;
 		        print OUT1 $ltr,"\n";
@@ -215,7 +215,7 @@ foreach my $l (`cat $f_m`)
 
         	print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$rc{$ref},"\t",$rc{$ref}/$r_tot,"\t",$rcvar,"\t",$rcvar/$r_tot,"\t",$rc2{$ref},"\t",$rc2{$ref}/$r_tot2,"\t",$rc2var,"\t",$rc2var/$r_tot2,"\n";
 
-        	if($rc2var/$r_tot2>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_tot2>=$min_coverage && $r_tot>=$min_coverage)
+        	if($rc2var/$r_tot2>=$min_vaf_somatic && $rcvar/$r_tot<=$max_vaf_germline && $r_tot2>=$min_coverage_t && $r_tot>=$min_coverage_n)
             {
                 print OUT1 $ltr,"\n";
             }
@@ -243,7 +243,7 @@ foreach my $l (`cat $f_m`)
             $tdp_ref=$tdp4[0]+$tdp4[1];
             $tdp_var=$tdp4[2]+$tdp4[3];
 	        print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$ndp_ref,"\t",$ndp_ref/($ndp_ref+$ndp_var),"\t",$ndp_var,"\t",$ndp_var/($ndp_var+$ndp_ref),"\t",$tdp_ref,"\t",$tdp_ref/($tdp_ref+$tdp_var),"\t",$tdp_var,"\t",$tdp_var/($tdp_var+$tdp_ref),"\n";  
-		if($tdp_var/($tdp_var+$tdp_ref) >=$min_vaf_somatic && $ndp_var/($ndp_var+$ndp_ref)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage) 	
+		if($tdp_var/($tdp_var+$tdp_ref) >=$min_vaf_somatic && $ndp_var/($ndp_var+$ndp_ref)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage_t && $ndp_var+$ndp_ref>=$min_coverage_n) 	
 			{
 			$ltr=~s/SVTYPE=//g;
 			print OUT1 $ltr,"\n"; 
