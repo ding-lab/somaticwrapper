@@ -10,7 +10,7 @@ SomaticWrapper pipeline is a fully automated and modular software package design
 
 Pipeline version: 1.3
 
-Usage: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincov --minvaf --maxindsize
+Usage: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize
 
 rdir = full path of the folder holding files for this sequence run (user must provide)
 
