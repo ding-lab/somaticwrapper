@@ -2,7 +2,7 @@
 
 Detect somatic variants from tumor and normal WXS data (HG19) 
 
-Suggest to use the most recent somaticwrapper in withmutecthg38 branch, which uses HG38 reference, and four different callers
+# Suggest to use the most recent somaticwrapper in withmutecthg38 branch, which uses HG38 reference, and four different callers including mutect1.7, varscan2, pindel and strelka2.
  
 ### Song Cao ###
 
