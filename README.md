@@ -1,6 +1,8 @@
 # somaticwrapper version 1.1 ##
 
-Detect somatic variants from tumor and normal WXS data
+Detect somatic variants from tumor and normal WXS data (HG19) 
+
+Suggest to use the most recent somaticwrapper in withmutecthg38 branch, which uses HG38 reference, and four different callers
  
 ### Song Cao ###
 
