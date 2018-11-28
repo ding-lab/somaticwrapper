@@ -35,3 +35,8 @@ perl somatic_calling_v1.2.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/soma
 perl somatic_calling_v1.2.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 10 --q research-hpc --sre 1
 
 perl somatic_calling_v1.2.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 11 --q research-hpc --sre 1
+
+### ccrc ##
+#perl somatic_calling_v1.2.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 2 --q research-hpc --sre 1
+
+

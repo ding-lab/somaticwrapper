@@ -1,4 +1,4 @@
-# somaticwrapper version 1.2 ##
+# somaticwrapper version 1.3 ##
 
 Detect somatic variants from tumor and normal WXS for HG38 reference
 
@@ -8,9 +8,9 @@ Detect somatic variants from tumor and normal WXS for HG38 reference
 
 SomaticWrapper pipeline is a fully automated and modular software package designed for detection of somatic variants from tumor and normal exome data. It works on LSF job scheduler and can run multiple jobs in parallel. Multiple standard variant calling tools are included in the pipeline such as varscan, strelka, mutect and pindel.
 
-Pipeline version: 1.2
+Pipeline version: 1.3
 
-Usage: perl somatic_calling_v1.2.pl  --srg --step --sre --rdir --ref --log --q --mincov --minvaf --maxindsize
+Usage: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincov --minvaf --maxindsize
 
 rdir = full path of the folder holding files for this sequence run (user must provide)
 
@@ -26,7 +26,9 @@ ref: the human reference:
 
 q: which queue for submitting job; research-hpc, ding-lab, long (default)
 
-mincov: minimum coverage: default >=20
+mincovt: minimum coverage for tumor: default >=14
+
+mincovn: minimum coverage for normal: default >=8
 
 minvaf: minimum somatic vaf: default >=0.05
 

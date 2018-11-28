@@ -15,7 +15,6 @@ my ($samtools,$f_m,$f_filter_out,$mincov_t,$mincov_n,$minvaf)=@ARGV;
 
 ### minimum vaf for tumor 0.05, column 10 ###
 ## maximum vaf for normal 0.02, column 11 ###
-## minimum coverage 20 ###
 
 ### get the bam path ##
 my @temp=split(/\//,$f_m); 
