@@ -1,42 +1,4 @@
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/log2 --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 1 --q research-hpc
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/log2 --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 2 --q research-hpc
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/log2 --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 3 --q research-hpc
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/log2 --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 4 --q research-hpc
+### an example for running somaticwrapper on MGI, please change the path accordingly, otherwise it will possible overwrite my result ##
 
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/somatic2 --log /gscmnt/gc2518/dinglab/cptac3/hg38 --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 1 --q research-hpc
-
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/somatic2 --log /gscmnt/gc2518/dinglab/cptac3/hg38 --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 2 --q research-hpc
-
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/somatic2 --log /gscmnt/gc2518/dinglab/cptac3/hg38 --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 3 --q research-hpc
-
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/somatic2 --log /gscmnt/gc2518/dinglab/cptac3/hg38 --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 4 --q research-hpc
-
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38 --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 9 --q research-hpc --sre 1
-
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38 --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 10 --q research-hpc --sre 1
-
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/somatic2 --log /gscmnt/gc2518/dinglab/cptac3/hg38 --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 7 --q research-hpc --sre 1
-
-### strelka parsing ##
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/somatic2 --log /gscmnt/gc2518/dinglab/cptac3/hg38 --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 6 --q research-hpc --sre 1
-
-#perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/cptac3/CCRC/hg38 --log /gscmnt/gc2521/dinglab/cptac3/CCRC --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 9 --q research-hpc
-
-### re-run with t >=14 and n>=8 ##
-
-perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 2 --q research-hpc --sre 1
-
-perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 5 --q research-hpc --sre 1
-
-perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 8 --q research-hpc --sre 1
-
-perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 9 --q research-hpc --sre 1
-
-perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 10 --q research-hpc --sre 1
-
-perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 11 --q research-hpc --sre 1
-
-### ccrc ##
-#perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 2 --q research-hpc --sre 1
-
+perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 1 --q research-hpc --sre 1
 
