@@ -181,18 +181,22 @@ my $sample_name = "";
 #my $mutect="/gscuser/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
 ### running tools: USER needs to change according where the tools are installed.##
 
-my $mutect="/gscuser/scao/tools/mutect-1.1.7.jar";
-my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
-my $STRELKA_DIR2="/gscmnt/gc2518/dinglab/scao/tools/strelka2_linux/strelka-2.9.2.centos6_x86_64/bin";
+#my $mutect="/gscuser/scao/tools/mutect-1.1.7.jar";
+#my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
+my $STRELKA_DIR2="/home/scao/tools/strelka2_linux/strelka-2.9.2.centos6_x86_64/bin";
 #/configureStrelkaSomaticWorkflow.py";
 #my $h38_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
 #my $pindel="/gscuser/qgao/tools/pindel/pindel";
-my $pindel="/gscuser/scao/tools/pindel/pindel";
-my $PINDEL_DIR="/gscuser/scao/tools/pindel";
-my $picardexe="/gscuser/scao/tools/picard.jar";
-my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
-my $java_dir="/gscuser/scao/tools/jre1.8.0_121";
+#my $pindel="/gscuser/scao/tools/pindel/pindel";
+#my $PINDEL_DIR="/gscuser/scao/tools/pindel";
+#my $picardexe="/gscuser/scao/tools/picard.jar";
+
+my $pindel="/diskmnt/Software/pindel-0.2.5b9-commit-b706fba/pindel/pindel";
+my $PINDEL_DIR="/diskmnt/Software/pindel-0.2.5b9-commit-b706fba/pindel/";
+my $picardexe="/diskmnt/Software/picard.jar";#my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
+my $java_dir="/diskmnt/Software/jre1.8.0_121";
 my $java_mutect="/gscmnt/gc2518/dinglab/scao/tools/jre1.7.0_80";
+
 my $gatkexe4="/gscuser/scao/tools/gatk-4.0.0.0/gatk";
 my $snpsift="/gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar";
 my $gatkexe3="/gscmnt/gc2525/dinglab/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";

@@ -1,6 +1,8 @@
 # somaticwrapper version 1.3 ##
 
-Detect somatic variants from tumor and normal WXS for HG38 reference
+Detect somatic variants from tumor and normal WXS for HG38 reference:
+
+Katmai version
 
 ### Song Cao ###
 
