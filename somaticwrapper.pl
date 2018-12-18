@@ -54,7 +54,6 @@ $normal
 <minvaf> minimum somatic vaf: default >=0.05
 <maxindsize> default <=100
 
-hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
  
 $red 	     [0]  Run all steps
 $green       [1]  Run streka
@@ -178,44 +177,35 @@ my $hold_job_file = "";
 my $bsub_com = "";
 my $sample_full_path = "";
 my $sample_name = "";
-#my $mutect="/gscuser/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
-### running tools: USER needs to change according where the tools are installed.##
 
-#my $mutect="/gscuser/scao/tools/mutect-1.1.7.jar";
-#my $STRELKA_DIR="/gscmnt/gc2525/dinglab/rmashl/Software/bin/strelka/1.0.14/bin";
-my $STRELKA_DIR2="/home/scao/tools/strelka2_linux/strelka-2.9.2.centos6_x86_64/bin";
-#/configureStrelkaSomaticWorkflow.py";
-#my $h38_REF="/gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa";
-#my $pindel="/gscuser/qgao/tools/pindel/pindel";
-#my $pindel="/gscuser/scao/tools/pindel/pindel";
-#my $PINDEL_DIR="/gscuser/scao/tools/pindel";
-#my $picardexe="/gscuser/scao/tools/picard.jar";
-
+## users need to change directory ##
+#
+my $STRELKA_DIR2="/home/scao/tools/strelka-2.9.2.centos6_x86_64/bin";
 my $pindel="/diskmnt/Software/pindel-0.2.5b9-commit-b706fba/pindel/pindel";
 my $PINDEL_DIR="/diskmnt/Software/pindel-0.2.5b9-commit-b706fba/pindel/";
-my $picardexe="/diskmnt/Software/picard.jar";#my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
+my $picardexe="/diskmnt/Software/picard.jar";
+my $gatk="/diskmnt/Software/GenomeAnalysisTK-3.7-0-gcfedb67.jar";
 my $java_dir="/diskmnt/Software/jre1.8.0_121";
-my $java_mutect="/gscmnt/gc2518/dinglab/scao/tools/jre1.7.0_80";
+my $java_mutect="/home/scao/tools/jre1.7.0_80";
 
-my $gatkexe4="/gscuser/scao/tools/gatk-4.0.0.0/gatk";
-my $snpsift="/gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar";
-my $gatkexe3="/gscmnt/gc2525/dinglab/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
-my $mutect1="/gscmnt/gc2518/dinglab/scao/tools/mutect/mutect-1.1.7.jar";
-my $samtools="/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin";
-my $varscan="/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8";
-my $bamreadcount="/gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount";
-my $vepannot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
+#my $gatkexe4="/gscuser/scao/tools/gatk-4.0.0.0/gatk";
+my $snpsift="/diskmnt/Software/snpEff_20150522/SnpSift.jar";
+my $mutect1="/home/scao/tools/mutect1/mutect-1.1.7.jar";
+my $samtools="/diskmnt/Software/samtools-1.2/bin";
+my $varscan="/diskmnt/Software/varscan-2.3.8";
+my $bamreadcount="/diskmnt/Software/bam-readcount-0.7.4/mybuild/bin/bam-readcount";
+my $vepannot="/diskmnt/Software/VEP_v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
 my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v85";
 
-my $DB_SNP_NO_CHR="/gscmnt/gc2737/ding/hg38_database/DBSNP/00-All.vcf";
-my $DB_SNP="/gscmnt/gc2737/ding/hg38_database/DBSNP/00-All.chr.vcf";
+my $DB_SNP_NO_CHR="/diskmnt/Projects/Users/scao/database/hg38/00-All.vcf";
+my $DB_SNP="/diskmnt/Projects/Users/scao/database/hg38/00-All.chr.vcf";
 
-my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
-my $DB_COSMIC_NO_CHR="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicAllMuts.HG38.sort.vcf"; 
+my $DB_COSMIC="/diskmnt/Projects/Users/scao/database/hg38/CosmicAllMuts.HG38.sort.chr.vcf";
+my $DB_COSMIC_NO_CHR="/diskmnt/Projects/Users/scao/database/hg38/CosmicAllMuts.HG38.sort.vcf"; 
 
-my $DB_SNP_NO_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.HG38.pass.cosmic.vcf";
-my $f_ref_annot="/gscmnt/gc2518/dinglab/scao/tools/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
-my $TSL_DB="/gscmnt/gc2518/dinglab/scao/db/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
+my $DB_SNP_NO_COSMIC="/diskmnt/Projects/Users/scao/database/hg38/00-All.HG38.pass.cosmic.vcf";
+my $f_ref_annot="/diskmnt/Projects/Users/scao/database/hg38/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
+my $TSL_DB="/diskmnt/Projects/Users/scao/database/hg38/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
 my $h38_REF_bai=$h38_REF.".fai";
 
 my $first_line=`head -n 1 $h38_REF`;
@@ -307,20 +297,24 @@ if($step_number==11 || $step_number==0)
     #print REPRUN "#BSUB -J $current_job_file\n";
 	#print REPRUN "#BSUB -w \"$hold_job_file\"","\n";
 	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir."\n";
-    print REPRUN "      ".$run_script_path."add_rc.pl ".$run_dir." ".$f_maf." ".$f_maf_rc."\n";
-    print REPRUN "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
+    	print REPRUN "      ".$run_script_path."add_rc.pl ".$run_dir." ".$f_maf." ".$f_maf_rc."\n";
+    	print REPRUN "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
 	close REPRUN;
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
 	#system ($bsub_com);
 
- my $sh_file=$job_files_dir."/".$current_job_file;
+ 	my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
+    #if($q_name eq "research-hpc")
+    #{
+    #$bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    #else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+    #print $bsub_com;
+    #system ($bsub_com);
+
+        $bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+        print $bsub_com;
+        system ($bsub_com);
 
 }
 
@@ -348,16 +342,22 @@ if (($step_number == 0) || ($step_number == 12)) {
     #$bsub_com = "qsub -V -hold_jid $hold_job_file -e $lsf_file_dir -o $lsf_file_dir $job_files_dir/$current_job_file\n";
  #   system ($bsub_com);
 
- 	my $sh_file=$job_files_dir."/".$current_job_file;
+   my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-	else 
-	{ 
-	$bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
+   # if($q_name eq "research-hpc")
+   # {
+   # $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+#	else 
+#	{ 
+#	$bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+ #   print $bsub_com;
+  
+#  system ($bsub_com);
+
+        $bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+        print $bsub_com;
+        system ($bsub_com);
+
 
 	
 }
@@ -371,60 +371,61 @@ exit;
 
 sub bsub_strelka{
     #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
-    $current_job_file = "j1_streka_".$sample_name.".sh"; 
+    	$current_job_file = "j1_streka_".$sample_name.".sh"; 
 	my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
 	my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-    if (! -e $IN_bam_T) {#make sure there is a input fasta file 
+    	if (! -e $IN_bam_T) {#make sure there is a input fasta file 
         print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         print "Warning: Died because there is no input bam file for bwa:\n";
         print "File $IN_bam_T does not exist!\n";
         die "Please check command line argument!", $normal, "\n\n";
 
-    }
-    if (! -s $IN_bam_T) {#make sure input fasta file is not empty
+    	}
+    	if (! -s $IN_bam_T) {#make sure input fasta file is not empty
         print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         die "Warning: Died because $IN_bam_T is empty!", $normal, "\n\n";
-    }
+    	}
 	if (! -e $IN_bam_N) {#make sure there is a input fasta file 
         print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         print "Warning: Died because there is no input bam file for bwa:\n";
         print "File $IN_bam_N does not exist!\n";
         die "Please check command line argument!", $normal, "\n\n";
 
-    }
-    if (! -s $IN_bam_N) {#make sure input fasta file is not empty
+    	}
+
+    	if (! -s $IN_bam_N) {#make sure input fasta file is not empty
         print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
         die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
-    }
-    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
-    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
-    `rm $lsf_out`;
-    `rm $lsf_err`;
+    	}
+    	my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    	my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    	`rm $lsf_out`;
+    	`rm $lsf_err`;
 	#`rm $current_job_file`;
 
-    open(STREKA, ">$job_files_dir/$current_job_file") or die $!;
-    print STREKA "#!/bin/bash\n";
-    #print STREKA "#BSUB -n 1\n";
-    #print STREKA "#BSUB -R \"rusage[mem=30000]\"","\n";
-    #print STREKA "#BSUB -M 30000000\n";
-    #print STREKA "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    #print STREKA "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    #print STREKA "#BSUB -J $current_job_file\n";
-    #print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print STREKA "#BSUB -q long\n";
-    #print STREKA "#BSUB -q research-hpc\n";
+    	open(STREKA, ">$job_files_dir/$current_job_file") or die $!;
+    	print STREKA "#!/bin/bash\n";
+    	#print STREKA "#BSUB -n 1\n";
+    	#print STREKA "#BSUB -R \"rusage[mem=30000]\"","\n";
+    	#print STREKA "#BSUB -M 30000000\n";
+    	#print STREKA "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
+    	#print STREKA "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
+    	#print STREKA "#BSUB -J $current_job_file\n";
+    	#print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    	#print STREKA "#BSUB -q long\n";
+    	#print STREKA "#BSUB -q research-hpc\n";
 	#print STREKA "#BSUB -q long\n";
 	#print STREKA "scr_t0=\`date \+\%s\`\n";
-    print STREKA "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print STREKA "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print STREKA "myRUNDIR=".$sample_full_path."/strelka\n";
-	print STREKA "STATUSDIR=".$sample_full_path."/status\n";
-    print STREKA "RESULTSDIR=".$sample_full_path."/results\n";
+    	print STREKA "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
+    	print STREKA "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
+    	print STREKA "myRUNDIR=".$sample_full_path."/strelka\n";
+    	print STREKA "STATUSDIR=".$sample_full_path."/status\n";
+    	print STREKA "RESULTSDIR=".$sample_full_path."/results\n";
 	print STREKA "SG_DIR=".$sample_full_path."/strelka\n"; 
 	print STREKA "RUNDIR=".$sample_full_path."\n";
 	print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
 	print STREKA "STRELKA_VCF=".$sample_full_path."/strelka/strelka_out/results/passed.somatic.snvs.vcf"."\n";   
-	print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
+	print STREKA "CONFDIR=".$run_script_path."/strelka.ini\n";
  	print STREKA "TASK_STATUS=".$sample_full_path."/strelka/strelka_out/task.complete"."\n";
 	print STREKA "export SAMTOOLS_DIR=$samtools\n";
 	print STREKA "export JAVA_HOME=$java_dir\n";
@@ -436,59 +437,44 @@ sub bsub_strelka{
 	print STREKA "fi\n";
 	### re-run, then delete task.complete file ###
 	print STREKA "if [ $status_rerun -eq 1 ]\n";
-    print STREKA "  then\n";
-    print STREKA "rm \${TASK_STATUS}\n";
-    print STREKA "fi\n";
+    	print STREKA "  then\n";
+    	print STREKA "rm \${TASK_STATUS}\n";
+    	print STREKA "fi\n";
 
-    print STREKA "if [ ! -f \${STRELKA_VCF} ]\n";
-    print STREKA "  then\n";
-    print STREKA "rm \${TASK_STATUS}\n";
-    print STREKA "fi\n";
+    	print STREKA "if [ ! -f \${STRELKA_VCF} ]\n";
+    	print STREKA "  then\n";
+    	print STREKA "rm \${TASK_STATUS}\n";
+    	print STREKA "fi\n";
 
-    print STREKA "if [ ! -f  \${TASK_STATUS} ]\n";
+    	print STREKA "if [ ! -f  \${TASK_STATUS} ]\n";
 	print STREKA "then\n";
 	print STREKA "if [ -d \${STRELKA_OUT} ]\n";
-    print STREKA "then\n";
-    print STREKA "rm -rf \${STRELKA_OUT}\n";
-    print STREKA "fi\n";
+    	print STREKA "then\n";
+    	print STREKA "rm -rf \${STRELKA_OUT}\n";
+    	print STREKA "fi\n";
 	print STREKA "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n"; 
    	print STREKA "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
 	print STREKA "else\n";
    	print STREKA "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
 	print STREKA "fi\n";
-	#print STREKA "put_cmd=\"ln -s\"\n";
-	#print STREKA "del_cmd=\"rm -f\"\n";
-	#print STREKA "del_local=\"rm -f\"\n";
-	#print STREKA "statfile=incomplete.strelka\n";
-	#print STREKA "localstatus=".$sample_full_path."/status/\$statfile\n";
-	#print STREKA "touch \$localstatus\n";
-    print STREKA ". $script_dir/set_envvars\n";
-#   	print STREKA ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
-   # print STREKA 	
-    print STREKA "if [ $s_wgs -eq 1 ]\n";
-    print STREKA "  then\n";
-    print STREKA "   ".$STRELKA_DIR2."/configureStrelkaSomaticWorkflow.py --normalBam=\$NBAM --tumorBam=\$TBAM --referenceFasta=$h38_REF --callMemMb=1024 --runDir=\$STRELKA_OUT\n";
+    	print STREKA ". $script_dir/set_envvars\n";
+    	print STREKA "if [ $s_wgs -eq 1 ]\n";
+    	print STREKA "  then\n";
+    	print STREKA "   ".$STRELKA_DIR2."/configureStrelkaSomaticWorkflow.py --normalBam=\$NBAM --tumorBam=\$TBAM --referenceFasta=$h38_REF --callMemMb=1024 --runDir=\$STRELKA_OUT\n";
   	print STREKA "else\n";	
-    print STREKA "   ".$STRELKA_DIR2."/configureStrelkaSomaticWorkflow.py --normalBam=\$NBAM --tumorBam=\$TBAM --referenceFasta=$h38_REF --callMemMb=1024 --exome --runDir=\$STRELKA_OUT\n";
-	#print STREKA "   ".$STRELKA_DIR2."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h38_REF." --config $script_dir/strelka.ini --output-dir \$STRELKA_OUT\n";
+    	print STREKA "   ".$STRELKA_DIR2."/configureStrelkaSomaticWorkflow.py --normalBam=\$NBAM --tumorBam=\$TBAM --referenceFasta=$h38_REF --callMemMb=1024 --exome --runDir=\$STRELKA_OUT\n";
 	print STREKA "fi\n";
 	print STREKA "cd \$STRELKA_OUT\n";
 	print STREKA "\$STRELKA_OUT/runWorkflow.py -m local -j 8 -g 4\n";
 	print STREKA "touch \${TASK_STATUS}\n";
 	print STREKA "fi\n";
-    close STREKA;
+    	close STREKA;
 
-    my $sh_file=$job_files_dir."/".$current_job_file;
+    	my $sh_file=$job_files_dir."/".$current_job_file;
 
-	if($q_name eq "research-hpc")
-	{
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-	else { 
-	    $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err bash $sh_file\n"; 
-	}
-
+	$bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
 	print $bsub_com;
-    system ($bsub_com);
+	system ($bsub_com);
 
 }
 
@@ -623,12 +609,11 @@ sub bsub_varscan{
 
  my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
+        $bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+        print $bsub_com;
+        system ($bsub_com);
+
+
 
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     #system ( $bsub_com );
@@ -771,12 +756,18 @@ sub bsub_parse_strelka{
 
  my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
+   # if($q_name eq "research-hpc")
+#    {
+   # $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+   # else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+   # print $bsub_com;
+   # system ($bsub_com);
+
+        $bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+        print $bsub_com;
+        system ($bsub_com);
+
+
 }
 sub bsub_parse_varscan{
 
@@ -954,13 +945,19 @@ sub bsub_parse_varscan{
 
  my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
-	}
+    #if($q_name eq "research-hpc")
+   # {
+   # $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+  #  else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+  #  print $bsub_com;
+#    system ($bsub_com);
+#
+        $bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+        print $bsub_com;
+        system ($bsub_com);
+
+
+}
 
 sub bsub_pindel{
     my ($step_by_step) = @_;
@@ -1024,12 +1021,17 @@ print PINDEL "$pindel -T 4 -f $h38_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_
 
  	my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }        
-	else {        $bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
+    #if($q_name eq "research-hpc")
+   # {
+   # $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }        
+#	else {        $bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+ #   print $bsub_com;
+ #   system ($bsub_com);
+
+        $bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+        print $bsub_com;
+        system ($bsub_com);
+
 
 	}
 
@@ -1212,36 +1214,36 @@ sub bsub_parse_pindel {
 	print PP "pindel.filter.somatic.remove_complex_indels = \"true\"\n";
 	print PP "pindel.filter.somatic.max_num_homopolymer_repeat_units = 6\n";
 	print PP "EOF\n";
-    print PP "cat > \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input <<EOF\n";
-    print PP "pindel.dbsnp.indel.annotator = $snpsift\n"; 
-    print PP "pindel.dbsnp.indel.db = $DB_SNP_NO_COSMIC\n";
-    print PP "pindel.dbsnp.indel.rawvcf = ./pindel.out.current_final.gvip.Somatic.vcf\n";
-    print PP "pindel.dbsnp.indel.mode = filter\n";
-    print PP "pindel.dbsnp.indel.passfile  = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
-    print PP "pindel.dbsnp.indel.dbsnpfile = ./pindel.out.current_final.gvip.dbsnp_present.vcf\n";
-    print PP "EOF\n";
+    	print PP "cat > \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input <<EOF\n";
+    	print PP "pindel.dbsnp.indel.annotator = $snpsift\n"; 
+    	print PP "pindel.dbsnp.indel.db = $DB_SNP_NO_COSMIC\n";
+    	print PP "pindel.dbsnp.indel.rawvcf = ./pindel.out.current_final.gvip.Somatic.vcf\n";
+    	print PP "pindel.dbsnp.indel.mode = filter\n";
+    	print PP "pindel.dbsnp.indel.passfile  = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
+    	print PP "pindel.dbsnp.indel.dbsnpfile = ./pindel.out.current_final.gvip.dbsnp_present.vcf\n";
+    	print PP "EOF\n";
   	print PP "myRUNDIR=".$sample_full_path."/pindel\n";
 	print PP "pindelout=\${myRUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n"; 
-    print PP "statfile=complete.pindel.parser\n";
-    print PP "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
-    print PP "if [ ! -d \${myRUNDIR}\/status ]\n";
-    print PP "then\n";
-    print PP "mkdir \${myRUNDIR}\/status\n";
-    print PP "fi\n";
+    	print PP "statfile=complete.pindel.parser\n";
+    	print PP "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
+    	print PP "if [ ! -d \${myRUNDIR}\/status ]\n";
+    	print PP "then\n";
+    	print PP "mkdir \${myRUNDIR}\/status\n";
+    	print PP "fi\n";
   ### re-run, then delete complete.pindel.parser file ###
-    print PP "if [ $status_rerun -eq 1 ]\n";
-    print PP "  then\n";
-    print PP "rm \${localstatus}\n";
-    print PP "fi\n";
-    print PP "if [ ! -f  \${localstatus} ]\n";
-    print PP "then\n";
+    	print PP "if [ $status_rerun -eq 1 ]\n";
+    	print PP "  then\n";
+    	print PP "rm \${localstatus}\n";
+    	print PP "fi\n";
+    	print PP "if [ ! -f  \${localstatus} ]\n";
+    	print PP "then\n";
 	print PP "cd \${RUNDIR}/pindel\n";
 	print PP "outlist=pindel.out.filelist\n";
 	print PP "find \. -name \'*_D\' -o -name \'*_SI\' -o -name \'*_INV\' -o -name \'*_TD\'  > \./\${outlist}\n";
 	print PP 'list=$(xargs -a  ./$outlist)'."\n";
 	print PP "pin_var_file=pindel.out.raw\n";
 	print PP 'cat $list | grep ChrID > ./$pin_var_file'."\n";
-    print PP "     ".$run_script_path."pindel_filter.v0.5.pl ./pindel_filter.input\n"; 
+    	print PP "     ".$run_script_path."pindel_filter.v0.5.pl ./pindel_filter.input\n"; 
 	print PP 'pre_current_final=$pin_var_file.CvgVafStrand_pass.Homopolymer_pass.vcf'."\n";
 	print PP 'for mytmp in $pin_var_file.CvgVafStrand_pass.vcf  $pre_current_final  ${pre_current_final/%pass.vcf/fail.vcf} ; do'."\n";
    	print PP "     ".$run_script_path.'genomevip_label.pl Pindel ./$mytmp ./${mytmp/%vcf/gvip.vcf}'."\n";
@@ -1249,20 +1251,20 @@ sub bsub_parse_pindel {
 	print PP 'current_final=${pin_var_file/%raw/current_final.gvip.Somatic.vcf}'."\n";
 	print PP 'cat ./${pre_current_final/%vcf/gvip.vcf} > ./$current_final'."\n";
 #	print PP "fi\n";
-    print PP "export JAVA_HOME=$java_dir\n";
+    	print PP "export JAVA_HOME=$java_dir\n";
 	print PP "export JAVA_OPTS=\"-Xmx10g\"\n";
-    print PP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    print PP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-    print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-    print PP "else\n";
-    print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-    print PP "fi\n";
+    	print PP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
+    	print PP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+    	print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
+    	print PP "else\n";
+    	print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
+    	print PP "fi\n";
 	print PP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";	
 	print PP '		grep "Error occurred during initialization of VM" ${pindelout}',"\n"; 
 	print PP '		CHECK=$?',"\n";
 	print PP '		while [ ${CHECK} -eq 0 ]',"\n";
 	print PP "		do\n";	
-    print PP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";
+    	print PP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/pindel/pindel_dbsnp_filter.indel.input\n";
  	print PP '      grep "Error occurred during initialization of VM" ${pindelout}',"\n";
 	print PP '			CHECK=$?',"\n";
 	print PP "		done\n";
@@ -1277,15 +1279,19 @@ sub bsub_parse_pindel {
 	print PP "touch \${localstatus}\n";
 	print PP "fi\n";
 	close PP;
- my $sh_file=$job_files_dir."/".$current_job_file;
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }    
-	else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
-	
-	}
+ 	my $sh_file=$job_files_dir."/".$current_job_file;
+    #if($q_name eq "research-hpc")
+    #{
+    #$bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }    
+#	else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+ #   print $bsub_com;
+  #  system ($bsub_com);
+
+        $bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+        print $bsub_com;
+        system ($bsub_com);
+
+}
 
 sub bsub_mutect{
     #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
@@ -1447,20 +1453,25 @@ sub bsub_mutect{
 
 	#print MUTECT "     ".$run_script_path."merge_mutect.pl $sample_full_path\n";	
   
-  close MUTECT;
+  	close MUTECT;
 
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
  	my $sh_file=$job_files_dir."/".$current_job_file;
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }    
-	else 
-	{        
-	$bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                
-    }
-    print $bsub_com;
+   # if($q_name eq "research-hpc")
+   # {
+   # $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }    
+#	else 
+#	{        
+#	$bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                
+ #   }
+  #  print $bsub_com;
 
-    system ( $bsub_com );
+  #  system ( $bsub_com );
+        $bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+        print $bsub_com;
+        system ($bsub_com);
+
+
 }
 
 
@@ -1508,15 +1519,20 @@ sub bsub_parse_mutect{
   	close PM;
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     my $sh_file=$job_files_dir."/".$current_job_file;
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else
-    {
-    $bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";
-    }
-    print $bsub_com;
-    system ( $bsub_com );
+    #if($q_name eq "research-hpc")
+    #{
+    #$bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    #else
+    #{
+    #$bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";
+    #}
+    #print $bsub_com;
+    #system ( $bsub_com );
+
+        $bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+        print $bsub_com;
+        system ($bsub_com);
+
 
 }
 
@@ -1598,13 +1614,18 @@ sub bsub_merge_vcf{
     #$bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>80000] rusage[mem=80000]\" -M 80000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     
 	#print $bsub_com;
     #system ($bsub_com);
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                                      
-    }
-    print $bsub_com;
-   	system ($bsub_com);
+    #if($q_name eq "research-hpc")
+    #{
+    #$bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    #else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                                      
+    #}
+    #print $bsub_com;
+   #	system ($bsub_com);
+
+        $bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+        print $bsub_com;
+        system ($bsub_com);
+
 
 	}
 
@@ -1688,13 +1709,18 @@ sub bsub_vcf_2_maf{
 
   	my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                
-    }
-    print $bsub_com;
-	system ($bsub_com);
+    #if($q_name eq "research-hpc")
+    #{
+    #$bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    #else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                
+    #}
+    #print $bsub_com;
+#	system ($bsub_com);
+
+        $bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
+        print $bsub_com;
+        system ($bsub_com);
+
 
  }
 
