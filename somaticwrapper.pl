@@ -420,7 +420,7 @@ sub bsub_strelka{
 	print STREKA "RUNDIR=".$sample_full_path."\n";
 	print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
 	print STREKA "STRELKA_VCF=".$sample_full_path."/strelka/strelka_out/results/passed.somatic.snvs.vcf"."\n";   
-	print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
+	#print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
  	print STREKA "TASK_STATUS=".$sample_full_path."/strelka/strelka_out/task.complete"."\n";
 	print STREKA "export SAMTOOLS_DIR=$samtools\n";
 	print STREKA "export JAVA_HOME=$java_dir\n";
@@ -1366,9 +1366,9 @@ sub bsub_mutect{
     #print MUTECT "fi\n";
     print MUTECT "if [ $status_rg -eq 0 ]\n";
     print MUTECT "then\n";	
-	print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${NBAM} O=\${NBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
+	print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${NBAM} O=\${NBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=$sample_name\n";
     print MUTECT "samtools index \${NBAM_rg}\n";
-    print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${TBAM} O=\${TBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=20\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar "."$picardexe AddOrReplaceReadGroups I=\${TBAM} O=\${TBAM_rg} RGID=1 RGLB=lib1 RGPL=illumina RGPU=unit1 RGSM=$sample_name\n";
     print MUTECT "samtools index \${TBAM_rg}\n";
 	#print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";
 #print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM_rg} --input_file:tumor \${TBAM_rg} --vcf \${rawvcf}\n";
@@ -1392,7 +1392,7 @@ sub bsub_mutect{
 		print MUTECT '  if [ ! -s $rawvcf ]',"\n";
     	print MUTECT "  then\n";
 	#	print MUTECT "java  \${JAVA_OPTS} -jar "."$gatkexe3 -T MuTect2 -nct 4  -R $h38_REF -L $chr1 --dbsnp $DB_SNP --cosmic $DB_COSMIC -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode --enable_strand_artifact_filter  -o \${rawvcf}\n";
-    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP_MUTECT --cosmic $DB_COSMIC_MUTECT -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP_MUTECT --cosmic $DB_COSMIC_MUTECT -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode -vcf \${rawvcf}\n";
 	    print MUTECT "  fi\n";
 	} 
 
