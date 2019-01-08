@@ -1,3 +1,11 @@
-### an example for running somaticwrapper on MGI, please change the path accordingly, otherwise it will possible overwrite my result ##
+### an example for running somaticwrapper on katmai, please change the path accordingly, otherwise it will possible overwrite my result ##
 perl somaticwrapper.pl --rdir /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM/test --log /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 1
-
+perl somaticwrapper.pl --rdir /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM/test --log /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 2
+perl somaticwrapper.pl --rdir /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM/test --log /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 3
+perl somaticwrapper.pl --rdir /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM/test --log /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 4
+perl somaticwrapper.pl --rdir /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM/test --log /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 5
+perl somaticwrapper.pl --rdir /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM/test --log /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 6
+perl somaticwrapper.pl --rdir /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM/test --log /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 7
+perl somaticwrapper.pl --rdir /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM/test --log /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 8
+perl somaticwrapper.pl --rdir /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM/test --log /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 9
+perl somaticwrapper.pl --rdir /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM/test --log /diskmnt/Projects/Users/scao/projects/cptac3/hg38/GBM --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 10

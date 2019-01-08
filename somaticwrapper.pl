@@ -168,7 +168,7 @@ print $script_dir,"\n";
 #chomp $run_script_path;
 
 #$run_script_path = "/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl ".$run_script_path."/";
-$run_script_path = "/gsc/bin/perl ".$run_script_path."/";
+$run_script_path = "/usr/bin/perl ".$run_script_path."/";
 
 print $run_script_path,"\n";
 my $hold_RM_job = "norm";
@@ -191,11 +191,11 @@ my $java_mutect="/home/scao/tools/jre1.7.0_80";
 #my $gatkexe4="/gscuser/scao/tools/gatk-4.0.0.0/gatk";
 my $snpsift="/diskmnt/Software/snpEff_20150522/SnpSift.jar";
 my $mutect1="/home/scao/tools/mutect1/mutect-1.1.7.jar";
-my $samtools="/diskmnt/Software/samtools-1.2/bin";
+my $samtools="/diskmnt/Software/samtools-1.2";
 my $varscan="/diskmnt/Software/varscan-2.3.8";
 my $bamreadcount="/diskmnt/Software/bam-readcount-0.7.4/mybuild/bin/bam-readcount";
-my $vepannot="/diskmnt/Software/VEP_v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
-my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v85";
+my $vepannot="/diskmnt/Projects/Users/scao/tools/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
+my $vepcache="/diskmnt/Projects/Users/scao/database/hg38/vep/v85";
 
 my $DB_SNP_NO_CHR="/diskmnt/Projects/Users/scao/database/hg38/00-All.vcf";
 my $DB_SNP="/diskmnt/Projects/Users/scao/database/hg38/00-All.chr.vcf";
