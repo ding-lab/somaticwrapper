@@ -40,17 +40,46 @@ my $f_bam_t=$path_d.$temp[-3].".T.bam";
 #my $last_bam_t_abs=(split(/\//,$f_bam_t_abs))[-1];
 my $sn_n; 
 my $sn_t; 
-foreach my $l (`$samtools view -H $f_bam_n`) 
-	{
-		my $ltr=$l; 
-		chomp($ltr); 
-		if($ltr=~/^\@RG/) { 
-			my @temp2=split("\t",$ltr); 
-			$sn_n=(split(/\:/,$temp2[-1]))[1];
-	    	last; 
-		  }
-	}
+#foreach my $l (`$samtools view -H $f_bam_n`) 
+#	{
+#		my $ltr=$l; 
+#		chomp($ltr); 
 
+#		if($ltr=~/^\@RG/) { 
+#			my @temp2=split("\t",$ltr); 
+#			$sn_n=(split(/\:/,$temp2[-1]))[1];
+#	    	last; 
+#		  }
+#	}
+
+
+#foreach my $l (`$samtools view -H $f_bam_t`)
+ #   {
+  #      my $ltr=$l;
+  #      chomp($ltr);
+  #      if($ltr=~/^\@RG/) {
+  #          my @temp2=split("\t",$ltr);
+  #          $sn_t=(split(/\:/,$temp2[-1]))[1];
+#			last; 
+#          }
+#    }
+
+foreach my $l (`$samtools view -H $f_bam_n`)
+    {
+        my $ltr=$l;
+        chomp($ltr);
+        if($ltr=~/^\@RG/) {
+            my @temp2=split("\t",$ltr);
+            for(my $i=0;$i<scalar @temp2;$i++)
+            {
+            if($temp2[$i]=~/^SM/)
+            {
+            $sn_n=(split(/\:/,$temp2[$i]))[1];
+            last;
+            }
+          }
+    }
+ }
 
 foreach my $l (`$samtools view -H $f_bam_t`)
     {
@@ -58,8 +87,14 @@ foreach my $l (`$samtools view -H $f_bam_t`)
         chomp($ltr);
         if($ltr=~/^\@RG/) {
             my @temp2=split("\t",$ltr);
-            $sn_t=(split(/\:/,$temp2[-1]))[1];
-			last; 
+            for(my $i=0;$i<scalar @temp2;$i++)
+            {
+            if($temp2[$i]=~/^SM/)
+            {
+            $sn_t=(split(/\:/,$temp2[$i]))[1];
+            last;
+            }
+            }
           }
     }
 
