@@ -1,4 +1,4 @@
 ### an example for running somaticwrapper on MGI, please change the path accordingly, otherwise it will possible overwrite my result ##
 
-perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 1 --q research-hpc --sre 1
+perl somaticwrapper.pl --rdir /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc/somatic --log /gscmnt/gc2518/dinglab/cptac3/hg38/ccrc --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --step 1 --q research-hpc --minvaf 0.05
 

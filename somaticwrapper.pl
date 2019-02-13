@@ -102,7 +102,7 @@ my $status = &GetOptions (
 	  "q=s" => \$q_name,
 	  "mincovt=i"  => \$mincov_t,
       "mincovn=i"  => \$mincov_n,		
-	  "minvaf=i"  => \$minvaf,
+	  "minvaf=f"  => \$minvaf,
 	  "maxindsize=i"  => \$maxindsize,
       "log=s"  => \$log_dir,
       "q=s" => \$q_name,
@@ -122,6 +122,10 @@ print "step num=",$step_number,"\n";
 print "status rerun=",$status_rerun,"\n";
 print "status readgroup=",$status_rg,"\n";
 print "queue name=",$q_name,"\n";
+print "minvaf = ",$minvaf,"\n"; 
+
+#<STDIN>; 
+#exit;
 
 if($q_name eq "") 
 {
