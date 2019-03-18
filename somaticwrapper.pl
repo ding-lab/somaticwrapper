@@ -168,9 +168,12 @@ print $script_dir,"\n";
 #chomp $run_script_path;
 
 #$run_script_path = "/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl ".$run_script_path."/";
+my $run_script_path_conda = "perl ".$run_script_path."/";
+
 $run_script_path = "/usr/bin/perl ".$run_script_path."/";
 
 print $run_script_path,"\n";
+
 my $hold_RM_job = "norm";
 my $current_job_file = "";#cannot be empty
 my $hold_job_file = "";
@@ -1696,7 +1699,7 @@ sub bsub_vcf_2_maf{
 	#print MAF "     ".$run_script_path."vaf_all_callers.pl \${RUNDIR}\n";
     print MAF "cd \${RUNDIR}\n";
     print MAF ". $script_dir/set_envvars\n";
-    print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.input >&./vep.merged.withmutect.log\n";
+    print MAF "     ".$run_script_path_conda."vep_annotator.pl ./vep.merged.withmutect.input >&./vep.merged.withmutect.log\n";
     print MAF "rm \${F_VCF_2}\n";
     print MAF "rm \${F_VEP_2}\n";
     print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
