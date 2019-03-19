@@ -638,9 +638,24 @@ sub bsub_parse_strelka{
 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
-    `rm $lsf_out`;
-    `rm $lsf_err`;
+    my $find_error=0;
+    if(-e $lsf_err)
+    {
+     foreach my $l (`cat $lsf_err`) 
+	{
+	my $ltr=$l; 
+	chomp($ltr); 
+	if($ltr=~/Error/) { $find_error=1; }
+	}
+    }
 
+    if($find_error==1) { $status_rerun=1; }
+
+      `rm $lsf_out`;
+    `rm $lsf_err`;
+ 
+    #if($find_error==0) { $status_rerun=1; }
+ 
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
@@ -789,6 +804,23 @@ sub bsub_parse_varscan{
 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    my $find_error=0;
+    if(-e $lsf_err)
+    {
+     foreach my $l (`cat $lsf_err`)
+        {
+        my $ltr=$l;
+        chomp($ltr);
+        if($ltr=~/Error/ || $ltr=~/java\.lang\.RuntimeException/) { $find_error=1; }
+        }
+    }
+
+
+    if($find_error==1) { $status_rerun=1; }
+    #<STDIN>; 
+    #print $sample_name,"\t",$find_error,"\n"; 
+ 
+   #<STDIN>;
     `rm $lsf_out`;
     `rm $lsf_err`;
 
@@ -888,7 +920,7 @@ sub bsub_parse_varscan{
     print VARSCANP "del_cmd=\"rm -f\"\n";
     print VARSCANP "del_local=\"rm -f\"\n";
     print VARSCANP "statfile=complete.vs_som_parser\n";
-    print VARSCANP "localstatus=\${RUNDIR}\/status\/\${statfile}\n";
+    print VARSCANP "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
     print VARSCANP "if [ ! -d \${myRUNDIR}\/status ]\n";
     print VARSCANP "then\n";
     print VARSCANP "mkdir \${myRUNDIR}\/status\n";
@@ -1184,6 +1216,7 @@ sub bsub_parse_pindel {
 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+
     `rm $lsf_out`;
     `rm $lsf_err`;
     open(PP, ">$job_files_dir/$current_job_file") or die $!;
