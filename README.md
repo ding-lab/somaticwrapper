@@ -6,9 +6,11 @@ Detect somatic variants from tumor and normal WXS
 
 SomaticWrapper pipeline is a fully automated and modular software package designed for detection of somatic variants from tumor and normal exome data. It works on LSF job scheduler and can run multiple jobs in parallel. Multiple standard variant calling tools are included in the pipeline such as varscan, strelka, mutect and pindel.
 
+## somaticwrapper.pl is still development for adding  --mincovt --mincovn --minvaf --maxindsize ##
+
 Pipeline version: 1.1
 
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --refname --log --q 
+$yellow     Usage: perl somatic_calling_v1.1.pl  --srg --step --sre --rdir --ref --refname --log --q 
 
 $normal
 
