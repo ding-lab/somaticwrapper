@@ -207,8 +207,8 @@ my $bamreadcount="/gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4
 my $vepannot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
 my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v85";
 
-my $DB_SNP_NO_CHR="/gscmnt/gc2737/ding/hg38_database/DBSNP/00-All.vcf";
-my $DB_SNP="/gscmnt/gc2737/ding/hg38_database/DBSNP/00-All.chr.vcf";
+my $DB_SNP_NO_CHR="/gscmnt/gc3027/dinglab/medseq/hg38_database/DBSNP/00-All.vcf";
+my $DB_SNP="/gscmnt/gc3027/dinglab/medseq/hg38_database/DBSNP/00-All.chr.vcf";
 
 my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
 my $DB_COSMIC_NO_CHR="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicAllMuts.HG38.sort.vcf"; 
