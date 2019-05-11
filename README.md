@@ -1,4 +1,4 @@
-# somaticwrapper version 1.3 ##
+# somaticwrapper version 1.4 ##
 
 Detect somatic variants from tumor and normal WXS for HG38 reference
 
@@ -8,7 +8,7 @@ Detect somatic variants from tumor and normal WXS for HG38 reference
 
 SomaticWrapper pipeline is a fully automated and modular software package designed for detection of somatic variants from tumor and normal exome data. It works on LSF job scheduler and can run multiple jobs in parallel. Multiple standard variant calling tools are included in the pipeline such as varscan, strelka, mutect and pindel.
 
-Pipeline version: 1.3
+Pipeline version: 1.4
 
 Usage: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize
 
@@ -59,4 +59,5 @@ hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Referenc
 [10] Generate maf file  
 
 [11] Generate merged maf file 
- 
+
+[12] DNP annotation 
