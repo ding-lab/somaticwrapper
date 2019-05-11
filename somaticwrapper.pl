@@ -68,6 +68,7 @@ $yellow      [8]  Parse Pindel
 $cyan 	     [9]  Merge vcf files  
 $cyan		 [10] Generate maf file 
 $cyan 		 [11] Generate merged maf file
+$cyan        [12] Annotate dnp and remove nearby snv near an indel
 $normal
 
 OUT
@@ -151,6 +152,10 @@ my $HOME = $ENV{HOME};
 my $working_name= (split(/\//,$run_dir))[-1];
 my $HOME1=$log_dir;
 #store job files here
+if (! -d $HOME1)
+{
+`mkdir $HOME1`; 
+}
 if (! -d $HOME1."/tmpsomatic") {
     `mkdir $HOME1"/tmpsomatic"`;
 }
@@ -217,6 +222,7 @@ my $DB_SNP_NO_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.HG38.pass.cosm
 my $f_ref_annot="/gscmnt/gc2518/dinglab/scao/tools/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
 my $TSL_DB="/gscmnt/gc2518/dinglab/scao/db/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
 my $h38_REF_bai=$h38_REF.".fai";
+my $f_gtf= "/gscmnt/gc3027/dinglab/medseq/hg38_database/GTF/Homo_sapiens.GRCh38.85.gtf";
 
 my $first_line=`head -n 1 $h38_REF`;
 
@@ -284,7 +290,7 @@ if($step_number==11 || $step_number==0)
 
 	print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
 	$hold_job_file=$current_job_file; 
-	$current_job_file = "Run_report_".$working_name.".sh"; 
+	$current_job_file = "j11_Run_report_".$working_name.".sh"; 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
@@ -324,9 +330,56 @@ if($step_number==11 || $step_number==0)
 
 }
 
+### Annotate dnp 
+### keep indel (for cocoexistence of indel and snv) 
+
+if($step_number==12 || $step_number==0)
+    {
+
+    print $yellow, "annotate dnp and remove snv near an indel",$normal, "\n";
+    $hold_job_file=$current_job_file;
+    $current_job_file = "j12_dnp_".$working_name.".sh";
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+    #`rm $current_job_file`;
+    my $working_name= (split(/\//,$run_dir))[-1];
+    my $f_maf=$run_dir."/".$working_name.".withmutect.maf.caller";
+    my $f_maf_rm_snv=$run_dir."/".$working_name.".remove.nearby.snv.maf";
+	my $f_maf_dnp_tmp=$run_dir."/".$working_name.".dnp.annotated.tmp.maf";
+	my $f_maf_dnp_tmp_merge=$run_dir."/".$working_name.".dnp.annotated.tmp.maf.merge";
+	my $f_maf_dnp=$run_dir."/".$working_name.".dnp.annotated.maf";
+	my $f_bam_list=$run_dir."/input.bam.list";
+
+    open(DNP, ">$job_files_dir/$current_job_file") or die $!;
+    print DNP "#!/bin/bash\n";
+	## remove snv nearby an indel ##
+    print DNP "      ".$run_script_path."remove_nearby_snv.pl $f_maf $f_maf_rm_snv"."\n";
+#perl /gscmnt/gc2518/dinglab/scao/home/git/COCOONS/cocoon.pl LUAD.Somatic.042219.remove.nearbysnv.maf  LUAD.Somatic.042219.remove.nearbysnv.and.annotmnp.maf --bam /gscmnt/gc2518/dinglab/cptac3/hg38/luad/somatic/worklog/bamlist.LUAD.dnp.tsv  --merge --genome /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --gtf /gscmnt/gc3027/dinglab/medseq/hg38_database/GTF/Homo_sapiens.GRCh38.85.gtf --snvonly
+	print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
+	print DNP "		 ".$run_script_path."add_mnp2.pl $f_maf_rm_snv $f_maf_dnp_tmp_merge $f_maf_dnp"."\n";
+    #print DNP "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
+    close DNP;
+
+    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
+    #system ($bsub_com);
+
+ 	my $sh_file=$job_files_dir."/".$current_job_file;
+
+    if($q_name eq "research-hpc")
+    {
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+    print $bsub_com;
+    system ($bsub_com);
+
+}
+
+
 #######################################################################
 # send email to notify the finish of the analysis
-if (($step_number == 0) || ($step_number == 12)) {
+if (($step_number == 0) || ($step_number == 13)) {
     print $yellow, "Submitting the job for sending an email when the run finishes ",$sample_name, "...",$normal, "\n";
     $hold_job_file = $current_job_file;
     $current_job_file = "Email_run_".$$.".sh";
