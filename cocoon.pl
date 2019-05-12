@@ -64,6 +64,9 @@ my $maf = $ARGV[0];
 my $output =$ARGV[1];
 my $dirlog=$ARGV[2];
 
+ 
+my $f_cds_bed; 
+my $f_gtf_cds; 
 open(OUT, ">$output");
 
 open(MAF, "$maf");
@@ -121,7 +124,7 @@ if($mergeFlag)
 		my %right;
 		my ($tmp, $tmp1, $tmp2);
 		open(GTF, "$gtf");
-		my $f_gtf_cds=$dirlog."/GTF_CDS";
+		 $f_gtf_cds=$dirlog."/GTF_CDS";
 		open(CDSOUT, ">$f_gtf_cds");
 
 		while(<GTF>)
@@ -230,8 +233,9 @@ if($mergeFlag)
 		### GTF to BED ###
 		open(GTFCDS, "$f_gtf_cds");
 
-		my $f_cds_bed=$dirlog."/CDS_BED"; 
-		open(OUTBED, "$f_cds_bed");
+		$f_cds_bed=$dirlog."/CDS_BED"; 
+
+		open(OUTBED, ">$f_cds_bed");
 
 		my %block_count;
 		my %strand;
@@ -280,9 +284,11 @@ if($mergeFlag)
 		#`rm $f_gtf_cds`;
 
 		### BED to FA ###
+
 		open(REF,"$genome");
 		my %human;
 		my $id;
+
 		while(<REF>)
 		{
         		chomp;
@@ -298,7 +304,7 @@ if($mergeFlag)
         		}
 		}
 		close REF;
-		open(DA,"$f_cds_bed");
+		open(DA,"<$f_cds_bed");
 		while(<DA>)
 		{
         		chomp;
@@ -330,8 +336,8 @@ if($mergeFlag)
                 die "Genome sequence(fasta) and annotation(gtf) are required in MERGE mode!\n";
         }
 		close DA;
-		 `rm $f_cds_bed`;
-        `rm $f_gtf_cds`;
+		 #`rm $f_cds_bed`;
+        #`rm $f_gtf_cds`;
 }
 
 ###############=> END <=##################
@@ -961,10 +967,11 @@ sub toMerge
 ##########################################
 ########## Processing the data ###########
 ##############=> START <=#################
+my $maf_tmp=$dirlog."/tmp";
+system("sort -t'	' -k 1,1 -k 16,16 -k 6,6n $maf | grep -v ^# | grep -v ^Hugo > $maf_tmp");
 
-system("sort -t'	' -k 1,1 -k 16,16 -k 6,6n $maf | grep -v ^# | grep -v ^Hugo > tmp");
 #sort by gene, sample and start position
-open(MAF, "tmp");
+open(MAF, "$maf_tmp");
 
 my $gene_sample = "";
 my $candidates = "";
@@ -1054,6 +1061,10 @@ if($mergeFlag)
 	}
 }
 
+## remove tmp ##
+`rm $maf_tmp`;
+`rm $f_cds_bed`;
+`rm $f_gtf_cds`;
 ###############=> END <=##################
 ###########################################
 

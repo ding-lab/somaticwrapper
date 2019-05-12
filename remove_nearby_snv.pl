@@ -8,8 +8,6 @@ use warnings;
 
 die unless @ARGV == 2;
 
-## remove snv within 10bps of an indel ##
-
 ## chr: 4, pos 5, type 9, sn 15 starting from 0 ##
 
 ###  762 DEL
@@ -18,6 +16,7 @@ die unless @ARGV == 2;
 
 my %ind=(); 
 my %snv=(); 
+my $window=20; 
 
 my ($maf_in,$maf_out)=@ARGV;
 
@@ -60,7 +59,7 @@ foreach my $l (`cat $maf_in`)
 			my $remove_snv=0; 
 			if(defined $ind{$id}) 
 			{
-			for(my $i=-10;$i<=10;$i++)
+			for(my $i=-$window;$i<=$window;$i++)
 			{
 			my $pos=$temp[5]+$i; 
 			if(defined $ind{$id}{$pos}) 

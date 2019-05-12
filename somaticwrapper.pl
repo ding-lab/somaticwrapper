@@ -118,7 +118,7 @@ if ($help || $run_dir eq "" || $log_dir eq "" || $step_number<0) {
    }
 
 print "run dir=",$run_dir,"\n";
-print "run dir=",$log_dir,"\n";
+print "log dir=",$log_dir,"\n";
 print "step num=",$step_number,"\n";
 print "status rerun=",$status_rerun,"\n";
 print "status readgroup=",$status_rg,"\n";
@@ -356,10 +356,15 @@ if($step_number==12 || $step_number==0)
     print DNP "#!/bin/bash\n";
 	## remove snv nearby an indel ##
     print DNP "      ".$run_script_path."remove_nearby_snv.pl $f_maf $f_maf_rm_snv"."\n";
-#perl /gscmnt/gc2518/dinglab/scao/home/git/COCOONS/cocoon.pl LUAD.Somatic.042219.remove.nearbysnv.maf  LUAD.Somatic.042219.remove.nearbysnv.and.annotmnp.maf --bam /gscmnt/gc2518/dinglab/cptac3/hg38/luad/somatic/worklog/bamlist.LUAD.dnp.tsv  --merge --genome /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa --gtf /gscmnt/gc3027/dinglab/medseq/hg38_database/GTF/Homo_sapiens.GRCh38.85.gtf --snvonly
+   ## annotate dnp ##
 	print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
-	print DNP "		 ".$run_script_path."add_mnp2.pl $f_maf_rm_snv $f_maf_dnp_tmp_merge $f_maf_dnp"."\n";
-    #print DNP "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
+	## add dnp to the maf ##
+	print DNP "		 ".$run_script_path."add_dnp.pl $f_maf_rm_snv $f_maf_dnp_tmp_merge $f_maf_dnp"."\n";
+### remove tmp files ##
+    print DNP "rm $f_maf_dnp_tmp_merge\n";
+	print DNP "rm $f_maf_dnp_tmp\n";
+	print DNP "rm $f_maf_rm_snv\n"; 
+	#print DNP "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
     close DNP;
 
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
@@ -369,9 +374,11 @@ if($step_number==12 || $step_number==0)
 
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>10000] rusage[mem=10000]\" -M 10000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>10000] rusage[mem=10000]\" -M 10000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+
     print $bsub_com;
+
     system ($bsub_com);
 
 }
@@ -409,6 +416,7 @@ if (($step_number == 0) || ($step_number == 13)) {
 	else 
 	{ 
 	$bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+
     print $bsub_com;
     system ($bsub_com);
 
