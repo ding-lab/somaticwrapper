@@ -347,6 +347,7 @@ if($step_number==12 || $step_number==0)
     my $working_name= (split(/\//,$run_dir))[-1];
     my $f_maf=$run_dir."/".$working_name.".withmutect.maf.caller";
     my $f_maf_rm_snv=$run_dir."/".$working_name.".remove.nearby.snv.maf";
+	my $f_maf_removed=$run_dir."/".$working_name.".remove.nearby.snv.maf.removed";
 	my $f_maf_dnp_tmp=$run_dir."/".$working_name.".dnp.annotated.tmp.maf";
 	my $f_maf_dnp_tmp_merge=$run_dir."/".$working_name.".dnp.annotated.tmp.maf.merge";
 	my $f_maf_dnp=$run_dir."/".$working_name.".dnp.annotated.maf";
@@ -364,6 +365,8 @@ if($step_number==12 || $step_number==0)
     print DNP "rm $f_maf_dnp_tmp_merge\n";
 	print DNP "rm $f_maf_dnp_tmp\n";
 	print DNP "rm $f_maf_rm_snv\n"; 
+	print DNP "rm $f_maf_removed\n";
+	
 	#print DNP "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
     close DNP;
 
