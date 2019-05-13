@@ -8,8 +8,10 @@ use warnings;
 
 die unless @ARGV == 3;
 
-##adding correct annotation for mnp in the maf file ##
-##fix dnp which are in different codes ##
+##adding correct annotation for dnp in the maf file ##
+##fix dnps which are in different codon and same allele ##
+
+## use mnp for general purpose ##
  
 my %mnp_infor=(); 
 my %mnp_end=(); 
