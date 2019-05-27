@@ -5,7 +5,7 @@ Detect somatic variants from tumor and normal WXS based on HG38 reference. Somat
 
 If you want to run somaticwrapper for hg19 reference, you can git clone the withmutect branch. 
 
-## Installation third-party software ##
+## Install the third-party software ##
 
 Mutect-1.1.7: https://software.broadinstitute.org/gatk/download/archive
 
