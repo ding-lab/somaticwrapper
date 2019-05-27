@@ -4,7 +4,8 @@ Detect somatic variants from tumor and normal WXS based on HG38 reference
 
 ### Song Cao ###
 
-*you must enter the directory with somaticwrapper pipeline to submit the jobs
+ 
+### ********you must enter the directory with somaticwrapper pipeline to submit the jobs******* ###
 
 SomaticWrapper pipeline is a fully automated and modular software package designed for detection of somatic variants from tumor and normal exome data. It works on LSF job scheduler and can run multiple jobs in parallel. Multiple standard variant calling tools are included in the pipeline such as varscan, strelka, mutect and pindel.
 
