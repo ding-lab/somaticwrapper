@@ -15,7 +15,7 @@ my $f_m=$run_dir."/merged.withmutect.vcf";
 my $f_filter_out=$run_dir."/merged.filtered.withmutect.vcf";
 my $f_vaf_out=$run_dir."/merged.withmutect.vaf";
 my $min_vaf_somatic=0.05;
-my $min_vaf_pindel=0.1;
+#my $min_vaf_pindel=0.1;
 my $max_vaf_germline=0.02; 
 my $min_coverage=20; 
 my $indel_max_size=100; 
@@ -56,7 +56,7 @@ foreach my $l (`cat $f_m`)
  
 		 #if($info=~/strelka-varscan/) and strelka-mutect ##
 		 #if($info=~/set\=sindel-varindel/ || $info=~/set\=sindel-pindel/ ##
-       	if($info=~/set\=sindel-varindel/ || $info=~/set\=sindel-pindel/) 
+       	if($info=~/set\=sindel/) 
 #		if($info=~/set\=strelka-varscan/ || $info=~/set\=strelka-mutect/)
 		 {
 
@@ -140,7 +140,7 @@ foreach my $l (`cat $f_m`)
 #alt_counts = value of FORMAT column value “TIR”
 #ref_t1count = $ref_counts[0] (use the tier1 counts -- the first value in the comma-delimited list)
 #alt_t1count = $alt_counts[0] (...likewise..)
-         if($info=~/set\=strelka-varscan/ || $info=~/set\=strelka-mutect/)
+         if($info=~/set\=strelka/)
        #if($info=~/set\=sindel-varindel/ || $info=~/set\=sindel-pindel/)
           	{
 
@@ -164,10 +164,14 @@ foreach my $l (`cat $f_m`)
             #my @temp3=split(",",$temp2[0]);
             #$rc{'A'}=$temp3[0];
 
-            $rc{'A'}=(split(",",$temp2[0]))[0];
-            $rc{'C'}=(split(",",$temp2[1]))[0];
-            $rc{'G'}=(split(",",$temp2[4]))[0];
-            $rc{'T'}=(split(",",$temp2[7]))[0];
+            #$rc{'A'}=(split(",",$temp2[0]))[0];
+            #$rc{'C'}=(split(",",$temp2[1]))[0];
+            #$rc{'G'}=(split(",",$temp2[4]))[0];
+            #$rc{'T'}=(split(",",$temp2[7]))[0];
+            $rc{'A'}=(split(",",$temp2[2]))[0];
+            $rc{'C'}=(split(",",$temp2[3]))[0];
+            $rc{'G'}=(split(",",$temp2[6]))[0];
+            $rc{'T'}=(split(",",$temp2[9]))[0];
             #print $vaf_n,"\n";
             #print $vaf_t,"\n"; 
             #<STDIN>;
@@ -181,10 +185,10 @@ foreach my $l (`cat $f_m`)
 
             %rc2=();
 
-            $rc2{'A'}=(split(",",$temp2[0]))[0];
-            $rc2{'C'}=(split(",",$temp2[1]))[0];
-            $rc2{'G'}=(split(",",$temp2[4]))[0];
-            $rc2{'T'}=(split(",",$temp2[7]))[0];
+            $rc2{'A'}=(split(",",$temp2[2]))[0];
+            $rc2{'C'}=(split(",",$temp2[3]))[0];
+            $rc2{'G'}=(split(",",$temp2[6]))[0];
+            $rc2{'T'}=(split(",",$temp2[9]))[0];
 
             foreach $nt (sort keys %rc2)
             {
@@ -215,7 +219,7 @@ foreach my $l (`cat $f_m`)
 
 
 		# called snv called by varscan and mutect, indel called varscan and strelka, 	
-		if($info=~/set\=varscan-mutect/ || $info=~/set\=varindel-sindel/ || $info=~/set\=varindel-pindel/)
+		if($info=~/set\=varscan/ || $info=~/set\=varindel/)
 		{
 		   	$vaf_n=$temp[9];
         	$vaf_t=$temp[10];
@@ -241,7 +245,63 @@ foreach my $l (`cat $f_m`)
 			}
 		}
 
+		if($info=~/set\=pindel/)
+          {
 
+            $vaf_t=$temp[10];
+            $vaf_n=$temp[9];
+            if(!($vaf_t=~/\:/)) { next; }
+            if(!($vaf_n=~/\:/)) { next; }
 
+            @temp2=split(":",$vaf_n);
+            my @ndp2=split(",",$temp2[1]);
+            $ndp_ref=$ndp2[0];
+            $ndp_var=$ndp2[1];
+            @temp2=split(":",$vaf_t);
+            my @tdp2=split(",",$temp2[1]);
+            $tdp_ref=$tdp2[0];
+            $tdp_var=$tdp2[1];
+            #print $ndp_ref,"\t",$ndp_var,"\t",$tdp_ref,"\t",$tdp_var,"\n";
+            #<STDIN>;
+
+            print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$ndp_ref,"\t",$ndp_ref/($ndp_ref+$ndp_var),"\t",$ndp_var,"\t",$ndp_var/($ndp_var+$ndp_ref),"\t",$tdp_ref,"\t",$tdp_ref/($tdp_ref+$tdp_var),"\t",$tdp_var,"\t",$tdp_var/($tdp_var+$tdp_ref),"\n";
+
+        if($tdp_var/($tdp_var+$tdp_ref)>=$min_vaf_somatic && $ndp_var/($ndp_ref+$ndp_var)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage)
+        {
+            #print $ltr,"\n";    
+        $ltr=~s/SVTYPE=//g;
+        print OUT1 $ltr,"\n";
+        }
+		}
+	
+        if($info=~/set\=mutect/)
+          {
+
+            $vaf_t=$temp[10];
+            $vaf_n=$temp[9];
+            if(!($vaf_t=~/\:/)) { next; }
+            if(!($vaf_n=~/\:/)) { next; }
+
+            @temp2=split(":",$vaf_n);
+            my @ndp2=split(",",$temp2[1]);
+            $ndp_ref=$ndp2[0];
+            $ndp_var=$ndp2[1];
+            @temp2=split(":",$vaf_t);
+            my @tdp2=split(",",$temp2[1]);
+            $tdp_ref=$tdp2[0];
+            $tdp_var=$tdp2[1];
+            #print $ndp_ref,"\t",$ndp_var,"\t",$tdp_ref,"\t",$tdp_var,"\n";
+            #<STDIN>;
+
+            print OUT2 $temp[0],"\t",$temp[1],"\t",$temp[2],"\t",$temp[3],"\t",$temp[4],"\t",$info,"\t",$ndp_ref,"\t",$ndp_ref/($ndp_ref+$ndp_var),"\t",$ndp_var,"\t",$ndp_var/($ndp_var+$ndp_ref),"\t",$tdp_ref,"\t",$tdp_ref/($tdp_ref+$tdp_var),"\t",$tdp_var,"\t",$tdp_var/($tdp_var+$tdp_ref),"\n";
+
+        	if($tdp_var/($tdp_var+$tdp_ref)>=$min_vaf_somatic && $ndp_var/($ndp_ref+$ndp_var)<=$max_vaf_germline && $tdp_var+$tdp_ref>=$min_coverage && $ndp_var+$ndp_ref>=$min_coverage)
+        	{
+            #print $ltr,"\n";    
+        	$ltr=~s/SVTYPE=//g;
+        	print OUT1 $ltr,"\n";
+        	}
+
+		}
 	}
 }

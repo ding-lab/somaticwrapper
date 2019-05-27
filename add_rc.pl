@@ -36,7 +36,7 @@ foreach my $l (`cat $f_maf`)
 		 %vaf_rc=();  
 		 $sn_2=$sn_1; 
 
-		 my $f_vaf=$run_dir."/".$sn_1."/merged.vaf"; 
+		 my $f_vaf=$run_dir."/".$sn_1."/merged.withmutect.vaf"; 
 		 open(IN,"<$f_vaf"); 
 		 my $id; 
 

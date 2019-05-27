@@ -4,14 +4,13 @@
 ## tumor >= 5% and normal <=1% 
 use strict;
 use warnings;
-die unless @ARGV == 2;
-my ($run_dir,$filter_indel_size)=@ARGV;
+die unless @ARGV == 1;
+my ($run_dir)=@ARGV;
 
 my $working_name= (split(/\//,$run_dir))[-1];
 
-my $f_sum=$run_dir."/".$working_name.".inds".$filter_indel_size.".maf\n";
-
-my $f_status=$run_dir."/".$working_name.".status\n";
+my $f_sum=$run_dir."/".$working_name.".withmutect.maf\n";
+my $f_status=$run_dir."/".$working_name.".withmutect.status\n";
 
 open(OUT1,">$f_sum");
 open(OUT2,">$f_status"); 
@@ -24,7 +23,7 @@ foreach my $d (`ls $run_dir`)
 	chomp($dtr);
  
 #	my $f_maf=$run_dir."/".$dtr."/".$dtr.".checked.maf"; 
-my $f_maf=$run_dir."/".$dtr."/".$dtr.".maf"; 
+my $f_maf=$run_dir."/".$dtr."/".$dtr.".withmutect.maf"; 
 	if(-e $f_maf) 
 	{
 		my $count=0;
@@ -39,21 +38,20 @@ my $f_maf=$run_dir."/".$dtr."/".$dtr.".maf";
 				my @temp=split("\t",$ltr); 
 				my $annot=$temp[8];
 				my $af=$temp[99];
-				my $ref=$temp[10]; 
-				my $var=$temp[12];
 				if($annot=~/Frame_Shift_Del/ || $annot=~/Frame_Shift_Ins/ || $annot=~/Missense_Mutation/ || $annot=~/Nonsense_Mutation/ ||  $annot=~/Nonstop_Mutation/ || $annot=~/Silent/ || $annot=~/Splice_Site/ || $annot=~/In_Frame_Ins/ || $annot=~/In_Frame_Del/) {
-					if(($af eq "" || (($af ne "") && $af<0.005)) && length($ref)<$filter_indel_size && length($var)<$filter_indel_size)
-					{
+					#if($af eq "" || (($af ne "") && $af<0.005))
+					#{
 					print OUT1 $ltr,"\n"; 
 					$count++;
-					}
+					#}
 					} 
 				} 
         		}
       	}
 		print OUT2 $count,"\t",$f_maf,"\n";
 	} 
-  }
+ 
+} ##
 
 
 close OUT1;

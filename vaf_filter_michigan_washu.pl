@@ -15,7 +15,7 @@ my $f_m=$run_dir."/merged.withmutect.vcf";
 my $f_filter_out=$run_dir."/merged.filtered.withmutect.vcf";
 my $f_vaf_out=$run_dir."/merged.withmutect.vaf";
 my $min_vaf_somatic=0.05;
-my $min_vaf_pindel=0.1;
+#my $min_vaf_pindel=0.1;
 my $max_vaf_germline=0.02; 
 my $min_coverage=20; 
 my $indel_max_size=100; 
@@ -164,10 +164,14 @@ foreach my $l (`cat $f_m`)
             #my @temp3=split(",",$temp2[0]);
             #$rc{'A'}=$temp3[0];
 
-            $rc{'A'}=(split(",",$temp2[0]))[0];
-            $rc{'C'}=(split(",",$temp2[1]))[0];
-            $rc{'G'}=(split(",",$temp2[4]))[0];
-            $rc{'T'}=(split(",",$temp2[7]))[0];
+            #$rc{'A'}=(split(",",$temp2[0]))[0];
+            #$rc{'C'}=(split(",",$temp2[1]))[0];
+            #$rc{'G'}=(split(",",$temp2[4]))[0];
+            #$rc{'T'}=(split(",",$temp2[7]))[0];
+            $rc{'A'}=(split(",",$temp2[2]))[0];
+            $rc{'C'}=(split(",",$temp2[3]))[0];
+            $rc{'G'}=(split(",",$temp2[6]))[0];
+            $rc{'T'}=(split(",",$temp2[9]))[0];
             #print $vaf_n,"\n";
             #print $vaf_t,"\n"; 
             #<STDIN>;
@@ -181,10 +185,10 @@ foreach my $l (`cat $f_m`)
 
             %rc2=();
 
-            $rc2{'A'}=(split(",",$temp2[0]))[0];
-            $rc2{'C'}=(split(",",$temp2[1]))[0];
-            $rc2{'G'}=(split(",",$temp2[4]))[0];
-            $rc2{'T'}=(split(",",$temp2[7]))[0];
+            $rc2{'A'}=(split(",",$temp2[2]))[0];
+            $rc2{'C'}=(split(",",$temp2[3]))[0];
+            $rc2{'G'}=(split(",",$temp2[6]))[0];
+            $rc2{'T'}=(split(",",$temp2[9]))[0];
 
             foreach $nt (sort keys %rc2)
             {

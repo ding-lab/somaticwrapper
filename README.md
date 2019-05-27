@@ -1,18 +1,16 @@
-# somaticwrapper version 1.1 ##
+# somaticwrapper version 1.4 ##
 
-Detect somatic variants from tumor and normal WXS data (HG19) 
+Detect somatic variants from tumor and normal WXS based on HG38 reference
 
-# Suggest to use the most recent somaticwrapper in withmutecthg38 branch, which uses HG38 reference, and four different callers including mutect1.7, varscan2, pindel and strelka2.
- 
 ### Song Cao ###
 
-### ********you must enter the directory with somaticwrapper pipeline to submit the jobs******* ###
+*you must enter the directory with somaticwrapper pipeline to submit the jobs
 
-SomaticWrapper pipeline is a fully automated and modular software package designed for detection of somatic variants from tumor and normal exome data. It works on LSF job scheduler and can run multiple jobs in parallel. Multiple standard variant calling tools are included in the pipeline such as varscan, strelka and pindel.
+SomaticWrapper pipeline is a fully automated and modular software package designed for detection of somatic variants from tumor and normal exome data. It works on LSF job scheduler and can run multiple jobs in parallel. Multiple standard variant calling tools are included in the pipeline such as varscan, strelka, mutect and pindel.
 
-Pipeline version: 1.1
+Pipeline version: 1.4
 
-Usage: perl somatic_calling_v1.1.pl --srg --step --sre --rdir --ref --refname --log --q --wgs --indsize 
+Usage: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize
 
 rdir = full path of the folder holding files for this sequence run (user must provide)
 
@@ -22,42 +20,44 @@ srg = bam having read group or not: 1, yes and 0, no (default 1)
 
 sre = re-run: 1, yes and 0, no  (default 0)
 
+step run this pipeline step by step. (user must provide)
 
-step = run this pipeline step by step. (user must provide)
+ref: the human reference: 
 
-ref = the human reference: 
+q: which queue for submitting job; research-hpc, ding-lab, long (default)
 
-q = which queue for submitting job; research-hpc, ding-lab, long (default)
+mincovt: minimum coverage for tumor: default >=14
 
-wgs = 1 for yes and 0 for no 
+mincovn: minimum coverage for normal: default >=8
 
-indsize = indel size < indsize; default indsize=100
+minvaf: minimum somatic vaf: default >=0.05
 
-with chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37V1/GRCh37-lite-chr_with_chrM.fa
+maxindsize: default <=100
 
-without chr: /gscmnt/gc3027/dinglab/medseq/fasta/GRCh37/GRCh37-lite.fa
+hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
-mmy: /gscmnt/gc2737/ding/Reference/hs37d5_plusRibo_plusOncoViruses_plusERCC.20170530.fa 
+[0]  Run all steps 
 
-hg19: /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta 
+[1]  Run streka 
 
-  [0]  Run all steps
- 
-  [1]  Run streka
- 
-  [2]  Run Varscan
+[2]  Run Varscan 
 
-  [3] Run Pindel
+[3]  Run Pindel 
 
-  [4]  Parse streka result
+[4]  Run mutect 
 
-  [5]  Parse VarScan result
+[5]  Parse mutect result 
 
-  [6]  Parse Pindel
-  
-  [7]  Merge vcf files  
+[6]  Parse streka result 
 
-  [8] generate maf file
+[7]  Parse VarScan result 
 
-  [9] Merge maf together 
- 
+[8]  Parse Pindel 
+
+[9]  Merge vcf files   
+
+[10] Generate maf file  
+
+[11] Generate merged maf file 
+
+[12] DNP annotation 
