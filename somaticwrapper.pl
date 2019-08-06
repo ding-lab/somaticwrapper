@@ -347,8 +347,29 @@ if($step_number==12 || $step_number==0)
 	my $f_maf_dnp_tmp=$run_dir."/".$working_name.".dnp.annotated.tmp.maf";
 	my $f_maf_dnp_tmp_merge=$run_dir."/".$working_name.".dnp.annotated.tmp.maf.merge";
 	my $f_maf_dnp=$run_dir."/".$working_name.".dnp.annotated.maf";
+
 	my $f_bam_list=$run_dir."/input.bam.list";
 
+	open(OUTB,">$f_bam_list"); 
+
+	foreach my $s (`ls $run_dir`) 
+	{
+
+	my $str=$s; 
+	chomp($str);
+ 
+	my $dir_2=$run_dir."/".$str; 
+
+	if(-d $dir_2) 
+	{
+ 	my $f_bam=$dir_2."/".$str.".T.bam";
+
+	if(-e $f_bam) { print OUTB $str,"_T","\t",$f_bam,"\n"; }
+  				
+	}
+			
+	}
+	
     open(DNP, ">$job_files_dir/$current_job_file") or die $!;
     print DNP "#!/bin/bash\n";
 	## remove snv nearby an indel ##
