@@ -31,9 +31,9 @@ bam-readcount 0.7.4: https://github.com/genome/bam-readcount
 
 ## Usage ##
 
-1) Enter the directory where you downloaded somaticwrapper pipeline 
+Step1: Enter the directory where you downloaded somaticwrapper pipeline 
 
-2) Type the coommand line: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic
+Step2: Type the coommand line: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic
 
 rdir = full path of the folder holding files for this sequence run (user must provide)
 
