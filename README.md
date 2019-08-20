@@ -7,6 +7,14 @@ SNV calls are intersecting results from 2 over 3 callers (Strelka2, Mutect1, and
 
 Indel calls are called by 2 over 3 callers (Strelka2, Varscan2 and pindel). 
 
+Improvements compared to version 1.4:
+
+1) Adding vcf checking step before merging 
+
+2) Make DNP annotation work
+
+3) Add exonic option to let users select whether to only output the exonic mutations or all mutations
+
 If you want to run somaticwrapper for hg19 reference, you can git clone the withmutect branch. 
 
 ## Install the third-party software ##
