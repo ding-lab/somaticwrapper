@@ -26,7 +26,9 @@ Strelka-2.9.2: https://github.com/Illumina/strelka/releases
 Varscan 2.2.8: https://sourceforge.net/projects/varscan/files/
 
 Pindel version 0.2.5b9: http://gmt.genome.wustl.edu/packages/pindel/user-manual.html
- 
+
+bam-readcount 0.7.4: https://github.com/genome/bam-readcount 
+
 ## Usage ##
 
 Usage: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic
