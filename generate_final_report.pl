@@ -4,8 +4,8 @@
 ## tumor >= 5% and normal <=1% 
 use strict;
 use warnings;
-die unless @ARGV == 1;
-my ($run_dir)=@ARGV;
+die unless @ARGV == 2;
+my ($run_dir, $s_exonic)=@ARGV;
 
 my $working_name= (split(/\//,$run_dir))[-1];
 
@@ -38,7 +38,7 @@ my $f_maf=$run_dir."/".$dtr."/".$dtr.".withmutect.maf";
 				my @temp=split("\t",$ltr); 
 				my $annot=$temp[8];
 				my $af=$temp[99];
-				if($annot=~/Frame_Shift_Del/ || $annot=~/Frame_Shift_Ins/ || $annot=~/Missense_Mutation/ || $annot=~/Nonsense_Mutation/ ||  $annot=~/Nonstop_Mutation/ || $annot=~/Silent/ || $annot=~/Splice_Site/ || $annot=~/In_Frame_Ins/ || $annot=~/In_Frame_Del/) {
+				if($annot=~/Frame_Shift_Del/ || $annot=~/Frame_Shift_Ins/ || $annot=~/Missense_Mutation/ || $annot=~/Nonsense_Mutation/ ||  $annot=~/Nonstop_Mutation/ || $annot=~/Silent/ || $annot=~/Splice_Site/ || $annot=~/In_Frame_Ins/ || $annot=~/In_Frame_Del/  || $s_exonic==0) {
 					#if($af eq "" || (($af ne "") && $af<0.005))
 					#{
 					print OUT1 $ltr,"\n"; 

@@ -16,6 +16,10 @@
 ## 09/26/18 ##
 ## use mutect1.7; merging using 2 over 3 callers ##
 ## add tsl for vcf2maf.pl ##
+
+## 08/19/19 ##
+## add a checking step for vcf before merging ##
+
 #!/usr/bin/perl
 ##!/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl
 use strict;
@@ -23,7 +27,7 @@ use warnings;
 #use POSIX;
 use Getopt::Long;
 
-my $version = 1.4;
+my $version = 1.5;
 
 #color code
 my $red = "\e[31m";
@@ -39,7 +43,7 @@ my $normal = "\e[0m";
 Somatic variant calling pipeline 
 Pipeline version: $version
 
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize
+$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic 
 
 $normal
 
@@ -54,6 +58,7 @@ $normal
 <mincovn> minimum coverage for normal: default >=8
 <minvaf> minimum somatic vaf: default >=0.05
 <maxindsize> default <=100
+<exonic> output exonic region: 1 Yes, 0 No
 
 hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
  
@@ -66,10 +71,11 @@ $yellow      [5]  Parse mutect result
 $yellow 	 [6]  Parse streka result
 $yellow 	 [7]  Parse VarScan result
 $yellow      [8]  Parse Pindel
-$cyan 	     [9]  Merge vcf files  
-$cyan		 [10] Generate maf file 
-$cyan 		 [11] Generate merged maf file
-$cyan        [12] Annotate dnp and remove nearby snv near an indel
+$cyan        [9]  QC vcf files  
+$cyan 	     [10] Merge vcf files  
+$cyan		 [11] Generate maf file 
+$cyan 		 [12] Generate merged maf file
+$cyan        [13] Annotate dnp and remove nearby snv near an indel
 $normal
 
 OUT
@@ -78,6 +84,8 @@ OUT
 my $step_number = -1;
 my $status_rg = 1;
 my $status_rerun=0; 
+my $status_exonic=1; 
+
 #__HELP (BOOLEAN, DEFAULTS TO NO-HELP)
 my $help = 0;
 my $q_name="";
@@ -98,6 +106,7 @@ my $status = &GetOptions (
       "step=i" => \$step_number,
       "srg=i" => \$status_rg,
       "sre=i" => \$status_rerun,	
+	  "exonic=i" => \$status_exonic,
       "rdir=s" => \$run_dir,
 	  "ref=s"  => \$h38_REF,
 	  "log=s"  => \$log_dir,
@@ -122,6 +131,7 @@ print "run dir=",$run_dir,"\n";
 print "log dir=",$log_dir,"\n";
 print "step num=",$step_number,"\n";
 print "status rerun=",$status_rerun,"\n";
+print "status exonic=",$status_exonic,"\n";
 print "status readgroup=",$status_rg,"\n";
 print "queue name=",$q_name,"\n";
 print "minvaf = ",$minvaf,"\n"; 
@@ -232,7 +242,7 @@ close DH;
 #&check_input_dir($run_dir);
 # start data processsing
 
-if ($step_number < 11) {
+if ($step_number < 12) {
     #begin to process each sample
     for (my $i=0;$i<@sample_dir_list;$i++) {#use the for loop instead. the foreach loop has some problem to pass the global variable $sample_name to the sub functions
         $sample_name = $sample_dir_list[$i];
@@ -272,8 +282,11 @@ if ($step_number < 11) {
                 }elsif ($step_number == 8) {
                     &bsub_parse_pindel(1);
                 }elsif ($step_number == 9) {
+                    &bsub_qc_vcf(1);
+                }
+				elsif ($step_number == 10) {
                     &bsub_merge_vcf(1);
-                }elsif ($step_number == 10) {
+                }elsif ($step_number == 11) {
                     &bsub_vcf_2_maf(1);
                 } 
            }
@@ -281,12 +294,12 @@ if ($step_number < 11) {
     }
 }
 
-if($step_number==11 || $step_number==0)
+if($step_number==12 || $step_number==0)
     {
 
 	print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
 	$hold_job_file=$current_job_file; 
-	$current_job_file = "j11_Run_report_".$working_name.".sh"; 
+	$current_job_file = "j12_Run_report_".$working_name.".sh"; 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
@@ -308,14 +321,14 @@ if($step_number==11 || $step_number==0)
     #print REPRUN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     #print REPRUN "#BSUB -J $current_job_file\n";
 	#print REPRUN "#BSUB -w \"$hold_job_file\"","\n";
-	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir."\n";
+	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir." ".$status_exonic."\n";
     print REPRUN "      ".$run_script_path."add_rc.pl ".$run_dir." ".$f_maf." ".$f_maf_rc."\n";
     print REPRUN "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
 	close REPRUN;
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
 	#system ($bsub_com);
 
- my $sh_file=$job_files_dir."/".$current_job_file;
+ 	my $sh_file=$job_files_dir."/".$current_job_file;
 
     if($q_name eq "research-hpc")
     {
@@ -329,19 +342,19 @@ if($step_number==11 || $step_number==0)
 ### Annotate dnp 
 ### keep indel (for cocoexistence of indel and snv) 
 
-if($step_number==12 || $step_number==0)
+if($step_number==13 || $step_number==0)
     {
 
     print $yellow, "annotate dnp and remove snv near an indel",$normal, "\n";
     $hold_job_file=$current_job_file;
-    $current_job_file = "j12_dnp_".$working_name.".sh";
+    $current_job_file = "j13_dnp_".$working_name.".sh";
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
     `rm $lsf_err`;
     #`rm $current_job_file`;
     my $working_name= (split(/\//,$run_dir))[-1];
-    my $f_maf=$run_dir."/".$working_name.".withmutect.maf.caller";
+    my $f_maf=$run_dir."/".$working_name.".withmutect.maf.rc.caller";
     my $f_maf_rm_snv=$run_dir."/".$working_name.".remove.nearby.snv.maf";
 	my $f_maf_removed=$run_dir."/".$working_name.".remove.nearby.snv.maf.removed";
 	my $f_maf_dnp_tmp=$run_dir."/".$working_name.".dnp.annotated.tmp.maf";
@@ -406,7 +419,7 @@ if($step_number==12 || $step_number==0)
 
 #######################################################################
 # send email to notify the finish of the analysis
-if (($step_number == 0) || ($step_number == 13)) {
+if (($step_number == 0) || ($step_number == 14)) {
     print $yellow, "Submitting the job for sending an email when the run finishes ",$sample_name, "...",$normal, "\n";
     $hold_job_file = $current_job_file;
     $current_job_file = "Email_run_".$$.".sh";
@@ -1601,6 +1614,50 @@ sub bsub_parse_mutect{
 
 }
 
+sub bsub_qc_vcf{
+  
+    my ($step_by_step) = @_;
+    if ($step_by_step) {
+        $hold_job_file = "";
+    }else{
+        $hold_job_file = $current_job_file;
+    }
+
+    $current_job_file = "j9_qc_vcf.".$sample_name.".sh";
+    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
+    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+	### QC VCF file ##
+ 	open(QC, ">$job_files_dir/$current_job_file") or die $!;
+    print QC "#!/bin/bash\n";
+	print QC "RUNDIR=".$sample_full_path."\n";	
+  	print QC "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
+	print QC "PINDEL_VCF_QC="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.qced.vcf\n";
+    print QC "     ".$run_script_path."qc_vcf.pl \${PINDEL_VCF} \${PINDEL_VCF_QC}\n";
+    close QC;
+    #$bsub_com = "sh $job_files_dir/$current_job_file\n";
+    my $sh_file=$job_files_dir."/".$current_job_file;
+    #$bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>80000] rusage[mem=80000]\" -M 80000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     
+    #print $bsub_com;
+    #system ($bsub_com);
+    if($q_name eq "research-hpc")
+    {
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    else 
+	{        
+	$bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";             
+    }
+
+    print $bsub_com;
+    system ($bsub_com);
+
+}
+
+
 sub bsub_merge_vcf{
   
     my ($step_by_step) = @_;
@@ -1610,7 +1667,7 @@ sub bsub_merge_vcf{
         $hold_job_file = $current_job_file;
     }
 
-    $current_job_file = "j9_merge_vcf.".$sample_name.".sh";
+    $current_job_file = "j10_merge_vcf.".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
@@ -1645,7 +1702,7 @@ sub bsub_merge_vcf{
     print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
 	print MERGE "STRELKA_VCF="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
 	print MERGE "VARSCAN_VCF="."\${RUNDIR}/varscan/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-	print MERGE "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
+	print MERGE "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.qced.vcf\n";
 	print MERGE "VARSCAN_INDEL="."\${RUNDIR}/varscan/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
 	print MERGE	"MUTECT_VCF="."\${RUNDIR}/mutect1/mutect.filter.snv.vcf\n";
 	print MERGE "STRELKA_INDEL="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";; 
@@ -1699,7 +1756,7 @@ sub bsub_vcf_2_maf{
     }
 
 
-    $current_job_file = "j10_vcf_2_maf.".$sample_name.".sh";
+    $current_job_file = "j11_vcf_2_maf.".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
