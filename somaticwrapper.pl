@@ -123,6 +123,7 @@ my $status = &GetOptions (
 #print $status,"\n";
 
 if ($help || $run_dir eq "" || $log_dir eq "" || $step_number<0) {
+	 print "wrong option\n";
 	  print $usage;
       exit;
    }
@@ -156,7 +157,7 @@ if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
 
-die $usage unless ($step_number >=0)&&(($step_number <= 12));
+die $usage unless ($step_number >=0)&&(($step_number <= 14));
 my $email = "scao\@wustl\.edu";
 # everything else below should be automated
 my $HOME = $ENV{HOME};
@@ -341,6 +342,8 @@ if($step_number==12 || $step_number==0)
 
 ### Annotate dnp 
 ### keep indel (for cocoexistence of indel and snv) 
+
+print "annotation\n"; 
 
 if($step_number==13 || $step_number==0)
     {
