@@ -1,0 +1,18 @@
+### an example for running somaticwrapper on katmai, please change the path accordingly, otherwise it will possible overwrite my result ##
+
+perl somaticwrapper.pl --rdir /diskmnt/Projects/CPTAC3.HN/somatic/b1adj --log /diskmnt/Projects/CPTAC3.HN/somatic/b1adjlog --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 1
+
+perl somaticwrapper.pl --rdir /diskmnt/Projects/CPTAC3.HN/somatic/b1adj --log /diskmnt/Projects/CPTAC3.HN/somatic/b1adjlog --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 2
+
+perl somaticwrapper.pl --rdir /diskmnt/Projects/CPTAC3.HN/somatic/b1adj --log /diskmnt/Projects/CPTAC3.HN/somatic/b1adjlog --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 3
+
+perl somaticwrapper.pl --rdir /diskmnt/Projects/CPTAC3.HN/somatic/b1adj --log /diskmnt/Projects/CPTAC3.HN/somatic/b1adjlog --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 4
+
+### 5-8 ##
+perl somaticwrapper.pl --rdir /diskmnt/Projects/CPTAC3.HN/somatic/b1adj --log /diskmnt/Projects/CPTAC3.HN/somatic/b1adjlog --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 5
+
+perl somaticwrapper.pl --rdir /diskmnt/Projects/CPTAC3.HN/somatic/b1adj --log /diskmnt/Projects/CPTAC3.HN/somatic/b1adjlog --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 6
+
+perl somaticwrapper.pl --rdir /diskmnt/Projects/CPTAC3.HN/somatic/b1adj --log /diskmnt/Projects/CPTAC3.HN/somatic/b1adjlog --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 7
+
+perl somaticwrapper.pl --rdir /diskmnt/Projects/CPTAC3.HN/somatic/b1adj --log /diskmnt/Projects/CPTAC3.HN/somatic/b1adjlog --ref /diskmnt/Datasets/Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --sre 1 --step 8
