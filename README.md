@@ -1,10 +1,8 @@
-# somaticwrapper version 1.3 ##
+# somaticwrapper version 1.5 ##
 
 Detect somatic variants from tumor and normal WXS for HG38 reference:
 
-Katmai version
-
-### Song Cao ###
+katmai version (for systems without bsub or qsub job control)
 
 *you must enter the directory with somaticwrapper pipeline to submit the jobs
 
@@ -61,4 +59,9 @@ hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Referenc
 [10] Generate maf file  
 
 [11] Generate merged maf file 
- 
+
+[12] DNP annotation  
+
+## Contact ##
+
+Song Cao, scao@wustl.edu or songcao@gmail.com
