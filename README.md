@@ -8,9 +8,7 @@ katmai version (for systems without bsub or qsub job control)
 
 SomaticWrapper pipeline is a fully automated and modular software package designed for detection of somatic variants from tumor and normal exome data. It works on LSF job scheduler and can run multiple jobs in parallel. Multiple standard variant calling tools are included in the pipeline such as varscan, strelka, mutect and pindel.
 
-Pipeline version: 1.3
-
-Usage: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize
+Usage: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic 
 
 rdir = full path of the folder holding files for this sequence run (user must provide)
 
@@ -33,6 +31,8 @@ mincovn: minimum coverage for normal: default >=8
 minvaf: minimum somatic vaf: default >=0.05
 
 maxindsize: default <=100
+
+<exonic> output exonic region: 1 Yes, 0 No
 
 hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
