@@ -38,7 +38,7 @@ my $normal = "\e[0m";
 Somatic variant calling pipeline 
 Pipeline version: $version
 
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize
+$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic 
 
 $normal
 
@@ -53,7 +53,7 @@ $normal
 <mincovn> minimum coverage for normal: default >=8
 <minvaf> minimum somatic vaf: default >=0.05
 <maxindsize> default <=100
-
+<exonic> output exonic region: 1 Yes, 0 No
  
 $red 	     [0]  Run all steps
 $green       [1]  Run streka
@@ -67,9 +67,12 @@ $yellow      [8]  Parse Pindel
 $cyan 	     [9]  Merge vcf files  
 $cyan		 [10] Generate maf file 
 $cyan 		 [11] Generate merged maf file
+$cyan        [12] Annotate dnp and remove nearby snv near an indel
 $normal
 
 OUT
+
+my $status_exonic=1;
 
 #__DEFAULT NUMBER OF BINS IE (MUST BE INTEGER)
 my $step_number = -1;
@@ -95,6 +98,7 @@ my $status = &GetOptions (
       "step=i" => \$step_number,
       "srg=i" => \$status_rg,
       "sre=i" => \$status_rerun,	
+      "exonic=i" => \$status_exonic,
       "rdir=s" => \$run_dir,
 	  "ref=s"  => \$h38_REF,
 	  "log=s"  => \$log_dir,
@@ -209,6 +213,8 @@ my $DB_COSMIC_NO_CHR="/diskmnt/Projects/Users/scao/database/hg38/CosmicAllMuts.H
 my $DB_SNP_NO_COSMIC="/diskmnt/Projects/Users/scao/database/hg38/00-All.HG38.pass.cosmic.vcf";
 my $f_ref_annot="/diskmnt/Projects/Users/scao/database/hg38/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
 my $TSL_DB="/diskmnt/Projects/Users/scao/database/hg38/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
+my $f_gtf= "/diskmnt/Projects/Users/scao/database/hg38/Homo_sapiens.GRCh38.85.gtf";
+
 my $h38_REF_bai=$h38_REF.".fai";
 
 my $first_line=`head -n 1 $h38_REF`;
@@ -299,7 +305,7 @@ if($step_number==11 || $step_number==0)
     #print REPRUN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     #print REPRUN "#BSUB -J $current_job_file\n";
 	#print REPRUN "#BSUB -w \"$hold_job_file\"","\n";
-	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir."\n";
+	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir." ".$status_exonic."\n";
     	print REPRUN "      ".$run_script_path."add_rc.pl ".$run_dir." ".$f_maf." ".$f_maf_rc."\n";
     	print REPRUN "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
 	close REPRUN;
@@ -321,49 +327,66 @@ if($step_number==11 || $step_number==0)
 
 }
 
-#######################################################################
-# send email to notify the finish of the analysis
-if (($step_number == 0) || ($step_number == 12)) {
-    print $yellow, "Submitting the job for sending an email when the run finishes ",$sample_name, "...",$normal, "\n";
-    $hold_job_file = $current_job_file;
-    $current_job_file = "Email_run_".$$.".sh";
+if($step_number==13 || $step_number==0)
+    {
+
+    print $yellow, "annotate dnp and remove snv near an indel",$normal, "\n";
+    $hold_job_file=$current_job_file;
+    $current_job_file = "j13_dnp_".$working_name.".sh";
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
     `rm $lsf_err`;
+    `rm $current_job_file`;
+    my $working_name= (split(/\//,$run_dir))[-1];
+        
+    my $f_maf=$run_dir."/".$working_name.".withmutect.maf.rc.caller";
+    my $f_maf_rm_snv=$run_dir."/".$working_name.".remove.nearby.snv.maf";
+    my $f_maf_removed=$run_dir."/".$working_name.".remove.nearby.snv.maf.removed";
+    my $f_maf_dnp_tmp=$run_dir."/".$working_name.".dnp.annotated.tmp.maf";
+    my $f_maf_dnp_tmp_merge=$run_dir."/".$working_name.".dnp.annotated.tmp.maf.merge";
+    my $f_maf_dnp=$run_dir."/".$working_name.".dnp.annotated.maf";
 
-    open(EMAIL, ">$job_files_dir/$current_job_file") or die $!;
-    print EMAIL "#!/bin/bash\n";
-    #print EMAIL "#BSUB -n 1\n";
-    #print EMAIL "#BSUB -o $lsf_file_dir","\n";
-    #print EMAIL "#BSUB -e $lsf_file_dir","\n";
-    #print EMAIL "#BSUB -J $current_job_file\n";
-    #print EMAIL "#BSUB -w \"$hold_job_file\"","\n";
-    print EMAIL $run_script_path."send_email.pl ".$run_dir." ".$email."\n";
-    close EMAIL;
-    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    #$bsub_com = "qsub -V -hold_jid $hold_job_file -e $lsf_file_dir -o $lsf_file_dir $job_files_dir/$current_job_file\n";
- #   system ($bsub_com);
+    my $f_bam_list=$run_dir."/input.bam.list";
 
-   my $sh_file=$job_files_dir."/".$current_job_file;
+    open(OUTB,">$f_bam_list");
 
-   # if($q_name eq "research-hpc")
-   # {
-   # $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-#	else 
-#	{ 
-#	$bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
- #   print $bsub_com;
-  
-#  system ($bsub_com);
+    	foreach my $s (`ls $run_dir`)
+        {
+
+        my $str=$s;
+        chomp($str);
+
+        my $dir_2=$run_dir."/".$str;
+
+        if(-d $dir_2)
+        {
+        my $f_bam=$dir_2."/".$str.".T.bam";
+
+        if(-e $f_bam) { print OUTB $str,"_T","\t",$f_bam,"\n"; }
+
+        }
+
+        }
+
+	open(DNP, ">$job_files_dir/$current_job_file") or die $!;
+        print DNP "#!/bin/bash\n";
+	print DNP "      ".$run_script_path."remove_nearby_snv.pl $f_maf $f_maf_rm_snv"."\n";
+        print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
+        print DNP "              ".$run_script_path."add_dnp.pl $f_maf_rm_snv $f_maf_dnp_tmp_merge $f_maf_dnp"."\n";
+    	print DNP "rm $f_maf_dnp_tmp_merge\n";
+        print DNP "rm $f_maf_dnp_tmp\n";
+        print DNP "rm $f_maf_rm_snv\n";
+        print DNP "rm $f_maf_removed\n";
+    	close DNP;
+
+        my $sh_file=$job_files_dir."/".$current_job_file;
 
         $bsub_com = "nohup sh $sh_file > $lsf_out 2> $lsf_err &";
         print $bsub_com;
         system ($bsub_com);
-
-
-	
 }
+
 #######################################################################
 if ($step_number == 0) {
     print $green, "All jobs are submitted! You will get email notification when this run is completed.\n",$normal;

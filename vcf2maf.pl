@@ -601,6 +601,8 @@ while( my $line = $annotated_vcf_fh->getline ) {
         my $ann_lines = ( $info{CSQ} ? $info{CSQ} : $info{ANN} );
         foreach my $ann_line ( split( /,/, $ann_lines )) {
             my $idx = 0;
+	    #print $ann_line,"\n"; 
+	   #<STDIN>;	
             my %effect = map{s/\&/,/g; ( $ann_cols_format[$idx++], ( defined $_ ? $_ : '' ))} split( /\|/, $ann_line );
 			#if($pos==52621464) { print $ann_line,"\n"; 
 			#foreach my $e (sort keys %effect) { print $e,"\t",$effect{$e},"\n"; }
