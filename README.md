@@ -32,9 +32,8 @@ minvaf: minimum somatic vaf: default >=0.05
 
 maxindsize: default <=100
 
-<exonic> output exonic region: 1 Yes, 0 No
+exonic: output exonic region: 1 Yes, 0 No
 
-hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
 [0]  Run all steps 
 
