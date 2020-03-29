@@ -327,7 +327,7 @@ if($step_number==11 || $step_number==0)
 
 }
 
-if($step_number==13 || $step_number==0)
+if($step_number==12 || $step_number==0)
     {
 
     print $yellow, "annotate dnp and remove snv near an indel",$normal, "\n";
