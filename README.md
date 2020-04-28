@@ -1,6 +1,6 @@
 # somaticwrapper version 1.1 ##
 
-Detect somatic variants from tumor and normal WXS
+Detect somatic variants from tumor and normal WXS, HG19 reference 
 
 ### Song Cao ###
 
