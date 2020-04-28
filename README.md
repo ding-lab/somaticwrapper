@@ -35,7 +35,7 @@ bam-readcount 0.7.4: https://github.com/genome/bam-readcount
 
 Step1: Enter the directory where you downloaded somaticwrapper pipeline 
 
-Step2: Type the coommand line: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic
+Step2: Type the coommand line: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg
 
 rdir = full path of the folder holding files for this sequence run (user must provide)
 
@@ -57,9 +57,11 @@ mincovn: minimum coverage for normal: default >=8
 
 minvaf: minimum somatic vaf: default >=0.05
 
-maxindsize: default <=100
+maxindsize: default <= 100
 
 exonic: output exonic region: 1 Yes, 0 No, Default Yes
+
+smg: smg gene list that escapes the 0.05 vaf cut-off
 
 hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
