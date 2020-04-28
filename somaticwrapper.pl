@@ -1,6 +1,8 @@
 ######### Song Cao###########
 ##### email: scao@wustl.edu ####
 ## pipeline for somatic variant callings ##
+## rename withmutectkatmai to katmai.v1.5 ##
+
 #	somatic_variant_callings.pl #
 ###	updated date: 04/05/2017 ###
 ### updated date: 04/18/2017 ###
@@ -16,6 +18,8 @@
 ## 09/26/18 ##
 ## use mutect1.7; merging using 2 over 3 callers ##
 ## add tsl for vcf2maf.pl ##
+
+
 #!/usr/bin/perl
 ##!/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl
 use strict;
@@ -23,7 +27,7 @@ use warnings;
 #use POSIX;
 use Getopt::Long;
 
-my $version = 1.2;
+my $version = 1.5;
 #color code
 my $red = "\e[31m";
 my $gray = "\e[37m";
