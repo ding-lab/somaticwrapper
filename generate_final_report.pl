@@ -23,7 +23,7 @@ foreach my $d (`ls $run_dir`)
 	chomp($dtr);
  
 #	my $f_maf=$run_dir."/".$dtr."/".$dtr.".checked.maf"; 
-my $f_maf=$run_dir."/".$dtr."/".$dtr.".withmutect.maf"; 
+my $f_maf=$run_dir."/".$dtr."/".$dtr.".withmutect.filtered.maf"; 
 	if(-e $f_maf) 
 	{
 		my $count=0;

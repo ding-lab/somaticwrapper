@@ -1,0 +1,15 @@
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/cptac3/GBM/rescue.ATRX --log /gscmnt/gc2521/dinglab/cptac3/GBM/somatic.rec.smg.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --step 5
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/cptac3/GBM/rescue.ATRX --log /gscmnt/gc2521/dinglab/cptac3/GBM/somatic.rec.smg.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --step 10
+
+## run step 11 with smg option ##
+
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/cptac3/GBM/rescue.ATRX --log /gscmnt/gc2521/dinglab/cptac3/GBM/somatic.rec.smg.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --step 11 --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv
+
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/cptac3/GBM/rescue.ATRX --log /gscmnt/gc2521/dinglab/cptac3/GBM/somatic.rec.smg.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --step 12 --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/cptac3/GBM/rescue.ATRX --log /gscmnt/gc2521/dinglab/cptac3/GBM/somatic.rec.smg.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --step 13 --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv
+
