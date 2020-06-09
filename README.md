@@ -17,7 +17,7 @@ Improvements compared to version 1.4:
 
 4) Added low vaf rescue for genes listed in SMGs
 
-If you want to run somaticwrapper for hg19 reference, you can git clone the withmutect branch. 
+If you want to run somaticwrapper for hg19 reference, you can git clone v1.1 branch. 
 
 ## Install the third-party software ##
 
