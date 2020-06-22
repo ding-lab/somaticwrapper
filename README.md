@@ -65,7 +65,6 @@ smg: smg gene list that escapes the 0.05 vaf cut-off
 
 hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
-[0]  Run all steps 
 
 [1]  Run streka 
 
