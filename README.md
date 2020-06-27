@@ -64,6 +64,8 @@ smg gene list for each cancer type can be found from file smg.bailey.cell.ct.tsv
  
 hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
+step (steps 1, 2, 3, and 4 can be run at the same time since there is no dependency. After they are done, users can run 5, 6, 7, and 8 at the same time. After the 8 steps are done, users can run the following step one by one since they depend on the previous run result. 1, 2, 3, and 4 are time-consuming steps. All following steps are fast. 
+For WXS run, it takes one or two days. For WGS run, it takes one week. 
 
 [1]  Run streka 
 
