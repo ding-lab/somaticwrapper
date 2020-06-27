@@ -29,7 +29,7 @@ use warnings;
 #use POSIX;
 use Getopt::Long;
 
-my $version = 1.6;
+my $version = 1.7;
 
 #color code
 my $red = "\e[31m";
@@ -66,7 +66,6 @@ hg38:/gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference
 
 lscc smg: /gscmnt/gc3027/dinglab/medseq/smg_database/smg.lscc.tsv
  
-$red 	     [0]  Run all steps
 $green       [1]  Run streka
 $green 		 [2]  Run Varscan
 $green       [3]  Run Pindel
@@ -80,6 +79,7 @@ $cyan 	     [10] Merge vcf files
 $cyan		 [11] Generate maf file 
 $cyan 		 [12] Generate merged maf file
 $cyan        [13] Annotate dnp and remove nearby snv near an indel
+$red         [14] clean runs (compress and remove unnecessary files) 
 $normal
 
 OUT
@@ -249,7 +249,7 @@ close DH;
 #&check_input_dir($run_dir);
 # start data processsing
 
-if ($step_number < 12) {
+if ($step_number <= 11 && $step_number >0 && $step_number==4) {
     #begin to process each sample
     for (my $i=0;$i<@sample_dir_list;$i++) {#use the for loop instead. the foreach loop has some problem to pass the global variable $sample_name to the sub functions
         $sample_name = $sample_dir_list[$i];
@@ -261,16 +261,17 @@ if ($step_number < 12) {
                 $current_job_file="";
                 if($step_number==0)
                 {  
-				   &bsub_strelka();
-				   &bsub_varscan();
-				   &bsub_pindel();
-				   &bsub_mutect();
-				   &bsub_parse_mutect(); 
-				   &bsub_parse_strelka();
-				   &bsub_parse_varscan();
-				   &bsub_parse_pindel();
-				   &bsub_merge_vcf();
-				   &bsub_vcf_2_maf();
+                   next; 
+				   #&bsub_strelka();
+				   #&bsub_varscan();
+				   #&bsub_pindel();
+				   #&bsub_mutect();
+				   #&bsub_parse_mutect(); 
+				   #&bsub_parse_strelka();
+				   #&bsub_parse_varscan();
+				   #&bsub_parse_pindel();
+				   #&bsub_merge_vcf();
+				   #&bsub_vcf_2_maf();
 				} elsif ($step_number == 1) {
                     &bsub_strelka();
                 } elsif ($step_number == 2) {
@@ -295,13 +296,15 @@ if ($step_number < 12) {
                     &bsub_merge_vcf(1);
                 }elsif ($step_number == 11) {
                     &bsub_vcf_2_maf(1);
-                } 
+                }elsif ($step_number == 14) {
+                    &bsub_cleaner(1);
+                }  
            }
         }
     }
 }
 
-if($step_number==12 || $step_number==0)
+if($step_number==12)
     {
 
 	print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
@@ -351,7 +354,7 @@ if($step_number==12 || $step_number==0)
 
 print "annotation\n"; 
 
-if($step_number==13 || $step_number==0)
+if($step_number==13)
     {
 
     print $yellow, "annotate dnp and remove snv near an indel",$normal, "\n";
@@ -428,7 +431,8 @@ if($step_number==13 || $step_number==0)
 
 #######################################################################
 # send email to notify the finish of the analysis
-if (($step_number == 0) || ($step_number == 14)) {
+if ($step_number == 14) {
+
     print $yellow, "Submitting the job for sending an email when the run finishes ",$sample_name, "...",$normal, "\n";
     $hold_job_file = $current_job_file;
     $current_job_file = "Email_run_".$$.".sh";
@@ -462,7 +466,6 @@ if (($step_number == 0) || ($step_number == 14)) {
     print $bsub_com;
     system ($bsub_com);
 
-	
 }
 #######################################################################
 if ($step_number == 0) {
@@ -1856,4 +1859,109 @@ sub bsub_vcf_2_maf{
 
  }
 
- 
+sub bsub_cleaner {
+
+    my ($step_by_step) = @_;
+    if ($step_by_step) {
+        $hold_job_file = "";
+    }else{
+        $hold_job_file = $current_job_file;
+    }
+
+    $current_job_file = "j14_clean_".$sample_name.".sh";
+
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+
+    open(CLEAN, ">$job_files_dir/$current_job_file") or die $!;
+    print CLEAN "#!/bin/bash\n";
+    print CLEAN "RP=".$sample_full_path."/pindel/".$sample_name."_RP\n";
+    print CLEAN "D=".$sample_full_path."/pindel/".$sample_name."_D\n";
+    print CLEAN "TD=".$sample_full_path."/pindel/".$sample_name."_TD\n";
+    print CLEAN "INV=".$sample_full_path."/pindel/".$sample_name."_INV\n";
+    print CLEAN "SI=".$sample_full_path."/pindel/".$sample_name."_SI\n";
+    print CLEAN "RAW=".$sample_full_path."/pindel/pindel.out.raw\n";
+    print CLEAN "FAIL=".$sample_full_path."/pindel/pindel.out.raw.CvgVafStrand_fail\n";
+    print CLEAN "vsindel=".$sample_full_path."/varscan/varscan.out.som_indel.vcf\n";
+    print CLEAN "vssnv=".$sample_full_path."/varscan/varscan.out.som_indel.vcf\n";
+    print CLEAN "gvipsnv=".$sample_full_path."/varscan/varscan.out.som_snv.gvip.vcf\n";
+    print CLEAN "gvipindel=".$sample_full_path."/varscan/varscan.out.som_indel.gvip.vcf\n";
+    print CLEAN "gvipsnvgl=".$sample_full_path."/varscan.out.som_snv.gvip.Germline.vcf\n";
+    print CLEAN "gvipsnvglhc=".$sample_full_path."/varscan.out.som_snv.gvip.Germline.hc.vcf\n";
+    print CLEAN "gvipindelgl=".$sample_full_path."/varscan.out.som_indel.gvip.Germline.vcf\n";
+    print CLEAN "gvipindelglhc=".$sample_full_path."/varscan.out.som_indel.gvip.Germline.hc.vcf\n"; 
+
+    ## remove varscan gvip files ##
+    print CLEAN "rm \${gvipsnv}\n";
+    print CLEAN "rm \${gvipindel}\n";
+    print CLEAN "rm \${gvipsnvgl}\n";
+    print CLEAN "rm \${gvipindelgl}\n";
+    print CLEAN "rm \${gvipsnvglhc}\n";
+    print CLEAN "rm \${gvipindelglhc}\n";
+
+    ## gzip varscan large files
+    print CLEAN "if [ -f \${vssnv} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${vssnv}\n";
+    print CLEAN "fi\n";
+    print CLEAN "if [ -f \${vsindel} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${vsindel}\n";
+    print CLEAN "fi\n";
+
+    ## gzip pindel large files  #
+    print CLEAN "if [ -f \${RP} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${RP}\n";
+    print CLEAN "fi\n";
+
+    print CLEAN "if [ -f \${D} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${D}\n";
+    print CLEAN "fi\n";
+
+    print CLEAN "if [ -f \${TD} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${TD}\n";
+    print CLEAN "fi\n";
+
+
+    print CLEAN "if [ -f \${INV} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${INV}\n";
+    print CLEAN "fi\n";
+
+
+    print CLEAN "if [ -f \${SI} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${SI}\n";
+    print CLEAN "fi\n";
+
+    print CLEAN "if [ -f \${RAW} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${RAW}\n";
+    print CLEAN "fi\n";
+
+    print CLEAN "if [ -f \${FAIL} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${FAIL}\n";
+    print CLEAN "fi\n";
+
+
+    close CLEAN;
+
+    my $sh_file=$job_files_dir."/".$current_job_file;
+
+    if($q_name eq "research-hpc")
+    {
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    else {
+        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err bash $sh_file\n";
+    }
+
+    print $bsub_com;
+    system ($bsub_com);
+
+}

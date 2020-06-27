@@ -7,15 +7,11 @@ SNV calls are intersecting results from 2 over 3 callers (Strelka2, Mutect1, and
 
 Indel calls are called by 2 over 3 callers (Strelka2, Varscan2 and pindel). 
 
-Improvements compared to version 1.4:
+Improvements compared to version 1.6:
 
-1) Adding vcf checking step before merging 
+1) Remove germline vaf (0.02) cut-off in the filtering step for SMGs 
 
-2) Make DNP annotation work
-
-3) Add exonic option to let users select whether to only output the exonic mutations or all mutations
-
-4) Added low vaf rescue for genes listed in SMGs
+2) Zip intermediate files for saving diskspace (step 14)
 
 If you want to run somaticwrapper for hg19 reference, you can git clone v1.1 branch. 
 
@@ -61,8 +57,11 @@ maxindsize: default <= 100
 
 exonic: output exonic region: 1 Yes, 0 No, Default Yes
 
-smg: smg gene list that escapes the 0.05 vaf cut-off
+smg: smg gene list that escapes the somatic >=0.05 vaf  and germline <= 0.02 vaf cut-off;
 
+smg gene list for each cancer type can be found from file smg.bailey.cell.ct.tsv, which is obtained from TCGA pan-can paper (Cell, 2018 Apr 5;173(2):371-385)
+
+ 
 hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
 [0]  Run all steps 
@@ -93,6 +92,7 @@ hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Referenc
 
 [13] DNP annotation
 
+[14] clean run (zip intermediate files) and save diskspace
 
 ## Contact ##
 
