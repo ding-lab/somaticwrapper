@@ -64,7 +64,6 @@ smg gene list for each cancer type can be found from file smg.bailey.cell.ct.tsv
  
 hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
-[0]  Run all steps 
 
 [1]  Run streka 
 
