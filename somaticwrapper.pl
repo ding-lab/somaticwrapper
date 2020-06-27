@@ -163,7 +163,7 @@ if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
 
-die $usage unless ($step_number >=0)&&(($step_number <= 14));
+die $usage unless ($step_number >0)&&(($step_number <= 14));
 my $email = "scao\@wustl\.edu";
 # everything else below should be automated
 my $HOME = $ENV{HOME};
@@ -249,7 +249,7 @@ close DH;
 #&check_input_dir($run_dir);
 # start data processsing
 
-if ($step_number <= 11 && $step_number >0 && $step_number==4) {
+if ($step_number <= 11 && $step_number >0 && $step_number==14) {
     #begin to process each sample
     for (my $i=0;$i<@sample_dir_list;$i++) {#use the for loop instead. the foreach loop has some problem to pass the global variable $sample_name to the sub functions
         $sample_name = $sample_dir_list[$i];
@@ -429,44 +429,6 @@ if($step_number==13)
 }
 
 
-#######################################################################
-# send email to notify the finish of the analysis
-if ($step_number == 14) {
-
-    print $yellow, "Submitting the job for sending an email when the run finishes ",$sample_name, "...",$normal, "\n";
-    $hold_job_file = $current_job_file;
-    $current_job_file = "Email_run_".$$.".sh";
-    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
-    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
-    `rm $lsf_out`;
-    `rm $lsf_err`;
-
-    open(EMAIL, ">$job_files_dir/$current_job_file") or die $!;
-    print EMAIL "#!/bin/bash\n";
-    #print EMAIL "#BSUB -n 1\n";
-    #print EMAIL "#BSUB -o $lsf_file_dir","\n";
-    #print EMAIL "#BSUB -e $lsf_file_dir","\n";
-    #print EMAIL "#BSUB -J $current_job_file\n";
-    #print EMAIL "#BSUB -w \"$hold_job_file\"","\n";
-    print EMAIL $run_script_path."send_email.pl ".$run_dir." ".$email."\n";
-    close EMAIL;
-    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    #$bsub_com = "qsub -V -hold_jid $hold_job_file -e $lsf_file_dir -o $lsf_file_dir $job_files_dir/$current_job_file\n";
- #   system ($bsub_com);
-
- 	my $sh_file=$job_files_dir."/".$current_job_file;
-
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-	else 
-	{ 
-	$bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
-
-    print $bsub_com;
-    system ($bsub_com);
-
-}
 #######################################################################
 if ($step_number == 0) {
     print $green, "All jobs are submitted! You will get email notification when this run is completed.\n",$normal;
