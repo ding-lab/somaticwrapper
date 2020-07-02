@@ -249,7 +249,7 @@ close DH;
 #&check_input_dir($run_dir);
 # start data processsing
 
-if ($step_number <= 11 && $step_number >0 && $step_number==14) {
+if (($step_number <= 11 && $step_number >0) || $step_number==14) {
     #begin to process each sample
     for (my $i=0;$i<@sample_dir_list;$i++) {#use the for loop instead. the foreach loop has some problem to pass the global variable $sample_name to the sub functions
         $sample_name = $sample_dir_list[$i];
@@ -1847,13 +1847,13 @@ sub bsub_cleaner {
     print CLEAN "RAW=".$sample_full_path."/pindel/pindel.out.raw\n";
     print CLEAN "FAIL=".$sample_full_path."/pindel/pindel.out.raw.CvgVafStrand_fail\n";
     print CLEAN "vsindel=".$sample_full_path."/varscan/varscan.out.som_indel.vcf\n";
-    print CLEAN "vssnv=".$sample_full_path."/varscan/varscan.out.som_indel.vcf\n";
+    print CLEAN "vssnv=".$sample_full_path."/varscan/varscan.out.som_snv.vcf\n";
     print CLEAN "gvipsnv=".$sample_full_path."/varscan/varscan.out.som_snv.gvip.vcf\n";
     print CLEAN "gvipindel=".$sample_full_path."/varscan/varscan.out.som_indel.gvip.vcf\n";
-    print CLEAN "gvipsnvgl=".$sample_full_path."/varscan.out.som_snv.gvip.Germline.vcf\n";
-    print CLEAN "gvipsnvglhc=".$sample_full_path."/varscan.out.som_snv.gvip.Germline.hc.vcf\n";
-    print CLEAN "gvipindelgl=".$sample_full_path."/varscan.out.som_indel.gvip.Germline.vcf\n";
-    print CLEAN "gvipindelglhc=".$sample_full_path."/varscan.out.som_indel.gvip.Germline.hc.vcf\n"; 
+    print CLEAN "gvipsnvgl=".$sample_full_path."/varscan/varscan.out.som_snv.gvip.Germline.vcf\n";
+    print CLEAN "gvipsnvglhc=".$sample_full_path."/varscan/varscan.out.som_snv.gvip.Germline.hc.vcf\n";
+    print CLEAN "gvipindelgl=".$sample_full_path."/varscan/varscan.out.som_indel.gvip.Germline.vcf\n";
+    print CLEAN "gvipindelglhc=".$sample_full_path."/varscan/varscan.out.som_indel.gvip.Germline.hc.vcf\n"; 
 
     ## remove varscan gvip files ##
     print CLEAN "rm \${gvipsnv}\n";
