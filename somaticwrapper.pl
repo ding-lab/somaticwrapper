@@ -455,7 +455,7 @@ sub bsub_strelka{
 	print STREKA "RUNDIR=".$sample_full_path."\n";
 	print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
 	print STREKA "STRELKA_VCF=".$sample_full_path."/strelka/strelka_out/results/passed.somatic.snvs.vcf"."\n";   
-	print STREKA "CONFDIR=".$run_script_path."/strelka.ini\n";
+	print STREKA "CONFDIR=".$run_script_path."strelka.ini\n";
  	print STREKA "TASK_STATUS=".$sample_full_path."/strelka/strelka_out/task.complete"."\n";
 	print STREKA "export SAMTOOLS_DIR=$samtools\n";
 	print STREKA "export JAVA_HOME=$java_dir\n";
