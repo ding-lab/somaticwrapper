@@ -10,7 +10,7 @@ SomaticWrapper pipeline is a fully automated and modular software package design
 
 Pipeline version: 1.1
 
-$yellow     Usage: perl somatic_calling_v1.1.pl  --srg --step --sre --rdir --ref --refname --log --q 
+$yellow     Usage: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --refname --log --q 
 
 $normal
 
