@@ -1,0 +1,20 @@
+## wxs ##
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somatic --log /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somaticlog --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 1 --refname Hg19
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somatic --log /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somaticlog --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 2 --refname Hg19
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somatic --log /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somaticlog --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 3 --refname Hg19
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somatic --log /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somaticlog --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 4 --refname Hg19
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somatic --log /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somaticlog --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 5 --refname Hg19
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somatic --log /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somaticlog --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 6 --refname Hg19
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somatic --log /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somaticlog --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 7 --refname Hg19
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somatic --log /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somaticlog --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 8 --refname Hg19
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somatic --log /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somaticlog --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 9 --refname Hg19
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somatic --log /gscmnt/gc2521/dinglab/scao/cptac3/GBM/confirmatory/exome.hg19/b2/somaticlog --ref /gscmnt/gc2521/dinglab/cptac3/ref/Homo_sapiens_assembly19.fasta  --q research-hpc --step 10 --refname Hg19
