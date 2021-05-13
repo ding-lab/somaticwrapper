@@ -1,0 +1,1 @@
+perl somaticwrapper.pl --rdir /gscmnt/gc2532/dinglab/ritalu/CPTAC3/LUAD/input --log /gscmnt/gc2532/dinglab/ritalu/CPTAC3/LUAD/log2 --ref /gscmnt/gc7202/dinglab/common/Reference/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --step 11 --q research-hpc --smg xxx --sre 1
