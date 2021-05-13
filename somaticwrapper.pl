@@ -25,13 +25,14 @@ my $normal = "\e[0m";
 Somatic variant calling pipeline 
 Pipeline version: $version
 
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg 
+$yellow     Usage: perl $0  --chr --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg 
 
 $normal
 
 <rdir> = full path of the folder holding files for this sequence run (user must provide)
 <log> = full path of the folder for saving log file; usually upper folder of rdir
 <srg> = bam having read group or not: 1, yes and 0, no (default 1)
+<chr> = with chr or not chr in the reference file: 1, yes and 0, no (default 1) 
 <sre> = re-run: 1, yes and 0, no  (default 0)
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
@@ -80,7 +81,7 @@ my $log_dir="";
 my $h38_REF="";
 my $db_smg="";
 #my $ref_name="";
-my $chr_status=0;
+my $chr_status=1;
 my $maxindsize=100; 
 my $mincov_t=14; 
 my $mincov_n=8; 
@@ -89,7 +90,7 @@ my $minvaf=0.05;
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
       "step=i" => \$step_number,
-      "srg=i" => \$status_rg,
+      "chr=i" => \$chr_status,
       "sre=i" => \$status_rerun,	
 	  "exonic=i" => \$status_exonic,
       "rdir=s" => \$run_dir,
@@ -534,7 +535,7 @@ sub bsub_fq2bam{
     open(FQ2BAM, ">$job_files_dir/$current_job_file") or die $!;
     print FQ2BAM "#!/bin/bash\n";
 	print FQ2BAM "$BWA mem -t 8 -M -R \"\@RG\\tID:$sample_name\\tPL:illumina\\tLB$sample_name\\tPU:$sample_name\\tSM:$sample_name\" $h38_REF $IN_fq1 $IN_fq2 | $SAMTOOLS view -Shb -o $out_bam -","\n"; 
- 	print FQ2BAM "$java_bin -Xmx16G -jar $picardexe SortSam CREATE_INDEX=true I=$out_bam O=$out_sorted_bam SORT_ORDER=coordinate VALIDATION_STRINGENCY=STRICT","\n"; 
+ 	print FQ2BAM "$java_bin -Xmx16G -jar $picardexe SortSam CREATE_INDEX=true I=$out_bam O=$out_sorted_bam SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT","\n"; 
 	#print FQ2BAM "rm -f $out_bam","\n"; 
 	print FQ2BAM "$java_bin -Xmx16G -jar $picardexe MarkDuplicates I=$out_sorted_bam O=$out_rem_bam REMOVE_DUPLICATES=true M=$out_metrics","\n"; 
 	
@@ -558,272 +559,40 @@ sub bsub_fq2bam{
     system ($bsub_com);
 }
 
-sub bsub_strelka{
-    #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
-    $current_job_file = "j1_streka_".$sample_name.".sh"; 
-	my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-	my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-    if (! -e $IN_bam_T) {#make sure there is a input fasta file 
-        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        print "Warning: Died because there is no input bam file for bwa:\n";
-        print "File $IN_bam_T does not exist!\n";
-        die "Please check command line argument!", $normal, "\n\n";
-
+sub bsub_mutect2{
+    my ($step_by_step) = @_;
+    if ($step_by_step) {
+        $hold_job_file = "";
+    }else{
+        $hold_job_file = $current_job_file;
     }
-    if (! -s $IN_bam_T) {#make sure input fasta file is not empty
-        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        die "Warning: Died because $IN_bam_T is empty!", $normal, "\n\n";
-    }
-	if (! -e $IN_bam_N) {#make sure there is a input fasta file 
-        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        print "Warning: Died because there is no input bam file for bwa:\n";
-        print "File $IN_bam_N does not exist!\n";
-        die "Please check command line argument!", $normal, "\n\n";
 
-    }
-    if (! -s $IN_bam_N) {#make sure input fasta file is not empty
-        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
-    }
-    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
-    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
-    `rm $lsf_out`;
-    `rm $lsf_err`;
-	#`rm $current_job_file`;
+    my @chrlist=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","X","Y");
 
-    open(STREKA, ">$job_files_dir/$current_job_file") or die $!;
-    print STREKA "#!/bin/bash\n";
-    #print STREKA "#BSUB -n 1\n";
-    #print STREKA "#BSUB -R \"rusage[mem=30000]\"","\n";
-    #print STREKA "#BSUB -M 30000000\n";
-    #print STREKA "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    #print STREKA "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    #print STREKA "#BSUB -J $current_job_file\n";
-    #print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print STREKA "#BSUB -q long\n";
-    #print STREKA "#BSUB -q research-hpc\n";
-	#print STREKA "#BSUB -q long\n";
-	#print STREKA "scr_t0=\`date \+\%s\`\n";
-    print STREKA "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print STREKA "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print STREKA "myRUNDIR=".$sample_full_path."/strelka\n";
-	print STREKA "STATUSDIR=".$sample_full_path."/status\n";
-    print STREKA "RESULTSDIR=".$sample_full_path."/results\n";
-	print STREKA "SG_DIR=".$sample_full_path."/strelka\n"; 
-	print STREKA "RUNDIR=".$sample_full_path."\n";
-	print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
-	print STREKA "STRELKA_VCF=".$sample_full_path."/strelka/strelka_out/results/passed.somatic.snvs.vcf"."\n";   
-	#print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
- 	print STREKA "TASK_STATUS=".$sample_full_path."/strelka/strelka_out/task.complete"."\n";
-	print STREKA "export SAMTOOLS_DIR=$samtools\n";
-	print STREKA "export JAVA_HOME=$java_dir\n";
-	print STREKA "export JAVA_OPTS=\"-Xmx10g\"\n";
-	print STREKA "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-	print STREKA "if [ ! -d \${myRUNDIR} ]\n";
-	print STREKA "then\n";
-	print STREKA "mkdir \${myRUNDIR}\n";
-	print STREKA "fi\n";
-	### re-run, then delete task.complete file ###
-	print STREKA "if [ $status_rerun -eq 1 ]\n";
-    print STREKA "  then\n";
-    print STREKA "rm \${TASK_STATUS}\n";
-    print STREKA "fi\n";
-
-    print STREKA "if [ ! -f \${STRELKA_VCF} ]\n";
-    print STREKA "  then\n";
-    print STREKA "rm \${TASK_STATUS}\n";
-    print STREKA "fi\n";
-
-    print STREKA "if [ ! -f  \${TASK_STATUS} ]\n";
-	print STREKA "then\n";
-	print STREKA "if [ -d \${STRELKA_OUT} ]\n";
-    print STREKA "then\n";
-    print STREKA "rm -rf \${STRELKA_OUT}\n";
-    print STREKA "fi\n";
-	print STREKA "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n"; 
-   	print STREKA "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-	print STREKA "else\n";
-   	print STREKA "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-	print STREKA "fi\n";
-	#print STREKA "put_cmd=\"ln -s\"\n";
-	#print STREKA "del_cmd=\"rm -f\"\n";
-	#print STREKA "del_local=\"rm -f\"\n";
-	#print STREKA "statfile=incomplete.strelka\n";
-	#print STREKA "localstatus=".$sample_full_path."/status/\$statfile\n";
-	#print STREKA "touch \$localstatus\n";
-    print STREKA ". $script_dir/set_envvars\n";
-#   	print STREKA ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
-   # print STREKA 	
-    print STREKA "if [ $s_wgs -eq 1 ]\n";
-    print STREKA "  then\n";
-    print STREKA "   ".$STRELKA_DIR2."/configureStrelkaSomaticWorkflow.py --normalBam=\$NBAM --tumorBam=\$TBAM --referenceFasta=$h38_REF --callMemMb=1024 --runDir=\$STRELKA_OUT\n";
-  	print STREKA "else\n";	
-    print STREKA "   ".$STRELKA_DIR2."/configureStrelkaSomaticWorkflow.py --normalBam=\$NBAM --tumorBam=\$TBAM --referenceFasta=$h38_REF --callMemMb=1024 --exome --runDir=\$STRELKA_OUT\n";
-	#print STREKA "   ".$STRELKA_DIR2."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h38_REF." --config $script_dir/strelka.ini --output-dir \$STRELKA_OUT\n";
-	print STREKA "fi\n";
-	print STREKA "cd \$STRELKA_OUT\n";
-	print STREKA "\$STRELKA_OUT/runWorkflow.py -m local -j 8 -g 4\n";
-	print STREKA "touch \${TASK_STATUS}\n";
-	print STREKA "fi\n";
-    close STREKA;
-
-    my $sh_file=$job_files_dir."/".$current_job_file;
-
-	if($q_name eq "research-hpc")
-	{
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-	else { 
-	    $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err bash $sh_file\n"; 
-	}
-
-	print $bsub_com;
-    system ($bsub_com);
-
-}
-
-sub bsub_varscan{
-
-	my ($step_by_step) = @_;
-	if ($step_by_step) {
-		$hold_job_file = "";
-	}else{
-		$hold_job_file = $current_job_file;
-	}
-
-    $current_job_file = "j2_varscan_".$sample_name.".sh";
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
-    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
-    `rm $lsf_out`;
-    `rm $lsf_err`;
-
-    if (! -e $IN_bam_T) {#make sure there is a input fasta file 
-        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        print "Warning: Died because there is no input bam file for bwa:\n";
-        print "File $IN_bam_T does not exist!\n";
-        die "Please check command line argument!", $normal, "\n\n";
-
-    }
-    if (! -s $IN_bam_T) {#make sure input fasta file is not empty
-        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        die "Warning: Died because $IN_bam_T is empty!", $normal, "\n\n";
-    }
-    if (! -e $IN_bam_N) {#make sure there is a input fasta file 
-        print $red,  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        print "Warning: Died because there is no input bam file for bwa:\n";
-        print "File $IN_bam_N does not exist!\n";
-        die "Please check command line argument!", $normal, "\n\n";
-
-    }
-    if (! -s $IN_bam_N) {#make sure input fasta file is not empty
-        print $red, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n";
-        die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
-    }
-    open(VARSCAN, ">$job_files_dir/$current_job_file") or die $!;
-    print VARSCAN "#!/bin/bash\n";
-   # print VARSCAN "#BSUB -n 1\n";
-   # print VARSCAN "#BSUB -R \"rusage[mem=30000]\"","\n";
-   # print VARSCAN "#BSUB -M 30000000\n";
-   # print VARSCAN "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-   # print VARSCAN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-   # print VARSCAN "#BSUB -J $current_job_file\n";
-  #	print VARSCAN "#BSUB -w \"$hold_job_file\"","\n";
-   #   print VARSCAN "#BSUB -q long\n";
-    #print VARSCAN "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print VARSCANP "#BSUB -q long\n";
-    #print VARSCAN "#BSUB -q research-hpc\n";
-	print VARSCAN "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print VARSCAN "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print VARSCAN "myRUNDIR=".$sample_full_path."/varscan\n";
-    print VARSCAN "STATUSDIR=".$sample_full_path."/status\n";
-    print VARSCAN "RESULTSDIR=".$sample_full_path."/varscan_results\n";
-    print VARSCAN "RUNDIR=".$sample_full_path."\n";
-    print VARSCAN "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
-   	print VARSCAN "GENOMEVIP_SCRIPTS=/gscmnt/gc2525/dinglab/rmashl/Software/bin/genomevip\n";
-	print VARSCAN "export VARSCAN_DIR=$varscan\n";
-	print VARSCAN "export SAMTOOLS_DIR=$samtools\n";
-    print VARSCAN "export JAVA_HOME=$java_dir\n";
-    print VARSCAN "export JAVA_OPTS=\"-Xmx10g\"\n";
-    print VARSCAN "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    print VARSCAN "if [ ! -d \${myRUNDIR} ]\n";
-    print VARSCAN "then\n";
-    print VARSCAN "mkdir \${myRUNDIR}\n";
-    print VARSCAN "fi\n";
-    print VARSCAN "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-    print VARSCAN "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-    print VARSCAN "else\n";
-    print VARSCAN "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-    print VARSCAN "fi\n";
-    print VARSCAN "put_cmd=\"ln -s\"\n";
-    print VARSCAN "del_cmd=\"rm -f\"\n";
-    print VARSCAN "del_local=\"rm -f\"\n";
-    print VARSCAN "statfile=complete.vs_som_snvindels\n";
-	print VARSCAN "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
-	print VARSCAN "if [ ! -d \${myRUNDIR}\/status ]\n";
-    print VARSCAN "then\n";
-    print VARSCAN "mkdir \${myRUNDIR}\/status\n";
-    print VARSCAN "fi\n";
-  ### re-run, then delete complete.vs_som_snvindel file ###
-    print VARSCAN "if [ $status_rerun -eq 1 ]\n";
-    print VARSCAN "  then\n";
-    print VARSCAN "rm \${localstatus}\n";
-    print VARSCAN "fi\n";
- 	print VARSCAN "if [ ! -f  \${localstatus} ]\n";
-    print VARSCAN "then\n";
-	print VARSCAN "cd \${RUNDIR}/varscan\n";
-	print VARSCAN "TMPBASE=.\/varscan.out.som\n";
-	print VARSCAN "LOG=\${TMPBASE}.log\n";
- 	print VARSCAN "snvoutbase=\${TMPBASE}_snv\n";
-	print VARSCAN "indeloutbase=\${TMPBASE}_indel\n";
-	print VARSCAN "BAMLIST=\${RUNDIR}/varscan/bamfilelist.inp\n";
-	print VARSCAN "if [ ! -e \${BAMLIST} ]\n";
-	print VARSCAN "then\n";
-	print VARSCAN "rm \${BAMLIST}\n";
-	print VARSCAN "fi\n";
-	print VARSCAN "echo \"$IN_bam_N\" > \${BAMLIST}\n"; 
-	print VARSCAN "echo \"$IN_bam_T\" >> \${BAMLIST}\n";  
-	print VARSCAN "ncols=9\n"; 
-	#print VARSCAN "ncols=\$(echo \"3*( \$(wc -l < \$BAMLIST) +1)\"|bc)\n";
-    #print VARSCAN "if [ $status_rerun -eq 1 ]\n";
-	#print VARSCAN "then\n";
-    #print VARSCAN "rm \${LOG}\n";
-    #print VARSCAN "fi\n";
-    #print VARSCAN ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
-   # print VARSCAN '  if [ ! -s $LOG ]',"\n";
-    #print VARSCAN "  then\n";	
-	print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal $mincov_n --min-coverage-tumor $mincov_t --min-var-freq $minvaf --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
-   	#print VARSCAN "  else\n";
-    print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";# one possible blast error (see the end of this script). 
-    print VARSCAN '      CHECK=$?',"\n";
-    print VARSCAN '      while [ ${CHECK} -eq 0 ]',"\n";
-    print VARSCAN "      do\n";
-    print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal $mincov_n --min-coverage-tumor $mincov_t --min-var-freq $minvaf --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
-    print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";
-    print VARSCAN '          CHECK=$?',"\n";
-    print VARSCAN "      done\n";
-    #print VARSCAN "  fi\n";
-    print VARSCAN "touch \${localstatus}\n";
-	print VARSCAN "fi\n";
-	close VARSCAN;	
-
-    #$bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     print $bsub_com;
-    #system ($bsub_com);
-
- my $sh_file=$job_files_dir."/".$current_job_file;
-
-    if($q_name eq "research-hpc")
+    foreach my $chr (@chrlist)
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
-    print $bsub_com;
-    system ($bsub_com);
+        my $chr1=$chr;
 
-    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    #system ( $bsub_com );
+        if($chr_status==1)
+        {
+        $chr1="chr".$chr;
+        }
 
+        $current_job_file = "j3_mutect2".$sample_name.".".$chr1.".sh";
+        my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
+        my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+        my $lsf_out=$lsf_file_dir."/".$current_job_file."_".$chr1.".out";
+        my $lsf_err=$lsf_file_dir."/".$current_job_file."_".$chr1.".err";
+
+        `rm $lsf_out`;
+        `rm $lsf_err`;
+        open(MUTECT2, ">$job_files_dir/$current_job_file") or die $!;
+        print MUTECT2 "#!/bin/bash\n";
+		print MUTECT2 "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK Mutect2 -I $OUT/$name.bam -R $h38_REF -L $chr1 --germline-resource ${GNOMAD_VCF} \
+        -pon ${PANEL_OF_NORMALS_VCF} \
+        --f1r2-tar-gz ${OUT}/${chromosome}-f1r2.tar.gz \
+        -O ${OUT}/${chromosome}-unfiltered.vcf
 }
-
 
 sub bsub_parse_strelka{
 
