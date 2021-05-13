@@ -128,7 +128,7 @@ my $status = &GetOptions (
  
 #print $status,"\n";
 
-if ($help || $run_dir eq "" || $log_dir eq "" || $step_number<0) {
+if ($help || $run_dir eq "" || $log_dir eq "" || $step_number<0 || $smg eq "") {
 	 print "wrong option\n";
 	  print $usage;
       exit;
