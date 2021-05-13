@@ -189,6 +189,10 @@ my $sample_name = "";
 ### running tools: USER needs to change according where the tools are installed.##
 
 my $MINLEN=50;
+my $MIN_VAF=0.02;
+my $MIN_DEP=8;
+my $MIN_MUT=3;
+
 my $FASTQC="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/fastqc";
 my $Z7="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/7z"; 
 # set trimGalore
@@ -202,10 +206,16 @@ my $TRIMGALORE="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/trim_galore"
 #REF=/gscmnt/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.fa
 
 my $TARGET="/gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/proteinCoding.cds.merged.gencode_hg38_v29.interval_list"; 
-
+my $GNOMAD_VCF="/gscmnt/gc3021/dinglab/hsun/Database/gatk/mutect2_gatk-best-practices.broadIns/af-only-gnomad.hg38.vcf.gz";
+# pon normal
+my $PANEL_OF_NORMALS_VCF="/gscmnt/gc3021/dinglab/hsun/Database/gatk/GDC-gatk4_panel_of_normals/6c4c4a48-3589-4fc0-b1fd-ce56e88c06e4/gatk4_mutect2_4136_pon.hg38.vcf.gz";
+# common_biallelic
+my $COMMON_BIALLELIC="/gscmnt/gc3021/dinglab/hsun/Database/gatk/mutect2_gatk-best-practices.broadIns/af-only-gnomad.hg38.common_biallelic.chr1-22XY.vcf";
 # gencode
 my $GENOME="/gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/GRCh38.primary_assembly.genome.fa";
 #GENOME=/gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
+
+my $GATK="/gscmnt/gc3021/dinglab/hsun/software/gatk-4.1.2.0/gatk-package-4.1.2.0-local.jar";
 
 #my $JAVA=/gscmnt/gc2737/ding/hsun/software/jre1.8.0_152/bin/java
 my $PICARD="/gscmnt/gc2737/ding/hsun/software/picard.jar";
@@ -524,16 +534,16 @@ sub bsub_fq2bam{
     open(FQ2BAM, ">$job_files_dir/$current_job_file") or die $!;
     print FQ2BAM "#!/bin/bash\n";
 	print FQ2BAM "$BWA mem -t 8 -M -R \"\@RG\\tID:$sample_name\\tPL:illumina\\tLB$sample_name\\tPU:$sample_name\\tSM:$sample_name\" $h38_REF $IN_fq1 $IN_fq2 | $SAMTOOLS view -Shb -o $out_bam -","\n"; 
- 	print FQ2BAM "$java_bin -Xmx16G -jar $PICARD SortSam CREATE_INDEX=true I=$out_bam O=$out_sorted_bam SORT_ORDER=coordinate VALIDATION_STRINGENCY=STRICT","\n"; 
-	print FQ2BAM "rm -f $out_bam","\n"; 
-	print FQ2BAM "$java_bin -Xmx16G -jar $PICARD MarkDuplicates I=$out_sorted_bam O=$out_rem_bam REMOVE_DUPLICATES=true M=$out_metrics","\n"; 
+ 	print FQ2BAM "$java_bin -Xmx16G -jar $picardexe SortSam CREATE_INDEX=true I=$out_bam O=$out_sorted_bam SORT_ORDER=coordinate VALIDATION_STRINGENCY=STRICT","\n"; 
+	#print FQ2BAM "rm -f $out_bam","\n"; 
+	print FQ2BAM "$java_bin -Xmx16G -jar $picardexe MarkDuplicates I=$out_sorted_bam O=$out_rem_bam REMOVE_DUPLICATES=true M=$out_metrics","\n"; 
 	
 # index bam
 	print FQ2BAM "$samtools index $out_rem_bam","\n";
 
 # remove bam for save space
-	print FQ2BAM "rm -f $out_sorted_bam","\n"; 
-	print FQ2BAM "rm -f $out_sorted_bam_bai","\n";     
+	#print FQ2BAM "rm -f $out_sorted_bam","\n"; 
+	#print FQ2BAM "rm -f $out_sorted_bam_bai","\n";     
 	close FQ2BAM;
 
     my $sh_file=$job_files_dir."/".$current_job_file;
