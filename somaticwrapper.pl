@@ -1,26 +1,6 @@
 ######### Song Cao###########
 ##### email: scao@wustl.edu ####
-## pipeline for somatic variant callings ##
-#	somatic_variant_callings.pl #
-###	updated date: 04/05/2017 ###
-### updated date: 04/18/2017 ###
-### add vcf2maf.pl ###
-### 07/14/2017 ##
-##3 vaf_filter.pl ###
-### 08/25/2017 ####
-### add docker env for mgi ##
-### 09/28/17##
-## add finishing checks##
-### 11/13/17 ###
-## add option for log directory##
-## 09/26/18 ##
-## use mutect1.7; merging using 2 over 3 callers ##
-## add tsl for vcf2maf.pl ##
-
-## 08/19/19 ##
-## add a checking step for vcf before merging ##
-
-## add smg recovering module, Apr 23, 2020 ##
+## pipeline for tumor-only somatic variant callings ##
 
 #!/usr/bin/perl
 ##!/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl
@@ -29,7 +9,7 @@ use warnings;
 #use POSIX;
 use Getopt::Long;
 
-my $version = 1.6;
+my $version = 1.0;
 
 #color code
 my $red = "\e[31m";
@@ -66,7 +46,7 @@ hg38:/gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference
 
 lscc smg: /gscmnt/gc3027/dinglab/medseq/smg_database/smg.lscc.tsv
  
-$red 	     [0]  Run all steps
+$red 	     [0]  Trim fastq and generate bams if input files are fastqs
 $green       [1]  Run streka
 $green 		 [2]  Run Varscan
 $green       [3]  Run Pindel
@@ -208,6 +188,31 @@ my $sample_name = "";
 
 ### running tools: USER needs to change according where the tools are installed.##
 
+my $MINLEN=50;
+my $FASTQC="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/fastqc";
+my $Z7="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/7z"; 
+# set trimGalore
+my $TRIMGALORE="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/trim_galore";
+
+#TRIMGALORE=/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/trim_galore
+
+
+##================================= Human Genomics
+# set for target coverage
+#REF=/gscmnt/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.fa
+
+my $TARGET="/gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/proteinCoding.cds.merged.gencode_hg38_v29.interval_list"; 
+
+# gencode
+my $GENOME="/gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/GRCh38.primary_assembly.genome.fa";
+#GENOME=/gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
+
+#my $JAVA=/gscmnt/gc2737/ding/hsun/software/jre1.8.0_152/bin/java
+my $PICARD="/gscmnt/gc2737/ding/hsun/software/picard.jar";
+my $BWA="/gscmnt/gc2737/ding/hsun/software/bwa-0.7.17/bwa";
+
+my $SAMTOOLS="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/samtools";
+
 my $mutect="/gscuser/scao/tools/mutect-1.1.7.jar";
 my $STRELKA_DIR2="/gscmnt/gc2518/dinglab/scao/tools/strelka2_linux/strelka-2.9.2.centos6_x86_64/bin";
 my $pindel="/gscuser/scao/tools/pindel/pindel";
@@ -215,6 +220,7 @@ my $PINDEL_DIR="/gscuser/scao/tools/pindel";
 my $picardexe="/gscuser/scao/tools/picard.jar";
 my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
 my $java_dir="/gscuser/scao/tools/jre1.8.0_121";
+my $java_bin="/gscuser/scao/tools/jre1.8.0_121/bin/java";
 my $java_mutect="/gscmnt/gc2518/dinglab/scao/tools/jre1.7.0_80";
 my $snpsift="/gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar";
 my $gatkexe3="/gscmnt/gc2525/dinglab/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
@@ -261,18 +267,10 @@ if ($step_number < 12) {
                 $current_job_file="";
                 if($step_number==0)
                 {  
-				   &bsub_strelka();
-				   &bsub_varscan();
-				   &bsub_pindel();
-				   &bsub_mutect();
-				   &bsub_parse_mutect(); 
-				   &bsub_parse_strelka();
-				   &bsub_parse_varscan();
-				   &bsub_parse_pindel();
-				   &bsub_merge_vcf();
-				   &bsub_vcf_2_maf();
+				   &bsub_trim();
+				   #&bsub_varscan();
 				} elsif ($step_number == 1) {
-                    &bsub_strelka();
+                    &bsub_fq2bam();
                 } elsif ($step_number == 2) {
                     &bsub_varscan(1);
                 } elsif ($step_number == 3) {
@@ -301,7 +299,7 @@ if ($step_number < 12) {
     }
 }
 
-if($step_number==12 || $step_number==0)
+if($step_number==12)
     {
 
 	print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
@@ -351,7 +349,7 @@ if($step_number==12 || $step_number==0)
 
 print "annotation\n"; 
 
-if($step_number==13 || $step_number==0)
+if($step_number==13)
     {
 
     print $yellow, "annotate dnp and remove snv near an indel",$normal, "\n";
@@ -428,7 +426,7 @@ if($step_number==13 || $step_number==0)
 
 #######################################################################
 # send email to notify the finish of the analysis
-if (($step_number == 0) || ($step_number == 14)) {
+if (($step_number == 14)) {
     print $yellow, "Submitting the job for sending an email when the run finishes ",$sample_name, "...",$normal, "\n";
     $hold_job_file = $current_job_file;
     $current_job_file = "Email_run_".$$.".sh";
@@ -465,12 +463,90 @@ if (($step_number == 0) || ($step_number == 14)) {
 	
 }
 #######################################################################
-if ($step_number == 0) {
-    print $green, "All jobs are submitted! You will get email notification when this run is completed.\n",$normal;
-}
+#if ($step_number == 0) {
+#    print $green, "All jobs are submitted! You will get email notification when this run is completed.\n",$normal;
+#}
 
 exit;
 
+
+sub bsub_trim{
+    #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
+    $current_job_file = "j0_trim_".$sample_name.".sh";
+    my $IN_fq1 = $sample_full_path."/".$sample_name.".R1.fastq.gz";
+    my $IN_fq2 = $sample_full_path."/".$sample_name.".R2.fastq.gz";
+	my $OUT_trim=$sample_full_path."/trimmed"; 
+
+	my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+    #`rm $current_job_file`;
+
+    open(TRIM, ">$job_files_dir/$current_job_file") or die $!;
+    print TRIM "#!/bin/bash\n";
+	print TRIM "$TRIMGALORE --phred33 --fastqc --length $MINLEN -q 20 -o $OUT_trim --paired $IN_fq1 $IN_fq2","\n";
+    close TRIM;
+
+    my $sh_file=$job_files_dir."/".$current_job_file;
+    if($q_name eq "research-hpc")
+    {
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    else {
+        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err bash $sh_file\n";
+    }
+
+    print $bsub_com;
+    system ($bsub_com);
+}
+
+sub bsub_fq2bam{
+
+    #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
+
+    $current_job_file = "j1_fq2bam_".$sample_name.".sh";
+    my $IN_fq1 = $sample_full_path."/trimmed/".$sample_name.".R1_val_1.fq.gz";
+    my $IN_fq2 = $sample_full_path."/trimmed/".$sample_name.".R2_val_2.fq.gz";
+    #my $OUT_trim=$sample_full_path."/trimmed";
+	my $out_bam=$sample_full_path."/".$sample_name.".bam";
+	my $out_sorted_bam=$sample_full_path."/".$sample_name.".sorted.bam";
+	 my $out_sorted_bam_bai=$sample_full_path."/".$sample_name.".sorted.bam.bai";
+	my $out_rem_bam=$sample_full_path."/".$sample_name.".remDup.bam";
+	my $out_metrics=$sample_full_path."/".$sample_name.".remdup.metrics.txt";
+
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+    #`rm $current_job_file`;
+
+    open(FQ2BAM, ">$job_files_dir/$current_job_file") or die $!;
+    print FQ2BAM "#!/bin/bash\n";
+	print FQ2BAM "$BWA mem -t 8 -M -R \"\@RG\\tID:$sample_name\\tPL:illumina\\tLB$sample_name\\tPU:$sample_name\\tSM:$sample_name\" $h38_REF $IN_fq1 $IN_fq2 | $SAMTOOLS view -Shb -o $out_bam -","\n"; 
+ 	print FQ2BAM "$java_bin -Xmx16G -jar $PICARD SortSam CREATE_INDEX=true I=$out_bam O=$out_sorted_bam SORT_ORDER=coordinate VALIDATION_STRINGENCY=STRICT","\n"; 
+	print FQ2BAM "rm -f $out_bam","\n"; 
+	print FQ2BAM "$java_bin -Xmx16G -jar $PICARD MarkDuplicates I=$out_sorted_bam O=$out_rem_bam REMOVE_DUPLICATES=true M=$out_metrics","\n"; 
+	
+# index bam
+	print FQ2BAM "$samtools index $out_rem_bam","\n";
+
+# remove bam for save space
+	print FQ2BAM "rm -f $out_sorted_bam","\n"; 
+	print FQ2BAM "rm -f $out_sorted_bam_bai","\n";     
+	close FQ2BAM;
+
+    my $sh_file=$job_files_dir."/".$current_job_file;
+    if($q_name eq "research-hpc")
+    {
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    else {
+        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err bash $sh_file\n";
+    }
+
+    print $bsub_com;
+    system ($bsub_com);
+}
 
 sub bsub_strelka{
     #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
