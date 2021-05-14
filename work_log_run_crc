@@ -2,3 +2,7 @@
 perl somaticwrapper.pl --rdir /gscmnt/gc2516/dinglab/scao/metNet/CRC/exome/somatic --log /gscmnt/gc2516/dinglab/scao/metNet/CRC/exome/somatic.log --ref /gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/GRCh38.primary_assembly.genome.fa --q research-hpc --step 0
 
 perl somaticwrapper.pl --rdir /gscmnt/gc2516/dinglab/scao/metNet/CRC/exome/somatic --log /gscmnt/gc2516/dinglab/scao/metNet/CRC/exome/somatic.log --ref /gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/GRCh38.primary_assembly.genome.fa --q research-hpc --step 1
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2516/dinglab/scao/metNet/CRC/exome/somatic --log /gscmnt/gc2516/dinglab/scao/metNet/CRC/exome/somatic.log --ref /gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/GRCh38.primary_assembly.genome.fa --q research-hpc --step 2
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2516/dinglab/scao/metNet/CRC/exome/somatic --log /gscmnt/gc2516/dinglab/scao/metNet/CRC/exome/somatic.log --ref /gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/GRCh38.primary_assembly.genome.fa --q research-hpc --step 3
