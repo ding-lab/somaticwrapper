@@ -48,7 +48,7 @@ foreach my $l (`cat $f_maf`)
 		 %caller=();  
 		 $sn_2=$sn_1; 
 		 print $sn_1,"\n";
-		 my $f_vcf=$run_dir."/".$sn_1."/merged.filtered.withmutect.vcf"; 
+		 my $f_vcf=$run_dir."/".$sn_1."/merged.mutect2.vcf"; 
 		 open(IN,"<$f_vcf"); 
 		 my $id; 
 		 #my $caller;

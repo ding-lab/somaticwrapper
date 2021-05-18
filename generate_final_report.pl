@@ -9,8 +9,8 @@ my ($run_dir, $s_exonic)=@ARGV;
 
 my $working_name= (split(/\//,$run_dir))[-1];
 
-my $f_sum=$run_dir."/".$working_name.".withmutect.maf\n";
-my $f_status=$run_dir."/".$working_name.".withmutect.status\n";
+my $f_sum=$run_dir."/".$working_name.".mutect2.maf\n";
+my $f_status=$run_dir."/".$working_name.".mutect2.status\n";
 
 open(OUT1,">$f_sum");
 open(OUT2,">$f_status"); 
@@ -23,7 +23,7 @@ foreach my $d (`ls $run_dir`)
 	chomp($dtr);
  
 #	my $f_maf=$run_dir."/".$dtr."/".$dtr.".checked.maf"; 
-my $f_maf=$run_dir."/".$dtr."/".$dtr.".withmutect.filtered.maf"; 
+my $f_maf=$run_dir."/".$dtr."/".$dtr.".mutect2.maf"; 
 	if(-e $f_maf) 
 	{
 		my $count=0;

@@ -35,8 +35,9 @@ foreach my $l (`cat $f_maf`)
 
 		 %vaf_rc=();  
 		 $sn_2=$sn_1; 
-
-		 my $f_vaf=$run_dir."/".$sn_1."/merged.withmutect.vaf"; 
+		 print $sn_2,"\t",$sn_1,"\n"; 
+		<STDIN>;
+		 my $f_vaf=$run_dir."/".$sn_1."/merged.mutect2.vcf"; 
 		 open(IN,"<$f_vaf"); 
 		 my $id; 
 
@@ -48,7 +49,8 @@ foreach my $l (`cat $f_maf`)
 		 while(<IN>)
 		  {
 		    my $l2=$_; 
-			chomp($l2); 
+			chomp($l2);
+			if($l2=~/^#/) { next; }  
 			my @temp2=split("\t",$l2); 
 			my $ref=$temp2[3]; 
 			my $var=$temp2[4];
@@ -69,13 +71,18 @@ foreach my $l (`cat $f_maf`)
 		
 		    my $id=$temp2[0]."_".$pos1;
  
-		  	$n_ref=$temp2[6];
-			$n_var=$temp2[8];
-			$t_ref=$temp2[10]; 
-			$t_var=$temp2[12]; 
+		  #	$n_ref=$temp2[6];
+		#	$n_var=$temp2[8];
+	        my $tumor=$temp2[9];
+        #print $tumor,"\n"; <STDIN>;
+        	my @tempt=split(":",$tumor);
+        #my @tempn=split(":",$normal); 
+        	my @readt=split(",",$tempt[1]);
+			$t_ref=$readt[0]; 
+			$t_var=$readt[1]; 
 			#print $sn_1,"\t",$n_ref,"\t",$n_var,"\t",$t_ref,"\t",$t_var,"\n"; 
 			#<STDIN>;
-        	$vaf_rc{$id}=$n_ref."_".$n_var."_".$t_ref."_".$t_var; 	  	 	
+        	$vaf_rc{$id}=$t_ref."_".$t_var; 	  	 	
 		  }
 		  
          close IN; 
@@ -101,13 +108,13 @@ foreach my $l (`cat $f_maf`)
 	#	print $sn_1,"\n";
 		#<STDIN>; 
 		my @temp3=split("_",$vaf); 
-	   	my $t_depth=$temp3[2]+$temp3[3]; 
-		my $t_ref_count=$temp3[2]; 
-		my $t_alt_count=$temp3[3];
+	   	my $t_depth=$temp3[0]+$temp3[1]; 
+		my $t_ref_count=$temp3[0]; 
+		my $t_alt_count=$temp3[1];
 		  								
-	    my $n_depth=$temp3[0]+$temp3[1];
-        my $n_ref_count=$temp3[0];
-        my $n_alt_count=$temp3[1];
+	    #my $n_depth=$temp3[0]+$temp3[1];
+        #my $n_ref_count=$temp3[0];
+        #my $n_alt_count=$temp3[1];
 	
 		print OUT $temp[0]; 
 
@@ -116,7 +123,7 @@ foreach my $l (`cat $f_maf`)
 		print OUT "\t",$temp[$i]; 
 		}
 
-		print OUT "\t",$t_depth,"\t",$t_ref_count,"\t",$t_alt_count,"\t",$n_depth,"\t",$n_ref_count,"\t",$n_alt_count; 						
+		print OUT "\t",$t_depth,"\t",$t_ref_count,"\t",$t_alt_count,"\t","NA","\t","NA","\t","NA"; 						
 		for(my $i=45;$i<scalar @temp;$i++) 
 		{
 		print OUT "\t",$temp[$i]; 		

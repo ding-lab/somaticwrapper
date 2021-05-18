@@ -50,17 +50,11 @@ lscc smg: /gscmnt/gc3027/dinglab/medseq/smg_database/smg.lscc.tsv
 $red 	     [0]  Trim fastq if input files are fastqs
 $green       [1]  generate bams if input files are fastqs
 $green 		 [2]  Run Mutect2
-$green       [3]  Run Parse Mutect2 result
-$green 		 [4]  Run mutect
-$yellow      [5]  Parse mutect result
-$yellow 	 [6]  Parse streka result
-$yellow 	 [7]  Parse VarScan result
-$yellow      [8]  Parse Pindel
-$cyan        [9]  QC vcf files  
-$cyan 	     [10] Merge vcf files  
-$cyan		 [11] Generate maf file 
-$cyan 		 [12] Generate merged maf file
-$cyan        [13] Annotate dnp and remove nearby snv near an indel
+$green       [3]  Run filter Mutect2 result
+$green 		 [4]  Run parse Mutect2 result
+$cyan		 [5] Generate maf file 
+$cyan 		 [6] Generate merged maf file
+$cyan        [7] Annotate dnp and remove nearby snv near an indel
 $normal
 
 OUT
@@ -84,7 +78,7 @@ my $db_smg="";
 my $chr_status=1;
 my $maxindsize=100; 
 my $mincov_t=14; 
-my $mincov_n=8; 
+#my $mincov_n=8; 
 my $minvaf=0.05;
 
 #__PARSE COMMAND LINE
@@ -99,7 +93,6 @@ my $status = &GetOptions (
 	  "log=s"  => \$log_dir,
 	  "q=s" => \$q_name,
 	  "mincovt=i"  => \$mincov_t,
-      "mincovn=i"  => \$mincov_n,		
 	  "minvaf=f"  => \$minvaf,
 	  "maxindsize=i"  => \$maxindsize,
       "log=s"  => \$log_dir,
@@ -287,22 +280,8 @@ if ($step_number < 12) {
                 } elsif ($step_number == 3) {
 					&bsub_filter_mutect2(1);
                 } elsif ($step_number == 4){
-                    &bsub_mutect(1);
-                } elsif ($step_number == 5){
-                    &bsub_parse_mutect(1);
-                } 
-				elsif ($step_number == 6) {
-					&bsub_parse_strelka(1);
-                }elsif ($step_number == 7) {
-					&bsub_parse_varscan(1);
-                }elsif ($step_number == 8) {
-                    &bsub_parse_pindel(1);
-                }elsif ($step_number == 9) {
-                    &bsub_qc_vcf(1);
-                }
-				elsif ($step_number == 10) {
-                    &bsub_merge_vcf(1);
-                }elsif ($step_number == 11) {
+                    &bsub_parse_mutect2(1);
+                } elsif ($step_number == 5) {
                     &bsub_vcf_2_maf(1);
                 } 
            }
@@ -310,21 +289,21 @@ if ($step_number < 12) {
     }
 }
 
-if($step_number==12)
+if($step_number==6)
     {
 
 	print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
 	$hold_job_file=$current_job_file; 
-	$current_job_file = "j12_Run_report_".$working_name.".sh"; 
+	$current_job_file = "j6_Run_report_".$working_name.".sh"; 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
     `rm $lsf_err`;
     `rm $current_job_file`;
     my $working_name= (split(/\//,$run_dir))[-1];
-    my $f_maf=$run_dir."/".$working_name.".withmutect.maf";
+    my $f_maf=$run_dir."/".$working_name.".mutect2.maf";
     my $f_maf_rc=$f_maf.".rc";
-	my $f_maf_rc_caller=$f_maf_rc.".caller";
+	#my $f_maf_rc_caller=$f_maf_rc.".caller";
 	open(REPRUN, ">$job_files_dir/$current_job_file") or die $!;
 	print REPRUN "#!/bin/bash\n";
     #print REPRUN "#BSUB -n 1\n";
@@ -339,7 +318,7 @@ if($step_number==12)
 	#print REPRUN "#BSUB -w \"$hold_job_file\"","\n";
 	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir." ".$status_exonic."\n";
     print REPRUN "      ".$run_script_path."add_rc.pl ".$run_dir." ".$f_maf." ".$f_maf_rc."\n";
-    print REPRUN "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
+    #print REPRUN "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
 	close REPRUN;
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
 	#system ($bsub_com);
@@ -360,19 +339,19 @@ if($step_number==12)
 
 print "annotation\n"; 
 
-if($step_number==13)
+if($step_number==7)
     {
 
     print $yellow, "annotate dnp and remove snv near an indel",$normal, "\n";
     $hold_job_file=$current_job_file;
-    $current_job_file = "j13_dnp_".$working_name.".sh";
+    $current_job_file = "j7_dnp_".$working_name.".sh";
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
     `rm $lsf_err`;
     #`rm $current_job_file`;
     my $working_name= (split(/\//,$run_dir))[-1];
-    my $f_maf=$run_dir."/".$working_name.".withmutect.maf.rc.caller";
+    my $f_maf=$run_dir."/".$working_name.".mutect2.maf.rc";
     my $f_maf_rm_snv=$run_dir."/".$working_name.".remove.nearby.snv.maf";
 	my $f_maf_removed=$run_dir."/".$working_name.".remove.nearby.snv.maf.removed";
 	my $f_maf_dnp_tmp=$run_dir."/".$working_name.".dnp.annotated.tmp.maf";
@@ -393,7 +372,7 @@ if($step_number==13)
 
 	if(-d $dir_2) 
 	{
- 	my $f_bam=$dir_2."/".$str.".T.bam";
+ 	my $f_bam=$dir_2."/".$str.".remDup.bam";
 
 	if(-e $f_bam) { print OUTB $str,"_T","\t",$f_bam,"\n"; }
   				
@@ -434,10 +413,6 @@ if($step_number==13)
 
 }
 	
-#######################################################################
-#if ($step_number == 0) {
-#    print $green, "All jobs are submitted! You will get email notification when this run is completed.\n",$normal;
-#}
 
 exit;
 
@@ -501,9 +476,11 @@ sub bsub_fq2bam{
 	print FQ2BAM "$java_bin -Xmx16G -jar $picardexe MarkDuplicates I=$out_sorted_bam O=$out_rem_bam REMOVE_DUPLICATES=true M=$out_metrics","\n"; 
 
 	print FQ2BAM "$SAMTOOLS index $out_rem_bam","\n";
-# remove bam for save space
+# remove bam and fastq for save space
 	print FQ2BAM "rm -f $out_sorted_bam","\n"; 
 	print FQ2BAM "rm -f $out_sorted_bam_bai","\n";     
+	print FQ2BAM "rm -rf $IN_fq1","\n"; 
+	print FQ2BAM "rm -rf $IN_fq2","\n"; 
 	close FQ2BAM;
 
     my $sh_file=$job_files_dir."/".$current_job_file;
@@ -527,8 +504,8 @@ sub bsub_mutect2{
         $hold_job_file = $current_job_file;
     }
 
-	my $OUT_mutect2=$sample_full_path."/mutect2";	
-	if(!(-d $OUT_mutect2)) { `mkdir $OUT_mutect2`; } 
+	my $out_mutect2=$sample_full_path."/mutect2";	
+	if(!(-d $out_mutect2)) { `mkdir $out_mutect2`; } 
     my @chrlist=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","X","Y");
  		
     foreach my $chr (@chrlist)
@@ -544,8 +521,8 @@ sub bsub_mutect2{
         my $IN_bam_T = $sample_full_path."/".$sample_name.".remDup.bam";
         my $lsf_out=$lsf_file_dir."/".$current_job_file."_".$chr1.".out";
         my $lsf_err=$lsf_file_dir."/".$current_job_file."_".$chr1.".err";
-		my $f_out_gz=$OUT_mutect2."/".$chr1."-f1r2.tar.gz"; 
-		my $f_out_vcf=$OUT_mutect2."/".$chr1."-unfiltered.vcf";
+		my $f_out_gz=$out_mutect2."/".$chr1."-f1r2.tar.gz"; 
+		my $f_out_vcf=$out_mutect2."/".$chr1."-unfiltered.vcf";
 
         `rm $lsf_out`;
         `rm $lsf_err`;
@@ -642,16 +619,18 @@ sub bsub_filter_mutect2 {
 	my $f_seg=$out_mutect2."/segments.table";	
    	my $f_filtered_vcf=$out_mutect2."/filtered.vcf"; 
  
-	open(MUTECT2P, ">$job_files_dir/$current_job_file") or die $!;
+	open(MUTECT2F, ">$job_files_dir/$current_job_file") or die $!;
 
-    print MUTECT2P "#!/bin/bash\n";
-	print MUTECT2P "$java_bin -Xmx16g -jar $picardexe GatherVcfs $all_unfiltered_input O=$f_merged_vcf","\n";
-	print MUTECT2P "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK MergeMutectStats $all_unfiltered_stats_input -O $f_merged_status\n"; 
-	print MUTECT2P  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK LearnReadOrientationModel $all_f1r2_input -O $f_ori\n";
-    print MUTECT2P  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx8g -jar $GATK GetPileupSummaries -I $IN_bam_T -V $COMMON_BIALLELIC -L $COMMON_BIALLELIC -O $f_sum\n";
-	print MUTECT2P  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK CalculateContamination -I $f_sum --tumor-segmentation $f_seg -O $f_tab\n";
-	print MUTECT2P "perl check_contamination.pl $f_tab $f_tab2","\n"; 
-	print MUTECT2P  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK FilterMutectCalls -V $f_merged_vcf -R $h38_REF --tumor-segmentation $f_seg --contamination-table $f_tab2 --ob-priors $f_ori -O $f_filtered_vcf\n";	
+    print MUTECT2F "#!/bin/bash\n";
+	print MUTECT2F "$java_bin -Xmx16g -jar $picardexe GatherVcfs $all_unfiltered_input O=$f_merged_vcf","\n";
+	print MUTECT2F "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK MergeMutectStats $all_unfiltered_stats_input -O $f_merged_status\n"; 
+	print MUTECT2F  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK LearnReadOrientationModel $all_f1r2_input -O $f_ori\n";
+    print MUTECT2F  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx8g -jar $GATK GetPileupSummaries -I $IN_bam_T -V $COMMON_BIALLELIC -L $COMMON_BIALLELIC -O $f_sum\n";
+	print MUTECT2F  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK CalculateContamination -I $f_sum --tumor-segmentation $f_seg -O $f_tab\n";
+	print MUTECT2F  "		".$run_script_path."check_contamination.pl $f_tab $f_tab2","\n"; 
+	print MUTECT2F  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK FilterMutectCalls -V $f_merged_vcf -R $h38_REF --tumor-segmentation $f_seg --contamination-table $f_tab2 --ob-priors $f_ori -O $f_filtered_vcf\n";	
+	close MUTECT2F;
+
  	my $sh_file=$job_files_dir."/".$current_job_file;
 
     if($q_name eq "research-hpc")
@@ -663,9 +642,8 @@ sub bsub_filter_mutect2 {
 
 }
 
+sub bsub_parse_mutect2{
 
-sub bsub_qc_vcf{
-  
     my ($step_by_step) = @_;
     if ($step_by_step) {
         $hold_job_file = "";
@@ -673,128 +651,46 @@ sub bsub_qc_vcf{
         $hold_job_file = $current_job_file;
     }
 
-    $current_job_file = "j9_qc_vcf.".$sample_name.".sh";
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
-    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    $current_job_file = "j4_parse_mutect2_".$sample_name.".sh";
+
+	my $out_mutect2=$sample_full_path."/mutect2";
+    my $f_filtered_vcf=$out_mutect2."/filtered.vcf";
+	my $f_passed_vcf=$out_mutect2."/filtered.pass.vcf";
+	my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
     `rm $lsf_err`;
-	### QC VCF file ##
- 	open(QC, ">$job_files_dir/$current_job_file") or die $!;
-    print QC "#!/bin/bash\n";
-	print QC "RUNDIR=".$sample_full_path."\n";	
-  	print QC "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
-	print QC "PINDEL_VCF_QC="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.qced.vcf\n";
-    print QC "     ".$run_script_path."qc_vcf.pl \${PINDEL_VCF} \${PINDEL_VCF_QC}\n";
-    close QC;
-    #$bsub_com = "sh $job_files_dir/$current_job_file\n";
+	
+    open(MUTECT2P, ">$job_files_dir/$current_job_file") or die $!;
+    print MUTECT2P "#!/bin/bash\n";
+
+ 	print MUTECT2P "export JAVA_HOME=$java_dir\n";
+    print MUTECT2P "export JAVA_OPTS=\"-Xmx10g\"\n";
+    print MUTECT2P "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
+    print MUTECT2P "cat > $out_mutect2/mutect2_dbsnp_filter.input <<EOF\n";
+    print MUTECT2P "mutect.dbsnp.annotator = $snpsift\n";
+    print MUTECT2P "streka.dbsnp.db = $DB_SNP_NO_COSMIC\n";
+    print MUTECT2P "streka.dbsnp.rawvcf = ./filtered.pass.vcf\n";
+    print MUTECT2P "streka.dbsnp.mode = filter\n";
+    print MUTECT2P "streka.dbsnp.passfile  = ./mutect2.somatic.dbsnp_pass.vcf\n";
+    print MUTECT2P "streka.dbsnp.dbsnpfile = ./mutect2.somatic.dbsnp_present.vcf\n";
+    print MUTECT2P "EOF\n";
+	print MUTECT2P "cd $out_mutect2\n";
+	print MUTECT2P "		".$run_script_path."filter_mutect2.pl $f_filtered_vcf $f_passed_vcf $mincov_t $minvaf\n";
+    print MUTECT2P "     ".$run_script_path."dbsnp_filter.pl ./mutect2_dbsnp_filter.input\n";
+	close MUTECT2P;	
+
     my $sh_file=$job_files_dir."/".$current_job_file;
-    #$bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>80000] rusage[mem=80000]\" -M 80000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     
-    #print $bsub_com;
-    #system ($bsub_com);
+
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else 
-	{        
-	$bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";             
-    }
-
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
     print $bsub_com;
     system ($bsub_com);
 
 }
-
-
-sub bsub_merge_vcf{
-  
-    my ($step_by_step) = @_;
-    if ($step_by_step) {
-        $hold_job_file = "";
-    }else{
-        $hold_job_file = $current_job_file;
-    }
-
-    $current_job_file = "j10_merge_vcf.".$sample_name.".sh";
-    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-
-    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
-    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
-    `rm $lsf_out`;
-    `rm $lsf_err`;
-	my $hg19="Hg19"; 
-    open(MERGE, ">$job_files_dir/$current_job_file") or die $!;
-    print MERGE "#!/bin/bash\n";
-    #print MERGE "#BSUB -n 1\n";
-    #print MERGE "#BSUB -R \"rusage[mem=60000]\"","\n";
-    #print MERGE "#BSUB -M 60000000\n";
-    #print MERGE "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    #print MERGE "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    #print MERGE "#BSUB -J $current_job_file\n";
-   # print MERGE "#BSUB -q long\n";
-	#print MERGE "#BSUB -q ding-lab\n"; 
-   #print MERGE "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print MERGE "#BSUB -q research-hpc\n";
-    #print MERGE "#BSUB -w \"$hold_job_file\"","\n";
-    #print MERGE "scr_t0=\`date \+\%s\`\n";
-    print MERGE "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    print MERGE "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-    print MERGE "myRUNDIR=".$sample_full_path."/varscan\n";
-    print MERGE "STATUSDIR=".$sample_full_path."/status\n";
-    print MERGE "RUNDIR=".$sample_full_path."\n";
-    #print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-	print MERGE "export SAMTOOLS_DIR=$samtools\n";
-    print MERGE "export JAVA_HOME=$java_dir\n";
-    print MERGE "export JAVA_OPTS=\"-Xmx10g\"\n";
-    print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-	print MERGE "STRELKA_VCF="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
-	print MERGE "VARSCAN_VCF="."\${RUNDIR}/varscan/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
-	print MERGE "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.qced.vcf\n";
-	print MERGE "VARSCAN_INDEL="."\${RUNDIR}/varscan/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
-	print MERGE	"MUTECT_VCF="."\${RUNDIR}/mutect1/mutect.filter.snv.vcf\n";
-	print MERGE "STRELKA_INDEL="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";; 
-	print MERGE "MERGER_OUT="."\${RUNDIR}/merged.withmutect.vcf\n";
-    print MERGE "PINDEL_VCF_FILTER="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.filtered.vcf\n";
-	#print MERGE "cat > \${RUNDIR}/vep.merged.input <<EOF\n";
-    #print MERGE "merged.vep.vcf = ./merged.filtered.vcf\n"; 
-    #print MERGE "merged.vep.output = ./merged.VEP.vcf\n";
-    #print MERGE "merged.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-    #print MERGE "merged.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache\n";
-    #print MERGE "merged.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache/homo_sapiens/85_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-    #print MERGE "merged.vep.reffasta = $f_ref_annot\n";
-    #print MERGE "merged.vep.assembly = GRCh37\n";
-    #print MERGE "EOF\n";
-    print MERGE "     ".$run_script_path."filter_large_indel.pl \${PINDEL_VCF} \${PINDEL_VCF_FILTER} $maxindsize\n";
-    print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h38_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:sindel \${STRELKA_INDEL} --variant:pindel \${PINDEL_VCF_FILTER} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,mutect,sindel,varindel,pindel\n"; 
-    #print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h38_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:sindel \${STRELKA_INDEL} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,mutect,pindel,varindel,sindel\n";
-  #	print MERGE "if [ $ref_name = $hg19 ]\n";
-   # print MERGE "then\n";	
-#	print MERGE "     ".$run_script_path."vaf_filter_v1.1.pl \${RUNDIR}\n";
-#	print MERGE "else\n";
-#	print MERGE "     ".$run_script_path."vaf_filter_v1.1.pl \${RUNDIR}\n";
-#	print MERGE "fi\n";
-
-#	print MERGE "cd \${RUNDIR}\n";
-#	print MERGE ". $script_dir/set_envvars\n"; 
-#	print MERGE "     ".$run_script_path."vep_annotator.pl ./vep.merged.input >&./vep.merged.log\n";	
-	close MERGE;
-	#$bsub_com = "sh $job_files_dir/$current_job_file\n";
-    my $sh_file=$job_files_dir."/".$current_job_file;
-    #$bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>80000] rusage[mem=80000]\" -M 80000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     
-	#print $bsub_com;
-    #system ($bsub_com);
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                                      
-    }
-    print $bsub_com;
-   	system ($bsub_com);
-
-	}
 
 sub bsub_vcf_2_maf{
   
@@ -806,14 +702,15 @@ sub bsub_vcf_2_maf{
     }
 
 
-    $current_job_file = "j11_vcf_2_maf.".$sample_name.".sh";
+    $current_job_file = "j5_vcf_2_maf.".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
-    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+    #my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
     `rm $lsf_err`;
+	my $f_m_vcf_in=$sample_full_path."/mutect2/"."mutect2.somatic.dbsnp_pass.vcf";
 
     open(MAF, ">$job_files_dir/$current_job_file") or die $!;
     print MAF "#!/bin/bash\n";
@@ -829,22 +726,22 @@ sub bsub_vcf_2_maf{
     #print MAF "#BSUB -q research-hpc\n";
     #print MAF "#BSUB -w \"$hold_job_file\"","\n";
   	
-	print MAF "F_VCF_1=".$sample_full_path."/merged.withmutect.vcf\n";
-    print MAF "F_VCF_1_filtered=".$sample_full_path."/merged.filtered.withmutect.vcf\n";
-	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".withmutect.vcf\n";
-    print MAF "F_VCF_2_filtered=".$sample_full_path."/".$sample_name.".withmutect.filtered.vcf\n";
-    print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.withmutect.vcf\n";
-	print MAF "F_VEP_1_filtered=".$sample_full_path."/merged.VEP.withmutect.filtered.vcf\n";
-	print MAF "F_VEP_2=".$sample_full_path."/".$sample_name.".withmutect.vep.vcf\n";
-    print MAF "F_VEP_2_filtered=".$sample_full_path."/".$sample_name.".withmutect.filtered.vep.vcf\n";
-	print MAF "F_maf=".$sample_full_path."/".$sample_name.".withmutect.maf\n";
-	print MAF "F_maf_filtered=".$sample_full_path."/".$sample_name.".withmutect.filtered.maf\n";
+	print MAF "F_VCF_1=".$sample_full_path."/merged.mutect2.vcf\n";
+    #print MAF "F_VCF_1_filtered=".$sample_full_path."/merged.filtered.mutect2.vcf\n";
+	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".mutect2.vcf\n";
+    #print MAF "F_VCF_2_filtered=".$sample_full_path."/".$sample_name.".mutect2.filtered.vcf\n";
+    print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.mutect2.vcf\n";
+	#print MAF "F_VEP_1_filtered=".$sample_full_path."/merged.VEP.mutect2.filtered.vcf\n";
+	print MAF "F_VEP_2=".$sample_full_path."/".$sample_name.".mutect2.vep.vcf\n";
+    #print MAF "F_VEP_2_filtered=".$sample_full_path."/".$sample_name.".mutect2.filtered.vep.vcf\n";
+	print MAF "F_maf=".$sample_full_path."/".$sample_name.".mutect2.maf\n";
+	#print MAF "F_maf_filtered=".$sample_full_path."/".$sample_name.".mutect2.filtered.maf\n";
     print MAF "RUNDIR=".$sample_full_path."\n";
 	
-	print MAF "F_log=".$sample_full_path."/vep.merged.withmutect.log"."\n";
-    print MAF "cat > \${RUNDIR}/vep.merged.withmutect.input <<EOF\n";
-    print MAF "merged.vep.vcf = ./merged.withmutect.vcf\n";
-    print MAF "merged.vep.output = ./merged.VEP.withmutect.vcf\n";
+	print MAF "F_log=".$sample_full_path."/vep.merged.mutect2.log"."\n";
+    print MAF "cat > \${RUNDIR}/vep.merged.mutect2.input <<EOF\n";
+    print MAF "merged.vep.vcf = ./merged.mutect2.vcf\n";
+    print MAF "merged.vep.output = ./merged.VEP.mutect2.vcf\n";
     print MAF "merged.vep.vep_cmd = $vepannot\n";
     print MAF "merged.vep.cachedir = $vepcache\n";
     print MAF "merged.vep.reffasta = $f_ref_annot\n";
@@ -852,37 +749,18 @@ sub bsub_vcf_2_maf{
     print MAF "EOF\n";
     print MAF "rm \${F_log}\n";
 	
- 	print MAF "F_log_filtered=".$sample_full_path."/vep.merged.withmutect.filtered.log"."\n";
-    print MAF "cat > \${RUNDIR}/vep.merged.withmutect.filtered.input <<EOF\n";
-    print MAF "merged.vep.vcf = ./merged.filtered.withmutect.vcf\n";
-    print MAF "merged.vep.output = ./merged.VEP.withmutect.filtered.vcf\n";
-    print MAF "merged.vep.vep_cmd = $vepannot\n";
-    print MAF "merged.vep.cachedir = $vepcache\n";
-    print MAF "merged.vep.reffasta = $f_ref_annot\n";
-    print MAF "merged.vep.assembly = GRCh38\n";
-    print MAF "EOF\n";
-	print MAF "rm \${F_log_filtered}\n";	
   
 	### vep and vcf2maf annotation for all variants to get the annotated gene name for each variant ##
-    print MAF "cd \${RUNDIR}\n";
+    print MAF "cd $sample_full_path\n";
     print MAF ". $script_dir/set_envvars\n";
- 	print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.input >&./vep.merged.withmutect.log\n";
+ 	print MAF "cp $f_m_vcf_in \${F_VCF_1}","\n";  
+	print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.mutect2.input >&./vep.merged.mutect2.log\n";
     print MAF "rm \${F_VCF_2}\n";
     print MAF "rm \${F_VEP_2}\n";
     print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
     print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
     print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n";
 	
-	## do the filtering for variants and ignore tumor vaf > 0.05 for gene in smg ##
-	print MAF "     ".$run_script_path."vaf_filter_v1.4.pl \${RUNDIR} $sample_name $minvaf $mincov_t $mincov_n $maxindsize $db_smg\n";
-  
-  	print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.filtered.input >&./vep.merged.withmutect.filtered.log\n";
-    print MAF "rm \${F_VCF_2_filtered}\n";
-    print MAF "rm \${F_VEP_2_filtered}\n";
-    print MAF "ln -s \${F_VCF_1_filtered} \${F_VCF_2_filtered}\n";
-    print MAF "ln -s \${F_VEP_1_filtered} \${F_VEP_2_filtered}\n";
-	print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2_filtered} --output-maf \${F_maf_filtered} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n"; 
-	#print MAF "     ".$run_script_path."splice_site_check.pl $sample_full_path\n"; 
     close MAF;
 
   	my $sh_file=$job_files_dir."/".$current_job_file;
@@ -892,7 +770,8 @@ sub bsub_vcf_2_maf{
     $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
     else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                
     }
-    print $bsub_com;
+ 
+   print $bsub_com;
 	system ($bsub_com);
 
  }
