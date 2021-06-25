@@ -247,7 +247,8 @@ if ($step_number < 12) {
     #begin to process each sample
     for (my $i=0;$i<@sample_dir_list;$i++) {#use the for loop instead. the foreach loop has some problem to pass the global variable $sample_name to the sub functions
         $sample_name = $sample_dir_list[$i];
-        if (!($sample_name =~ /\./ || $sample_name=~/worklog/)) {
+		#print $sample_name,"\n";
+        if (!($sample_name=~/worklog/) && !($sample_name eq ".") && !($sample_name eq "..")) {
             $sample_full_path = $run_dir."/".$sample_name;
             if (-d $sample_full_path) { # is a full path directory containing a sample
                 print $yellow, "\nSubmitting jobs for the sample ",$sample_name, "...",$normal, "\n";
@@ -343,7 +344,7 @@ if($step_number==12 || $step_number==0)
 ### Annotate dnp 
 ### keep indel (for cocoexistence of indel and snv) 
 
-print "annotation\n"; 
+#print "annotation\n"; 
 
 if($step_number==13 || $step_number==0)
     {

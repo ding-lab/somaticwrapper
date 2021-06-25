@@ -1,0 +1,7 @@
+perl somaticwrapper.pl --rdir /gscmnt/gc7201/dinglab/PDX_U54/scao/b11/somatic/paired/sw1.5 --log /gscmnt/gc7201/dinglab/PDX_U54/scao/b11/somatic/paired/sw1.5.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --step 1
+
+perl somaticwrapper.pl --rdir /gscmnt/gc7201/dinglab/PDX_U54/scao/b11/somatic/paired/sw1.5 --log /gscmnt/gc7201/dinglab/PDX_U54/scao/b11/somatic/paired/sw1.5.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --step 2
+
+perl somaticwrapper.pl --rdir /gscmnt/gc7201/dinglab/PDX_U54/scao/b11/somatic/paired/sw1.5 --log /gscmnt/gc7201/dinglab/PDX_U54/scao/b11/somatic/paired/sw1.5.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --step 3
+
+perl somaticwrapper.pl --rdir /gscmnt/gc7201/dinglab/PDX_U54/scao/b11/somatic/paired/sw1.5 --log /gscmnt/gc7201/dinglab/PDX_U54/scao/b11/somatic/paired/sw1.5.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --step 4
