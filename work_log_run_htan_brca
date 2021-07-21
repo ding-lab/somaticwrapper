@@ -1,0 +1,4 @@
+perl somaticwrapper.pl --rdir /gscmnt/gc2521/dinglab/austins2/htan_breast/SW/input2  --log /gscmnt/gc2521/dinglab/austins2/htan_breast/SW/log --ref /gscmnt/gc7202/dinglab/common/Reference/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --smg /gscmnt/gc2521/dinglab/austins2/tools/SMG/smg_Bailey_BRCA.tsv --q research-hpc --step 1
+
+
+
