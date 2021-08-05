@@ -31,7 +31,7 @@ my $f_maf=$run_dir."/".$dtr."/".$dtr.".withmutect.filtered.maf";
 		{ 
 			my $ltr=$l; 
 			chomp($ltr); 
-			if(($ltr=~/version/ || $ltr=~/^Hugo/) && $head_w==1)  { next; } 
+			if($ltr=~/^#version/)  { next; } 
 			else { 
 			if($ltr=~/^Hugo/) { $head_w=1; print OUT1 $ltr,"\n"; } 
 			else { 

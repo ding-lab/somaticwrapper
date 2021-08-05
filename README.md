@@ -9,7 +9,9 @@ Indel calls are called by 2 over 3 callers (Strelka2, Varscan2 and pindel).
 
 Improvements compared to version 1.6:
 
-Requires smg input in the pipeline run
+1. Requires smg input in the pipeline run
+
+2. Clean unnecessary intermediate files  
 
 If you want to run somaticwrapper for hg19 reference, you can git clone the withmutect branch. 
 
@@ -86,6 +88,7 @@ hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Referenc
 
 [13] DNP annotation
 
+[14] Clean unnecessary intermediate files
 
 ## Contact ##
 
