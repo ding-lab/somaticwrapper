@@ -36,7 +36,7 @@ foreach my $l (`cat $f_maf`)
 		 %vaf_rc=();  
 		 $sn_2=$sn_1; 
 		 print $sn_2,"\t",$sn_1,"\n"; 
-		<STDIN>;
+		#<STDIN>;
 		 my $f_vaf=$run_dir."/".$sn_1."/merged.mutect2.vcf"; 
 		 open(IN,"<$f_vaf"); 
 		 my $id; 

@@ -15,9 +15,10 @@ my $helpFlag = 0;
 my $genome;
 my $gtf;
 my $bam;
-
+my $samtools
 GetOptions(	"distance=n" 		=> \$distance,
 		"mapq=n"		=> \$mapq,
+		"samt=s"  => \$samtools,
 		"freq_cooccur=n" 	=> \$freq_cooccur,
 		"vaf_diff=n"		=> \$vaf_diff,
 		"merge"			=> \$mergeFlag,
@@ -571,7 +572,7 @@ sub readsConfirmed
                         }
                 }else
 		{
-                        $seq = `samtools view -q $mapq $bam_location{$f[15]} $f[4]:$f[5]-$l[6]`;
+                        $seq = `$samtools view -q $mapq $bam_location{$f[15]} $f[4]:$f[5]-$l[6]`;
                         @sequences = split(/\n/, $seq);
                         $var1 = $f[5].":".$f[10]."\>".$f[12];
                         $var2 = $m[5].":".$m[10]."\>".$m[12];
@@ -665,7 +666,7 @@ sub readsConfirmed
 			}
 		}else
 		{
-			$seq = `samtools view -q $mapq $bam_location{$f[15]} $f[4]:$f[5]-$l[6]`;
+			$seq = `$samtools view -q $mapq $bam_location{$f[15]} $f[4]:$f[5]-$l[6]`;
 			@sequences = split(/\n/, $seq);
 			$var1 = $f[5].":".$f[10]."\>".$f[12];
 			$var2 = $l[5].":".$l[10]."\>".$l[12];

@@ -31,13 +31,16 @@ my $f_maf=$run_dir."/".$dtr."/".$dtr.".mutect2.maf";
 		{ 
 			my $ltr=$l; 
 			chomp($ltr); 
-			if(($ltr=~/version/ || $ltr=~/^Hugo/) && $head_w==1)  { next; } 
+			if($ltr=~/^#version/)  { next; } 
 			else { 
 			if($ltr=~/^Hugo/) { $head_w=1; print OUT1 $ltr,"\n"; } 
 			else { 
 				my @temp=split("\t",$ltr); 
 				my $annot=$temp[8];
 				my $af=$temp[99];
+			#	print $ltr,"\n"; 
+			#	print $annot,"\n";
+		#		<STDIN>; 
 				if($annot=~/Frame_Shift_Del/ || $annot=~/Frame_Shift_Ins/ || $annot=~/Missense_Mutation/ || $annot=~/Nonsense_Mutation/ ||  $annot=~/Nonstop_Mutation/ || $annot=~/Silent/ || $annot=~/Splice_Site/ || $annot=~/In_Frame_Ins/ || $annot=~/In_Frame_Del/  || $s_exonic==0) {
 					#if($af eq "" || (($af ne "") && $af<0.005))
 					#{

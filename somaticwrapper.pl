@@ -25,7 +25,7 @@ my $normal = "\e[0m";
 Somatic variant calling pipeline 
 Pipeline version: $version
 
-$yellow     Usage: perl $0  --chr --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg 
+$yellow     Usage: perl $0 --chr --step --sre --rdir --ref --log --q --exonic 
 
 $normal
 
@@ -37,12 +37,7 @@ $normal
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
-<mincovt> minimum coverage for tumor: default >=14
-<mincovn> minimum coverage for normal: default >=8
-<minvaf> minimum somatic vaf: default >=0.05
-<maxindsize> default <=100
 <exonic> output exonic region: 1 Yes, 0 No
-<smg> use smg list for calling
 hg38:/gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa
 
 lscc smg: /gscmnt/gc3027/dinglab/medseq/smg_database/smg.lscc.tsv
@@ -89,12 +84,12 @@ my $status = &GetOptions (
 	  "exonic=i" => \$status_exonic,
       "rdir=s" => \$run_dir,
 	  "ref=s"  => \$h38_REF,
-	  "smg=s" => \$db_smg,
+#	  "smg=s" => \$db_smg,
 	  "log=s"  => \$log_dir,
 	  "q=s" => \$q_name,
-	  "mincovt=i"  => \$mincov_t,
-	  "minvaf=f"  => \$minvaf,
-	  "maxindsize=i"  => \$maxindsize,
+#	  "mincovt=i"  => \$mincov_t,
+#	  "minvaf=f"  => \$minvaf,
+#	  "maxindsize=i"  => \$maxindsize,
       "log=s"  => \$log_dir,
       "q=s" => \$q_name,
    	  "help" => \$help, 
@@ -115,7 +110,7 @@ print "status rerun=",$status_rerun,"\n";
 print "status exonic=",$status_exonic,"\n";
 print "status readgroup=",$status_rg,"\n";
 print "queue name=",$q_name,"\n";
-print "minvaf = ",$minvaf,"\n"; 
+#print "minvaf = ",$minvaf,"\n"; 
 
 #<STDIN>; 
 #exit;
@@ -385,7 +380,7 @@ if($step_number==7)
 	## remove snv nearby an indel ##
     print DNP "      ".$run_script_path."remove_nearby_snv.pl $f_maf $f_maf_rm_snv"."\n";
    ## annotate dnp ##
-	print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
+	print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --samt $samtools --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
 	## add dnp to the maf ##
 	print DNP "		 ".$run_script_path."add_dnp.pl $f_maf_rm_snv $f_maf_dnp_tmp_merge $f_maf_dnp"."\n";
 ### remove tmp files ##
