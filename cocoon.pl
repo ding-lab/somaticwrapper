@@ -15,7 +15,7 @@ my $helpFlag = 0;
 my $genome;
 my $gtf;
 my $bam;
-my $samtools
+my $samtools;
 GetOptions(	"distance=n" 		=> \$distance,
 		"mapq=n"		=> \$mapq,
 		"samt=s"  => \$samtools,
