@@ -303,7 +303,7 @@ if (($step_number < 12 && $step_number>0) || $step_number == 14) {
     }
 }
 
-if($step_number==12 || $step_number==0)
+if($step_number==12)
     {
 
 	print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
@@ -353,7 +353,7 @@ if($step_number==12 || $step_number==0)
 
 print "annotation\n"; 
 
-if($step_number==13 || $step_number==0)
+if($step_number==13)
     {
 
     print $yellow, "annotate dnp and remove snv near an indel",$normal, "\n";

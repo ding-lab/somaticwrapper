@@ -11,9 +11,7 @@ Improvements compared to version 1.6:
 
 1. Requires smg input in the pipeline run
 
-2. Clean unnecessary intermediate files  
-
-If you want to run somaticwrapper for hg19 reference, you can git clone the withmutect branch. 
+2. Adding step 14 for cleaning unnecessary intermediate files  
 
 ## Install the third-party software ##
 
