@@ -399,7 +399,7 @@ if($step_number==13)
 	## remove snv nearby an indel ##
     print DNP "      ".$run_script_path."remove_nearby_snv.pl $f_maf $f_maf_rm_snv"."\n";
    ## annotate dnp ##
-	print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
+	print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --samt $samtools --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
 	## add dnp to the maf ##
 	print DNP "		 ".$run_script_path."add_dnp.pl $f_maf_rm_snv $f_maf_dnp_tmp_merge $f_maf_dnp"."\n";
 ### remove tmp files ##
