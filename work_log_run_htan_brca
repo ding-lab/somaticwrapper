@@ -2,3 +2,7 @@ mkdir /gscmnt/gc2532/dinglab/scao/somatic/t.only.log
 perl somaticwrapper.pl --rdir /gscmnt/gc2532/dinglab/scao/somatic/t.only --log /gscmnt/gc2532/dinglab/scao/somatic/t.only.log --ref /gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/GRCh38.primary_assembly.genome.fa --q research-hpc --step 6
 
 perl somaticwrapper.pl --rdir /gscmnt/gc2532/dinglab/scao/somatic/t.only --log /gscmnt/gc2532/dinglab/scao/somatic/t.only.log --ref /gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/GRCh38.primary_assembly.genome.fa --q research-hpc --step 7
+
+mkdir  /gscmnt/gc2532/dinglab/scao/somatic/t.only.log.2
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2532/dinglab/scao/somatic/t.only.2 --log /gscmnt/gc2532/dinglab/scao/somatic/t.only.log.2 --ref /gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/GRCh38.primary_assembly.genome.fa --q research-hpc --step 0
