@@ -21,9 +21,12 @@ Strelka-2.9.2: https://github.com/Illumina/strelka/releases
 
 Varscan 2.2.8: https://sourceforge.net/projects/varscan/files/
 
-Pindel version 0.2.5b9: http://gmt.genome.wustl.edu/packages/pindel/user-manual.html
-
+Pindel version 0.2.5b9: 1: http://gmt.genome.wustl.edu/packages/pindel/install.html
+		   	2: conda install -c bioconda pindel
+	
 bam-readcount 0.7.4: https://github.com/genome/bam-readcount 
+
+java jre1.8.0_121: https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html
 
 ## Usage ##
 
