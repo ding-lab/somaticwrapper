@@ -53,7 +53,7 @@ $normal
 <rdir> = full path of the folder holding files for this sequence run (user must provide)
 <log> = full path of the folder for saving log file; usually upper folder of rdir
 <srg> = bam having read group or not: 1, yes and 0, no (default 1)
-<sre> = re-run: 1, yes and 0, no  (default 0)
+<sre> = re-run and overwrite previous results: 1, yes and 0, no  (default 0)
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
@@ -64,7 +64,6 @@ $normal
 <exonic> output exonic region: 1 Yes, 0 No
 <smg> use smg list for calling
 hg38: /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa
-lscc smg: /gscmnt/gc3027/dinglab/medseq/smg_database/smg.lscc.tsv
  
 $green       [1]  Run streka
 $green 		 [2]  Run Varscan

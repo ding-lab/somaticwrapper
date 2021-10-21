@@ -1,5 +1,5 @@
 
-# Somaticwrapper version 1.6.1, computer1 #
+# Somaticwrapper version 1.6.1, compute1 #
 
 Detect somatic variants from tumor and normal WXS based on HG38 reference. SomaticWrapper pipeline is a fully automated and modular software package designed for detection of somatic variants from tumor and normal exome data. It works on LSF job scheduler and can run multiple jobs in parallel. Multiple standard variant calling tools are included in the pipeline such as varscan2, strelka2, mutect1 and pindel. 
 
@@ -29,6 +29,20 @@ bam-readcount 0.7.4: https://github.com/genome/bam-readcount
 java jre1.8.0_121: https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html
 
 ## Usage ##
+
+Step 0: set environment for LSF job on compute1 by adding the following to ~/.bashrc file: 
+
+export PATH=/storage1/fs1/songcao/Active/Software/anaconda3/bin:$PATH
+
+export STORAGE2=/storage1/fs1/dinglab/Active
+export SCRATCH2=/storage1/fs1/dinglab/
+
+export STORAGE1=/storage1/fs1/songcao/Active
+export SCRATCH1=/storage1/fs1/songcao/
+
+export LSF_DOCKER_VOLUMES="$STORAGE1:$STORAGE1 $STORAGE2:$STORAGE2"
+
+
 
 Step1: Enter the directory where you downloaded somaticwrapper pipeline 
 
@@ -60,7 +74,6 @@ exonic: output exonic region: 1 Yes, 0 No, Default Yes
 
 smg: smg gene list that escapes the 0.05 vaf cut-off
 
-hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
 
 [1]  Run streka 

@@ -20,3 +20,7 @@ perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/CPTAC/somatic
 perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/CPTAC/somatic --log /storage1/fs1/songcao/Active/Project/CPTAC/somatic.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --step 10 --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv
 
 perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/CPTAC/somatic --log /storage1/fs1/songcao/Active/Project/CPTAC/somatic.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --step 11 --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --sre 1
+
+perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/CPTAC/somatic --log /storage1/fs1/songcao/Active/Project/CPTAC/somatic.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --step 12 --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --sre 1
+
+perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/CPTAC/somatic --log /storage1/fs1/songcao/Active/Project/CPTAC/somatic.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --step 13 --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --sre 1
