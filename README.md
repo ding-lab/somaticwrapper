@@ -46,7 +46,7 @@ export LSF_DOCKER_VOLUMES="$STORAGE1:$STORAGE1 $STORAGE2:$STORAGE2"
 
 Step1: Enter the directory where you downloaded somaticwrapper pipeline 
 
-Step2: Type the coommand line: perl somaticwrapper.pl  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg
+Step2: Type the coommand line: perl somaticwrapper.pl  --srg --step --sre --wgs --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg
 
 rdir = full path of the folder holding files for this sequence run (user must provide)
 
@@ -55,6 +55,8 @@ log = full path of the folder for saving log file; usually upper folder of rdir
 srg = bam having read group or not: 1, yes and 0, no (default 1)
 
 sre = re-run: 1, yes and 0, no  (default 0)
+
+wgs = 1 if it is wgs data and otherwise it is 0; If you want to output the maf for all variants, set exonic to 0
 
 step run this pipeline step by step. (user must provide)
 
