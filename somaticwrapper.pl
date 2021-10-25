@@ -46,12 +46,13 @@ my $normal = "\e[0m";
 Somatic variant calling pipeline 
 Pipeline version: $version
 
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg 
+$yellow     Usage: perl $0  --srg --step --sre --rdir --wgs --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg 
 
 $normal
 
 <rdir> = full path of the folder holding files for this sequence run (user must provide)
 <log> = full path of the folder for saving log file; usually upper folder of rdir
+<wgs> = 1 if it is wgs data and otherwise it is 0; If you want to output the maf for all variants, set exonic to 0
 <srg> = bam having read group or not: 1, yes and 0, no (default 1)
 <sre> = re-run and overwrite previous results: 1, yes and 0, no  (default 0)
 <step> run this pipeline step by step. (user must provide)
@@ -66,9 +67,9 @@ $normal
 hg38: /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa
  
 $green       [1]  Run streka
-$green 		 [2]  Run Varscan
+$green       [2]  Run Varscan
 $green       [3]  Run Pindel
-$green 		 [4]  Run mutect
+$green 	     [4]  Run mutect
 $yellow      [5]  Parse mutect result
 $yellow 	 [6]  Parse streka result
 $yellow 	 [7]  Parse VarScan result
@@ -109,6 +110,7 @@ my $minvaf=0.05;
 my $status = &GetOptions (
       "step=i" => \$step_number,
       "srg=i" => \$status_rg,
+      "wgs=i"  => \$s_wgs,
       "sre=i" => \$status_rerun,	
 	  "exonic=i" => \$status_exonic,
       "rdir=s" => \$run_dir,
@@ -1232,7 +1234,7 @@ sub bsub_mutect{
 
       my $sh_file=$job_files_dir."/".$current_job_file;
 
-      $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+      $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
       print $bsub_com;
       system ($bsub_com);

@@ -17,4 +17,10 @@ perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemis
 
 perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b2 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b2.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --step 1
 
+## get unfinished j4 jobs running
 perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b2 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b2.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --step 2
+
+## get unfinished j3 jobs running
+perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/j4_unfinished --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/j4_unfinished.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --step 4 --sre 1
+
+perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/j3_unfinished --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/j3_unfinished.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --step 3 --sre 1
