@@ -45,7 +45,7 @@ my $normal = "\e[0m";
 Somatic variant calling pipeline 
 Pipeline version: $version
 
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg 
+$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --wgs --smg 
 
 $normal
 
@@ -53,6 +53,7 @@ $normal
 <log> = full path of the folder for saving log file; usually upper folder of rdir
 <srg> = bam having read group or not: 1, yes and 0, no (default 1)
 <sre> = re-run: 1, yes and 0, no  (default 0)
+<wgs> = 1 if it is wgs data and otherwise it is 0; If you want to output the maf for all variants, set exonic to 0
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
 <q> which queue for submitting job; research-hpc, ding-lab, long (default)
@@ -111,6 +112,7 @@ my $status = &GetOptions (
       "step=i" => \$step_number,
       "srg=i" => \$status_rg,
       "sre=i" => \$status_rerun,	
+      "wgs=i"  => \$s_wgs,
 	  "exonic=i" => \$status_exonic,
       "rdir=s" => \$run_dir,
 	  "ref=s"  => \$h38_REF,
