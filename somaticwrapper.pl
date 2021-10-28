@@ -69,10 +69,10 @@ hg38: /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d
 $green       [1]  Run streka
 $green       [2]  Run Varscan
 $green       [3]  Run Pindel
-$green 	     [4]  Run mutect
-$yellow      [5]  Parse mutect result
-$yellow 	 [6]  Parse streka result
-$yellow 	 [7]  Parse VarScan result
+$green 	      [4]  Run mutect
+$yellow       [5]  Parse mutect result
+$yellow 	     [6]  Parse streka result
+$yellow 	     [7]  Parse VarScan result
 $yellow      [8]  Parse Pindel
 $cyan        [9]  QC vcf files  
 $cyan 	     [10] Merge vcf files  
@@ -157,20 +157,17 @@ if($s_wgs eq "")
 	$s_wgs=0; 
 }
 
-#<STDIN>;
-#die $usage unless @ARGV == 3;
-#my ($run_dir, $status_rg, $step_number) = @ARGV;
 if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
 
 die $usage unless ($step_number >=0)&&(($step_number <= 14));
 my $email = "scao\@wustl\.edu";
-# everything else below should be automated
+
 my $HOME = $ENV{HOME};
 my $working_name= (split(/\//,$run_dir))[-1];
 my $HOME1=$log_dir;
-#store job files here
+
 if (! -d $HOME1)
 {
 `mkdir $HOME1`; 
@@ -1107,7 +1104,7 @@ sub bsub_mutect{
     #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
     my @chrlist=("1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","X","Y");
 
-  	$current_job_file = "j4_mutect_".$sample_name.".sh";
+    $current_job_file = "j4_mutect_".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
@@ -1137,7 +1134,7 @@ sub bsub_mutect{
         die "Warning: Died because $IN_bam_N is empty!", $normal, "\n\n";
     }
 
-	my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
 
     `rm $lsf_out`;
@@ -1145,16 +1142,6 @@ sub bsub_mutect{
 
     open(MUTECT, ">$job_files_dir/$current_job_file") or die $!;
     print MUTECT "#!/bin/bash\n";
-    #print MUTECT "#BSUB -n 1\n";
-    #print MUTECT "#BSUB -R \"rusage[mem=30000]\"","\n";
-    #print MUTECT "#BSUB -M 30000000\n";
-    #print MUTECT "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    #print MUTECT "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    #print MUTECT "#BSUB -J $current_job_file\n";
-    #print MUTECT "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print MUTECT "#BSUB -q long\n";
-    #print MUTECT "#BSUB -q research-hpc\n";
-    #print MUTECT "scr_t0=\`date \+\%s\`\n";
     print MUTECT "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print MUTECT "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
     print MUTECT "TBAM_rg=".$sample_full_path."/".$sample_name.".T.rg.bam\n";
@@ -1200,13 +1187,11 @@ sub bsub_mutect{
 	    print MUTECT "  fi\n";
 	} 
 
-	print MUTECT "rm \${NBAM_rg}\n";
-        print MUTECT "rm \${NBAM_rg_bai}\n";
-	print MUTECT "rm \${TBAM_rg}\n";
-        print MUTECT "rm \${TBAM_rg_bai}\n";
-	print MUTECT "else\n";
-#	print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --out \${fstat} --coverage_file \${fcov} --vcf \${rawvcf}\n";    
- #   print MUTECT "java  \${JAVA_OPTS} -jar $mutect  --artifact_detection_mode --analysis_type MuTect --reference_sequence $h38_REF --input_file:normal \${NBAM} --input_file:tumor \${TBAM} --vcf \${rawvcf}\n";
+    print MUTECT "rm \${NBAM_rg}\n";
+    print MUTECT "rm \${NBAM_rg_bai}\n";
+    print MUTECT "rm \${TBAM_rg}\n";
+    print MUTECT "rm \${TBAM_rg_bai}\n";
+    print MUTECT "else\n";
     foreach my $chr (@chrlist)
     {
 	 my $chr1=$chr;
@@ -1342,7 +1327,7 @@ sub bsub_merge_vcf{
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
     `rm $lsf_err`;
-	my $hg19="Hg19"; 
+    my $hg19="Hg19"; 
     open(MERGE, ">$job_files_dir/$current_job_file") or die $!;
     print MERGE "#!/bin/bash\n";
     print MERGE "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
@@ -1350,7 +1335,6 @@ sub bsub_merge_vcf{
     print MERGE "myRUNDIR=".$sample_full_path."/varscan\n";
     print MERGE "STATUSDIR=".$sample_full_path."/status\n";
     print MERGE "RUNDIR=".$sample_full_path."\n";
-    #print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
     print MERGE "export SAMTOOLS_DIR=$samtools\n";
     print MERGE "export JAVA_HOME=$java_dir\n";
     print MERGE "export JAVA_OPTS=\"-Xmx10g\"\n";
@@ -1373,7 +1357,7 @@ sub bsub_merge_vcf{
     system ($bsub_com);
 
 
-	}
+   }
 
 sub bsub_vcf_2_maf{
   
@@ -1396,31 +1380,20 @@ sub bsub_vcf_2_maf{
 
     open(MAF, ">$job_files_dir/$current_job_file") or die $!;
     print MAF "#!/bin/bash\n";
-    #print MAF "#BSUB -n 1\n";
-    #print MAF "#BSUB -R \"rusage[mem=30000]\"","\n";
-    #print MAF "#BSUB -M 30000000\n";
-    #print MAF "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    #print MAF "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    #print MAF "#BSUB -J $current_job_file\n";
-    #print MAF "#BSUB -q ding-lab\n";
-    #print MAF "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print VARSCANP "#BSUB -q long\n";
-    #print MAF "#BSUB -q research-hpc\n";
-    #print MAF "#BSUB -w \"$hold_job_file\"","\n";
   	
-	print MAF "F_VCF_1=".$sample_full_path."/merged.withmutect.vcf\n";
+    print MAF "F_VCF_1=".$sample_full_path."/merged.withmutect.vcf\n";
     print MAF "F_VCF_1_filtered=".$sample_full_path."/merged.filtered.withmutect.vcf\n";
-	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".withmutect.vcf\n";
+    print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".withmutect.vcf\n";
     print MAF "F_VCF_2_filtered=".$sample_full_path."/".$sample_name.".withmutect.filtered.vcf\n";
     print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.withmutect.vcf\n";
-	print MAF "F_VEP_1_filtered=".$sample_full_path."/merged.VEP.withmutect.filtered.vcf\n";
-	print MAF "F_VEP_2=".$sample_full_path."/".$sample_name.".withmutect.vep.vcf\n";
+    print MAF "F_VEP_1_filtered=".$sample_full_path."/merged.VEP.withmutect.filtered.vcf\n";
+    print MAF "F_VEP_2=".$sample_full_path."/".$sample_name.".withmutect.vep.vcf\n";
     print MAF "F_VEP_2_filtered=".$sample_full_path."/".$sample_name.".withmutect.filtered.vep.vcf\n";
-	print MAF "F_maf=".$sample_full_path."/".$sample_name.".withmutect.maf\n";
-	print MAF "F_maf_filtered=".$sample_full_path."/".$sample_name.".withmutect.filtered.maf\n";
+    print MAF "F_maf=".$sample_full_path."/".$sample_name.".withmutect.maf\n";
+    print MAF "F_maf_filtered=".$sample_full_path."/".$sample_name.".withmutect.filtered.maf\n";
     print MAF "RUNDIR=".$sample_full_path."\n";
 	
-	print MAF "F_log=".$sample_full_path."/vep.merged.withmutect.log"."\n";
+    print MAF "F_log=".$sample_full_path."/vep.merged.withmutect.log"."\n";
     print MAF "cat > \${RUNDIR}/vep.merged.withmutect.input <<EOF\n";
     print MAF "merged.vep.vcf = ./merged.withmutect.vcf\n";
     print MAF "merged.vep.output = ./merged.VEP.withmutect.vcf\n";
@@ -1431,7 +1404,7 @@ sub bsub_vcf_2_maf{
     print MAF "EOF\n";
     print MAF "rm \${F_log}\n";
 	
- 	print MAF "F_log_filtered=".$sample_full_path."/vep.merged.withmutect.filtered.log"."\n";
+    print MAF "F_log_filtered=".$sample_full_path."/vep.merged.withmutect.filtered.log"."\n";
     print MAF "cat > \${RUNDIR}/vep.merged.withmutect.filtered.input <<EOF\n";
     print MAF "merged.vep.vcf = ./merged.filtered.withmutect.vcf\n";
     print MAF "merged.vep.output = ./merged.VEP.withmutect.filtered.vcf\n";
@@ -1440,12 +1413,12 @@ sub bsub_vcf_2_maf{
     print MAF "merged.vep.reffasta = $f_ref_annot\n";
     print MAF "merged.vep.assembly = GRCh38\n";
     print MAF "EOF\n";
-	print MAF "rm \${F_log_filtered}\n";	
+    print MAF "rm \${F_log_filtered}\n";	
   
 	### vep and vcf2maf annotation for all variants to get the annotated gene name for each variant ##
     print MAF "cd \${RUNDIR}\n";
     print MAF ". $script_dir/set_envvars\n";
- 	print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.input >&./vep.merged.withmutect.log\n";
+    print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.input >&./vep.merged.withmutect.log\n";
     print MAF "rm \${F_VCF_2}\n";
     print MAF "rm \${F_VEP_2}\n";
     print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
@@ -1461,23 +1434,14 @@ sub bsub_vcf_2_maf{
     print MAF "ln -s \${F_VCF_1_filtered} \${F_VCF_2_filtered}\n";
     print MAF "ln -s \${F_VEP_1_filtered} \${F_VEP_2_filtered}\n";
     print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2_filtered} --output-maf \${F_maf_filtered} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n"; 
-	#print MAF "     ".$run_script_path."splice_site_check.pl $sample_full_path\n"; 
     close MAF;
 
-#  	my $sh_file=$job_files_dir."/".$current_job_file;
 
     my $sh_file=$job_files_dir."/".$current_job_file;
     $bsub_com = "LSF_DOCKER_ENTRYPOINT=/bin/bash LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
     print $bsub_com;
     system ($bsub_com);
 
-    #if($q_name eq "research-hpc")
-    #{
-    #$bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    #else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                
-    #}
-    #print $bsub_com;
-#	system ($bsub_com);
 
  }
 
@@ -1486,7 +1450,7 @@ sub bsub_clean{
     #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
     $current_job_file = "j14_clean_".$sample_name.".sh";
     
-	my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
     `rm $lsf_err`;
@@ -1495,12 +1459,12 @@ sub bsub_clean{
     open(CLEAN, ">$job_files_dir/$current_job_file") or die $!;
     print CLEAN "#!/bin/bash\n";
     print CLEAN "RP=".$sample_full_path."/pindel/".$sample_name."_RP\n";
-	print CLEAN "D=".$sample_full_path."/pindel/".$sample_name."_D\n";
-	print CLEAN "TD=".$sample_full_path."/pindel/".$sample_name."_TD\n";
+    print CLEAN "D=".$sample_full_path."/pindel/".$sample_name."_D\n";
+    print CLEAN "TD=".$sample_full_path."/pindel/".$sample_name."_TD\n";
     print CLEAN "INV=".$sample_full_path."/pindel/".$sample_name."_INV\n";
     print CLEAN "SI=".$sample_full_path."/pindel/".$sample_name."_SI\n";	
-	print CLEAN "RAW=".$sample_full_path."/pindel/pindel.out.raw\n";  	
-	print CLEAN "FAIL=".$sample_full_path."/pindel/pindel.out.raw.CvgVafStrand_fail\n";
+    print CLEAN "RAW=".$sample_full_path."/pindel/pindel.out.raw\n";  	
+    print CLEAN "FAIL=".$sample_full_path."/pindel/pindel.out.raw.CvgVafStrand_fail\n";
     print CLEAN "if [ -f \${RP} ]\n";
     print CLEAN "then\n";
     print CLEAN "gzip \${RP}\n";
@@ -1538,10 +1502,8 @@ sub bsub_clean{
     print CLEAN "gzip \${FAIL}\n";
     print CLEAN "fi\n";
 
-
     close CLEAN;
 
-    #my $sh_file=$job_files_dir."/".$current_job_file;
 
     my $sh_file=$job_files_dir."/".$current_job_file;
     $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
