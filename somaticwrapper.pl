@@ -147,6 +147,12 @@ my $HOME = $ENV{HOME};
 my $working_name= (split(/\//,$run_dir))[-1];
 my $HOME1=$log_dir;
 #store job files here
+
+if (! -d $HOME1)
+{
+`mkdir $HOME1`;
+}
+
 if (! -d $HOME1."/tmpsomatic") {
     `mkdir $HOME1"/tmpsomatic"`;
 }
