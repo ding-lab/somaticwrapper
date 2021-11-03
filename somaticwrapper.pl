@@ -105,13 +105,17 @@ my $maxindsize=100;
 my $mincov_t=14; 
 my $mincov_n=8; 
 my $minvaf=0.05;
+my $compute_username="";
+my $group_name="";
 
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
       "step=i" => \$step_number,
       "srg=i" => \$status_rg,
       "wgs=i"  => \$s_wgs,
-      "sre=i" => \$status_rerun,	
+      "sre=i" => \$status_rerun,
+	      "groupname=s" => \$group_name,
+      "users=s" => \$compute_username,	
 	  "exonic=i" => \$status_exonic,
       "rdir=s" => \$run_dir,
 	  "ref=s"  => \$h38_REF,
@@ -129,7 +133,7 @@ my $status = &GetOptions (
  
 #print $status,"\n";
 
-if ($help || $run_dir eq "" || $log_dir eq "" || $step_number<0 || $db_smg eq "") {
+if ($help || $run_dir eq "" || $log_dir eq "" || $group_name eq "" || $compute_username eq "" || $step_number<0 || $db_smg eq "") {
 	 print "wrong option\n";
 	  print $usage;
       exit;
@@ -143,6 +147,8 @@ print "status exonic=",$status_exonic,"\n";
 print "status readgroup=",$status_rg,"\n";
 print "queue name=",$q_name,"\n";
 print "minvaf = ",$minvaf,"\n"; 
+print "job group=",$group_name,"\n";
+print "user group=",$compute_username,"\n";
 
 #<STDIN>; 
 #exit;
@@ -246,8 +252,6 @@ close DH;
 # check to make sure the input directory has correct structure
 #&check_input_dir($run_dir);
 # start data processsing
-my $compute_username="songcao";
-my $group_name="SomaticWXS";
 
 #`bgadd -L 70 $compute_username/$group_name`;
 
