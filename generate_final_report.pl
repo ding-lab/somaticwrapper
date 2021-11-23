@@ -33,7 +33,7 @@ my $f_maf=$run_dir."/".$dtr."/".$dtr.".withmutect.filtered.maf";
 			chomp($ltr); 
 			if($ltr=~/^#version/)  { next; } 
 			else { 
-			if($ltr=~/^Hugo/) { $head_w=1; print OUT1 $ltr,"\n"; } 
+			if($ltr=~/^Hugo/) { if($head_w==0) { print OUT1 $ltr,"\n"; } $head_w=1; } 
 			else { 
 				my @temp=split("\t",$ltr); 
 				my $annot=$temp[8];
