@@ -58,9 +58,9 @@ sre = re-run: 1, yes and 0, no  (default 0)
 
 wgs = 1 if it is wgs data and otherwise it is 0; If you want to output the maf for all variants, set exonic to 0
 
-groupname = job group name
+groupname = job group name: Format; users/groupname
 
-users = user name for job group
+users = user name for job group: Format; users/groupname
 
 step run this pipeline step by step. (user must provide)
 
