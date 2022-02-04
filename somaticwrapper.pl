@@ -546,7 +546,7 @@ sub bsub_strelka{
 
 	if($q_name eq "research-hpc")
 	{
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     }
 	else { 
 	    $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err bash $sh_file\n"; 
 	}
@@ -689,7 +689,7 @@ sub bsub_varscan{
 
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
     else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
     print $bsub_com;
     system ($bsub_com);
@@ -1422,6 +1422,14 @@ sub bsub_mutect{
     print MUTECT "export JAVA_HOME=$java_mutect\n";
     print MUTECT "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MUTECT "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
+
+### re-run delete mutect folder and re-run it ##
+
+    print MUTECT "if [ $status_rerun -eq 1 ]\n";
+    print MUTECT "  then\n";
+    print MUTECT "rm -rf \${myRUNDIR}\n";
+    print MUTECT "fi\n";
+
     print MUTECT "if [ ! -d \${myRUNDIR} ]\n";
     print MUTECT "then\n";
     print MUTECT "mkdir \${myRUNDIR}\n";
@@ -1517,7 +1525,7 @@ sub bsub_mutect{
  	my $sh_file=$job_files_dir."/".$current_job_file;
     if($q_name eq "research-hpc")
     {
-    $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }    
+    $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }    
 	else 
 	{        
 	$bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                
