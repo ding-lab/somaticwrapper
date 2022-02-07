@@ -42,7 +42,7 @@ export SCRATCH1=/storage1/fs1/songcao/
 
 export LSF_DOCKER_VOLUMES="$STORAGE1:$STORAGE1 $STORAGE2:$STORAGE2"
 
-Then, start interactive queue for running jobs: 
+Then, start interactive queue environment for running jobs: 
 bsub -G compute-dinglab -q dinglab-interactive -Is -a 'docker(scao/dailybox)' /bin/bash
 
 Step1: Enter the directory where you downloaded somaticwrapper pipeline 
