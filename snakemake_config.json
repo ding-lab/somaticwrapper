@@ -1,0 +1,6 @@
+{                                                                                                          
+    "sample_list": "samples.list",
+    "file_map": "mmrf_samples_file_map.tsv",
+    "workflow_root": "/storage1/fs1/dinglab/Active/Projects/lyao/pipeline_bulk_dna_alignment",     
+    "bwa_index_prefix": "/storage1/fs1/dinglab/Active/Projects/cliu/Reference/GRCh38.d1.vd1.fa"                       
+}                                                                                                          

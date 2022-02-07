@@ -478,8 +478,8 @@ sub bsub_strelka{
     print STREKA "SG_DIR=".$sample_full_path."/strelka\n"; 
     print STREKA "RUNDIR=".$sample_full_path."\n";
     print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
-    print STREKA "STRELKA_VCF=".$sample_full_path."/strelka/strelka_out/results/passed.somatic.snvs.vcf"."\n";   
-	#print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
+    print STREKA "STRELKA_VCF=".$sample_full_path."/strelka/strelka_out/results/somatic.snvs.vcf.gz"."\n";   
+    #print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
     print STREKA "TASK_STATUS=".$sample_full_path."/strelka/strelka_out/task.complete"."\n";
     print STREKA "export SAMTOOLS_DIR=$samtools\n";
     print STREKA "export JAVA_HOME=$java_dir\n";
@@ -489,13 +489,13 @@ sub bsub_strelka{
     print STREKA "then\n";
     print STREKA "mkdir \${myRUNDIR}\n";
     print STREKA "fi\n";
-	### re-run, then delete task.complete file ###
+    ### re-run, then delete task.complete file ###
     print STREKA "if [ $status_rerun -eq 1 ]\n";
     print STREKA "  then\n";
     print STREKA "rm \${TASK_STATUS}\n";
     print STREKA "fi\n";
-
-    print STREKA "if [ ! -f \${STRELKA_VCF} ]\n";
+    ## if STRELKA_VCF not existed 
+    print STREKA "if [ ! -f  \${STRELKA_VCF} ]\n";
     print STREKA "  then\n";
     print STREKA "rm \${TASK_STATUS}\n";
     print STREKA "fi\n";
@@ -624,6 +624,7 @@ sub bsub_varscan{
     print VARSCAN "del_local=\"rm -f\"\n";
     print VARSCAN "statfile=complete.vs_som_snvindels\n";
     print VARSCAN "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
+    print VARSCAN "varscan_vcf=\${myRUNDIR}\/varscan.out.som_snv.vcf\n";
     print VARSCAN "if [ ! -d \${myRUNDIR}\/status ]\n";
     print VARSCAN "then\n";
     print VARSCAN "mkdir \${myRUNDIR}\/status\n";
@@ -633,6 +634,12 @@ sub bsub_varscan{
     print VARSCAN "  then\n";
     print VARSCAN "rm \${localstatus}\n";
     print VARSCAN "fi\n";
+   # check if vcf file exists
+    print VARSCAN "if [ ! -f  \${varscan_vcf} ]\n";
+    print VARSCAN "  then\n";
+    print VARSCAN "rm \${localstatus}\n";
+    print VARSCAN "fi\n";
+ 
     print VARSCAN "if [ ! -f  \${localstatus} ]\n";
     print VARSCAN "then\n";
     print VARSCAN "cd \${RUNDIR}/varscan\n";
@@ -767,7 +774,7 @@ sub bsub_parse_strelka{
     print STREKAP "if [ $status_rerun -eq 1 ]\n";
     print STREKAP "  then\n";
     print STREKAP "rm \${localstatus}\n";
-    print STREKAP "fi\n";
+    print STREKAP "fi\n"; 
     print STREKAP "if [ ! -f  \${localstatus} ]\n";
     print STREKAP "then\n"; 
     print STREKAP "     ".$run_script_path."dbsnp_filter.pl ./strelka_dbsnp_filter.snv.input\n";
@@ -974,6 +981,7 @@ sub bsub_pindel{
     print PINDEL "CONFIG=\${myRUNDIR}"."/".$sample_name.".config\n";
     print PINDEL "statfile=complete.pindel\n";
     print PINDEL "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
+    print PINDEL "pindel_vcf=\${myRUNDIR}\/".$sample_name."_D\n";
     print PINDEL "if [ ! -d \${myRUNDIR} ]\n";
     print PINDEL "then\n";
     print PINDEL "mkdir \${myRUNDIR}\n";
@@ -986,6 +994,12 @@ sub bsub_pindel{
     print PINDEL "  then\n";
     print PINDEL "rm \${localstatus}\n";
     print PINDEL "fi\n";
+    # check if vcf file exists, if not existing, then not finished 
+    print PINDEL "if [ ! -f  \${pindel_vcf} ]\n";
+    print PINDEL "  then\n";
+    print PINDEL "rm \${localstatus}\n";
+    print PINDEL "fi\n";
+  
     print PINDEL "if [ ! -f  \${localstatus} ]\n";
     print PINDEL "then\n";
     print PINDEL "echo \"$IN_bam_T\t500\t$sample_name.T\" > \${CONFIG}\n";
@@ -1163,10 +1177,19 @@ sub bsub_mutect{
     print MUTECT "export JAVA_HOME=$java_mutect\n";
     print MUTECT "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MUTECT "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
+    ## re-run mutect if status_rerun == 1 ##
+    print MUTECT "if [ -d \${myRUNDIR} ]\n";
+    print MUTECT "  then\n";
+    print MUTECT "if [ $status_rerun -eq 1 ]\n";
+    print MUTECT "  then\n";
+    print MUTECT "rm -rf \${myRUNDIR}\n";
+    print MUTECT "fi\n";
+    print MUTECT "fi\n";
+
     print MUTECT "if [ ! -d \${myRUNDIR} ]\n";
     print MUTECT "then\n";
     print MUTECT "mkdir \${myRUNDIR}\n";
-    print MUTECT "fi\n";
+    print MUTECT "fi\n"; 
     print MUTECT "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
     print MUTECT "if [ $status_rg -eq 0 ]\n";
     print MUTECT "then\n";	
