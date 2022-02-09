@@ -1199,6 +1199,10 @@ sub bsub_mutect{
 		$DB_COSMIC_MUTECT=$DB_COSMIC; 
 		}
         print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";
+    	print MUTECT "if [ $status_rerun -eq 1 ]\n";
+    	print MUTECT "  then\n";
+    	print MUTECT "rm \${rawvcf}\n";
+    	print MUTECT "fi\n";
         print MUTECT '  if [ ! -s $rawvcf ]',"\n";
     	print MUTECT "  then\n";
     	print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP_MUTECT --cosmic $DB_COSMIC_MUTECT -I:normal \${NBAM_rg} -I:tumor \${TBAM_rg} --artifact_detection_mode -vcf \${rawvcf}\n";
@@ -1224,6 +1228,10 @@ sub bsub_mutect{
 
 
 	 print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";	
+         print MUTECT "if [ $status_rerun -eq 1 ]\n";
+         print MUTECT "  then\n";
+         print MUTECT "rm \${rawvcf}\n";
+         print MUTECT "fi\n";
 	 print MUTECT '  if [ ! -s $rawvcf ]',"\n"; 
          print MUTECT "  then\n";
          print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP_MUTECT --cosmic $DB_COSMIC_MUTECT -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
