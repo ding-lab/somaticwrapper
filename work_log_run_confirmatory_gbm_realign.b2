@@ -1,0 +1,26 @@
+## b2 batch ##
+
+#perl somaticwrapper.pl --rdir /gscmnt/gc2541/scao/gbm2/somatic/realign.b2 --log /gscmnt/gc2541/scao/gbm2/somatic/realign.b2.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv --step 1
+
+#perl somaticwrapper.pl --rdir /gscmnt/gc2541/scao/gbm2/somatic/realign.b2 --log /gscmnt/gc2541/scao/gbm2/somatic/realign.b2.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv --step 2
+
+#perl somaticwrapper.pl --rdir /gscmnt/gc2541/scao/gbm2/somatic/realign.b2 --log /gscmnt/gc2541/scao/gbm2/somatic/realign.b2.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv --step 3
+
+#perl somaticwrapper.pl --rdir /gscmnt/gc2541/scao/gbm2/somatic/realign.b2 --log /gscmnt/gc2541/scao/gbm2/somatic/realign.b2.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv --step 4
+
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2541/scao/gbm2/somatic/realign.b2 --log /gscmnt/gc2541/scao/gbm2/somatic/realign.b2.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv --step 5
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2541/scao/gbm2/somatic/realign.b2 --log /gscmnt/gc2541/scao/gbm2/somatic/realign.b2.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv --step 6
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2541/scao/gbm2/somatic/realign.b2 --log /gscmnt/gc2541/scao/gbm2/somatic/realign.b2.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv --step 7
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2541/scao/gbm2/somatic/realign.b2 --log /gscmnt/gc2541/scao/gbm2/somatic/realign.b2.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv --step 8
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2541/scao/gbm2/somatic/realign.b2 --log /gscmnt/gc2541/scao/gbm2/somatic/realign.b2.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv --step 9
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2541/scao/gbm2/somatic/realign.b2 --log /gscmnt/gc2541/scao/gbm2/somatic/realign.b2.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv --step 10
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2541/scao/gbm2/somatic/realign.b2 --log /gscmnt/gc2541/scao/gbm2/somatic/realign.b2.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv --step 11
+
+perl somaticwrapper.pl --rdir /gscmnt/gc2541/scao/gbm2/somatic/realign.b2 --log /gscmnt/gc2541/scao/gbm2/somatic/realign.b2.log --ref /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q research-hpc --smg /gscmnt/gc3027/dinglab/medseq/smg_database/smg.gbm.tsv --step 12
