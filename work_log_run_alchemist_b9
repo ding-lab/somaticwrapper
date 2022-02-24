@@ -1,0 +1,26 @@
+
+#perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 1
+
+perl somaticwrapper.pl --rdir /storage1/fs1/dinglab/Active/Projects/scao/alchemist/somatic/b9 --log /storage1/fs1/dinglab/Active/Projects/scao/alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 2 --sre 1
+
+#perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 3
+
+perl somaticwrapper.pl --rdir /storage1/fs1/dinglab/Active/Projects/scao/alchemist/somatic/b9 --log /storage1/fs1/dinglab/Active/Projects/scao/alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 4 --sre 1
+
+#perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 5
+
+#perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 6
+
+#perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 7
+
+#perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 8
+
+#perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 9
+
+#perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 10
+
+#perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 11
+
+#perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 12
+
+#perl somaticwrapper.pl --rdir /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9 --log /storage1/fs1/songcao/Active/Project/GDAN/Alchemist/somatic/b9.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/cancer_gene_list_cell_uniq.tsv --users songcao --groupname SomaticWXS --step 13
