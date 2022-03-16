@@ -29,7 +29,7 @@ use warnings;
 #use POSIX;
 use Getopt::Long;
 
-my $version = 1.6;
+my $version = 1.6.1;
 
 #color code
 my $red = "\e[31m";
@@ -66,7 +66,6 @@ hg38:/gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference
 
 lscc smg: /gscmnt/gc3027/dinglab/medseq/smg_database/smg.lscc.tsv
  
-$red 	     [0]  Run all steps
 $green       [1]  Run streka
 $green 		 [2]  Run Varscan
 $green       [3]  Run Pindel
@@ -80,6 +79,7 @@ $cyan 	     [10] Merge vcf files
 $cyan		 [11] Generate maf file 
 $cyan 		 [12] Generate merged maf file
 $cyan        [13] Annotate dnp and remove nearby snv near an indel
+$red         [14] Clean unnecessary intermediate files
 $normal
 
 OUT
@@ -163,7 +163,7 @@ if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
 
-die $usage unless ($step_number >=0)&&(($step_number <= 14));
+die $usage unless ($step_number >0)&&(($step_number <= 14));
 my $email = "scao\@wustl\.edu";
 # everything else below should be automated
 my $HOME = $ENV{HOME};
@@ -249,7 +249,7 @@ close DH;
 #&check_input_dir($run_dir);
 # start data processsing
 
-if ($step_number < 12) {
+if (($step_number < 12 && $step_number>0) || $step_number == 14)  {
     #begin to process each sample
     for (my $i=0;$i<@sample_dir_list;$i++) {#use the for loop instead. the foreach loop has some problem to pass the global variable $sample_name to the sub functions
         $sample_name = $sample_dir_list[$i];
@@ -295,13 +295,15 @@ if ($step_number < 12) {
                     &bsub_merge_vcf(1);
                 }elsif ($step_number == 11) {
                     &bsub_vcf_2_maf(1);
-                } 
-           }
+                }elsif ($step_number == 14) {
+                    &bsub_clean(1);
+                                }
         }
     }
 }
+}
 
-if($step_number==12 || $step_number==0)
+if($step_number==12)
     {
 
 	print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
@@ -351,7 +353,7 @@ if($step_number==12 || $step_number==0)
 
 print "annotation\n"; 
 
-if($step_number==13 || $step_number==0)
+if($step_number==13)
     {
 
     print $yellow, "annotate dnp and remove snv near an indel",$normal, "\n";
@@ -425,49 +427,6 @@ if($step_number==13 || $step_number==0)
 
 }
 
-
-#######################################################################
-# send email to notify the finish of the analysis
-if (($step_number == 0) || ($step_number == 14)) {
-    print $yellow, "Submitting the job for sending an email when the run finishes ",$sample_name, "...",$normal, "\n";
-    $hold_job_file = $current_job_file;
-    $current_job_file = "Email_run_".$$.".sh";
-    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
-    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
-    `rm $lsf_out`;
-    `rm $lsf_err`;
-
-    open(EMAIL, ">$job_files_dir/$current_job_file") or die $!;
-    print EMAIL "#!/bin/bash\n";
-    #print EMAIL "#BSUB -n 1\n";
-    #print EMAIL "#BSUB -o $lsf_file_dir","\n";
-    #print EMAIL "#BSUB -e $lsf_file_dir","\n";
-    #print EMAIL "#BSUB -J $current_job_file\n";
-    #print EMAIL "#BSUB -w \"$hold_job_file\"","\n";
-    print EMAIL $run_script_path."send_email.pl ".$run_dir." ".$email."\n";
-    close EMAIL;
-    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    #$bsub_com = "qsub -V -hold_jid $hold_job_file -e $lsf_file_dir -o $lsf_file_dir $job_files_dir/$current_job_file\n";
- #   system ($bsub_com);
-
- 	my $sh_file=$job_files_dir."/".$current_job_file;
-
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-	else 
-	{ 
-	$bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
-
-    print $bsub_com;
-    system ($bsub_com);
-
-	
-}
-#######################################################################
-if ($step_number == 0) {
-    print $green, "All jobs are submitted! You will get email notification when this run is completed.\n",$normal;
-}
 
 exit;
 
@@ -1136,138 +1095,6 @@ print PINDEL "$pindel -T 4 -f $h38_REF -i \${CONFIG} -o \${myRUNDIR}"."/$sample_
 
 	}
 
-#sub bsub_vep{
-  
- #   my ($step_by_step) = @_;
- #   if ($step_by_step) {
-
-#       $hold_job_file = "";
-#    }else{
- #       $hold_job_file = $current_job_file;
-
-#    }
-
-
-#    $current_job_file = "j7_vep".$sample_name.".sh";
- #   my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
- #   my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
-
- #   my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
- #   my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
- #   `rm $lsf_out`;
- #   `rm $lsf_err`;
-
- #   open(VEP, ">$job_files_dir/$current_job_file") or die $!; 
-#	print VEP "#!/bin/bash\n";
-#    print VEP "#BSUB -n 1\n";
- #   print VEP "#BSUB -R \"rusage[mem=30000]\"","\n";
- #   print VEP "#BSUB -M 30000000\n";
-  #  print VEP "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-  #  print VEP "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-  #  print VEP "#BSUB -J $current_job_file\n";
-  #  print VEP "#BSUB -q ding-lab\n";
-  #  print VEP "#BSUB -w \"$hold_job_file\"","\n";
-  #  print VEP "scr_t0=\`date \+\%s\`\n";
-  #  print VEP "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-  #  print VEP "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
- #   print VEP "myRUNDIR=".$sample_full_path."/varscan\n";
-  #  print VEP "STATUSDIR=".$sample_full_path."/status\n";
-  #  print VEP "RUNDIR=".$sample_full_path."\n";
-  #  print VEP "export VARSCAN_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8\n";
-  #  print VEP "export SAMTOOLS_DIR=/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin\n";
-  #  print VEP "export JAVA_HOME=$java_dir\n";
-  #  print VEP "export JAVA_OPTS=\"-Xmx10g\"\n";
-  #  print VEP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-#	print VEP "cat > \${RUNDIR}/varscan/vs_vep.snv.input <<EOF\n";
- #   print VEP "varscan.vep.vcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_pass.vcf\n";
- #   print VEP "varscan.vep.output = ./varscan.out.som_snv.current_final.gvip.Somatic.VEP.vcf\n";
- #   print VEP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
- #   print VEP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
- #   print VEP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
- #   print VEP "varscan.vep.assembly = GRCh37\n";
- #   print VEP "EOF\n";
- #   print VEP "cat > \${RUNDIR}/varscan/vs_vep.indel.input <<EOF\n";
- #   print VEP "varscan.vep.vcf = ./varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
- #   print VEP "varscan.vep.output = ./varscan.out.som_indel.current_final.gvip.Somatic.VEP.vcf\n";
-  #  print VEP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-  #  print VEP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-  #  print VEP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-  #  print VEP "varscan.vep.assembly = GRCh37\n";
-  #  print VEP "EOF\n";
-  #	print VEP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.snv.input <<EOF\n";
- # 	print VEP "strelka.vep.vcf = ./strelka.somatic.snv.all.gvip.dbsnp_pass.vcf\n";
- #   print VEP "strelka.vep.output = ./strelka.somatic_snv.current_final.gvip.Somatic.VEP.vcf\n";
-  #	print VEP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
- # 	print VEP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-  #	print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
- #	print VEP "strelka.vep.assembly = GRCh37\n";
- #	print VEP "EOF\n";
-  #  print VEP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.indel.input <<EOF\n";
-  #  print VEP "strelka.vep.vcf = ./strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
-  #  print VEP "strelka.vep.output = ./strelka.somatic_indel.current_final.gvip.Somatic.VEP.vcf\n";
-  #  print VEP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-  #  print VEP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-  #  print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-  #  print VEP "strelka.vep.assembly = GRCh37\n";
-  #  print VEP "EOF\n";
-  #  print VEP "cat > \${RUNDIR}/varscan/vs_vep.snv.inital.input <<EOF\n";
-  #  print VEP "varscan.vep.vcf = ./varscan.out.som_snv.gvip.vcf\n";
-   # print VEP "varscan.vep.output = ./varscan.out.som_snv.gvip.VEP.vcf\n";
-   # print VEP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-  #  print VEP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-  #  print VEP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-  #  print VEP "varscan.vep.assembly = GRCh37\n";
-  #  print VEP "EOF\n";
-  #  print VEP "cat > \${RUNDIR}/varscan/vs_vep.indel.initial.input <<EOF\n";
-  #  print VEP "varscan.vep.vcf = ./varscan.out.som_indel.gvip.vcf\n";
-   # print VEP "varscan.vep.output = ./varscan.out.som_indel.gvip.VEP.vcf\n";
-   # print VEP "varscan.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-  #  print VEP "varscan.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-  #  print VEP "varscan.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-  #  print VEP "varscan.vep.assembly = GRCh37\n";
-  #  print VEP "EOF\n";
-  #  print VEP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.snv.initial.input <<EOF\n";
-  #  print VEP "strelka.vep.vcf = ./strelka.somatic.snv.strlk_pass.gvip.vcf\n";
-  #  print VEP "strelka.vep.output = ./strelka.somatic.snv.strlk_pass.gvip.VEP.vcf\n";
-  #  print VEP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-  #  print VEP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-  #  print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-  #  print VEP "strelka.vep.assembly = GRCh37\n";
-  #  print VEP "EOF\n";
-  #  print VEP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_vep.indel.initial.input <<EOF\n";
-  #  print VEP "strelka.vep.vcf = ./strelka.somatic.indel.strlk_pass.gvip.vcf\n";
- #   print VEP "strelka.vep.output = ./strelka.somatic.indel.strlk_pass.gvip.VEP.vcf\n";
-  #  print VEP "strelka.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
- #   print VEP "strelka.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
- #   print VEP "strelka.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
- #   print VEP "strelka.vep.assembly = GRCh37\n";
- #   print VEP "EOF\n";
-#    print VEP ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
-#	print VEP "cd \${RUNDIR}/varscan\n";
-  #  print VEP "     ".$run_script_path."vep_annotator.pl ./vs_vep.snv.input >& ./vs_vep.snv.log\n";
-  #  print VEP "     ".$run_script_path."vep_annotator.pl ./vs_vep.indel.input >& ./vs_vep.indel.log\n";
-  #  print VEP "     ".$run_script_path."vep_annotator.pl ./vs_vep.snv.initial.input >& ./vs_vep.snv.initial.log\n";
-  #  print VEP "     ".$run_script_path."vep_annotator.pl ./vs_vep.indel.initial.input >& ./vs_vep.indel.initial.log\n";
-  #  print VEP "cd \${RUNDIR}/strelka/strelka_out/results\n";
-  #  print VEP "     ".$run_script_path."vep_annotator.pl ./strelka_vep.snv.input >& ./strelka_vep.snv.log\n";
-  #  print VEP "     ".$run_script_path."vep_annotator.pl ./strelka_vep.indel.input >& ./strelka_vep.indel.log\n";
-  #  print VEP "     ".$run_script_path."vep_annotator.pl ./strelka_vep.snv.initial.input >& ./strelka_vep.snv.initial.log\n";
-  #  print VEP "     ".$run_script_path."vep_annotator.pl ./strelka_vep.indel.initial.input >& ./strelka_vep.indel.initial.log\n";
-  #  print VEP "cat > \${RUNDIR}/pindel/pindel_vep.input <<EOF\n";
-  #  print VEP "pindel.vep.vcf = ./pindel.out.current_final.gvip.dbsnp_pass.vcf\n";
-  #  print VEP "pindel.vep.output = ./pindel.out.current_final.gvip.dbsnp_pass.VEP.vcf\n";
-   # print VEP "pindel.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/ensembl-tools-release-81/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
-   # print VEP "pindel.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache\n";
-   # print VEP "pindel.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v81/cache/homo_sapiens/81_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
-   # print VEP "pindel.vep.assembly = GRCh37\n";
-   # print VEP "EOF\n";
-  #  print VEP "cd \${RUNDIR}/pindel\n";
-   # print VEP "     ".$run_script_path."vep_annotator.pl ./pindel_vep.input >& ./pindel_vep.log\n";  
-	#close VEP;
-    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    #system ( $bsub_com );
-
-#}
 
 sub bsub_parse_pindel {
 
@@ -1856,4 +1683,73 @@ sub bsub_vcf_2_maf{
 
  }
 
+
+sub bsub_clean{
+    #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
+    $current_job_file = "j14_clean_".$sample_name.".sh";
+
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+
+    open(CLEAN, ">$job_files_dir/$current_job_file") or die $!;
+    print CLEAN "#!/bin/bash\n";
+    print CLEAN "RP=".$sample_full_path."/pindel/".$sample_name."_RP\n";
+    print CLEAN "D=".$sample_full_path."/pindel/".$sample_name."_D\n";
+    print CLEAN "TD=".$sample_full_path."/pindel/".$sample_name."_TD\n";
+    print CLEAN "INV=".$sample_full_path."/pindel/".$sample_name."_INV\n";
+    print CLEAN "SI=".$sample_full_path."/pindel/".$sample_name."_SI\n";
+    print CLEAN "RAW=".$sample_full_path."/pindel/pindel.out.raw\n";
+    print CLEAN "FAIL=".$sample_full_path."/pindel/pindel.out.raw.CvgVafStrand_fail\n";
+    print CLEAN "if [ -f \${RP} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${RP}\n";
+    print CLEAN "fi\n";
+
+
+    print CLEAN "if [ -f \${D} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${D}\n";
+    print CLEAN "fi\n";
+
+    print CLEAN "if [ -f \${TD} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${TD}\n";
+    print CLEAN "fi\n";
+
+
+    print CLEAN "if [ -f \${INV} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${INV}\n";
+    print CLEAN "fi\n";
+
+
+    print CLEAN "if [ -f \${SI} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${SI}\n";
+    print CLEAN "fi\n";
+
+    print CLEAN "if [ -f \${RAW} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${RAW}\n";
+    print CLEAN "fi\n";
+
+    print CLEAN "if [ -f \${FAIL} ]\n";
+    print CLEAN "then\n";
+    print CLEAN "gzip \${FAIL}\n";
+    print CLEAN "fi\n";
+
+    close CLEAN;
+
+    my $sh_file=$job_files_dir."/".$current_job_file;
+
+    if($q_name eq "research-hpc")
+    {
+    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
+    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";
+    }
+    print $bsub_com;
+    system ($bsub_com);
+}
  
