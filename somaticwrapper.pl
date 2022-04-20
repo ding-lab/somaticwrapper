@@ -128,8 +128,8 @@ my $status = &GetOptions (
       "mincovn=i"  => \$mincov_n,		
 	  "minvaf=f"  => \$minvaf,
 	  "maxindsize=i"  => \$maxindsize,
-      "log=s"  => \$log_dir,
-      "q=s" => \$q_name,
+     # "log=s"  => \$log_dir,
+     # "q=s" => \$q_name,
    	  "help" => \$help, 
 	);
  
