@@ -47,11 +47,7 @@ bsub -G compute-dinglab -q dinglab-interactive -Is -a 'docker(scao/dailybox)' /b
 
 Step1: Enter the directory where you downloaded somaticwrapper pipeline 
 
-<<<<<<< HEAD
-Step2: Type the coommand line: perl somaticwrapper.pl  --srg --step --sre --wgs --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg
-=======
 Step2: Type the coommand line: perl somaticwrapper.pl  --srg --sre --wgs --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg --groupname --users --step
->>>>>>> a4a79c27f83ba1ebce51a18020e77b941eb33d2b
 
 rdir = full path of the folder holding files for this sequence run (user must provide)
 
