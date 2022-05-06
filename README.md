@@ -59,13 +59,10 @@ sre = re-run: 1, yes and 0, no  (default 0)
 
 wgs = 1 if it is wgs data and otherwise it is 0; If you want to output the maf for all variants, set exonic to 0
 
-<<<<<<< HEAD
-=======
 groupname = job group name: Format; users/groupname
 
 users = user name for job group: Format; users/groupname
 
->>>>>>> a4a79c27f83ba1ebce51a18020e77b941eb33d2b
 step run this pipeline step by step. (user must provide)
 
 ref: the human reference: 
