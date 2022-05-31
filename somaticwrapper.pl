@@ -46,11 +46,7 @@ my $normal = "\e[0m";
 Somatic variant calling pipeline 
 Pipeline version: $version
 
-<<<<<<< HEAD
-$yellow     Usage: perl $0  --srg --step --sre --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --wgs --smg 
-=======
 $yellow     Usage: perl $0  --srg --sre --wgs --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg --groupname --users --step 
->>>>>>> a4a79c27f83ba1ebce51a18020e77b941eb33d2b
 
 $normal
 
@@ -60,10 +56,6 @@ $normal
 <groupname> = job group name
 <users> = user name for job group
 <srg> = bam having read group or not: 1, yes and 0, no (default 1)
-<<<<<<< HEAD
-<sre> = re-run: 1, yes and 0, no  (default 0)
-<wgs> = 1 if it is wgs data and otherwise it is 0; If you want to output the maf for all variants, set exonic to 0
-=======
 <sre> = re-run and overwrite previous results: 1, yes and 0, no  (default 0)
 >>>>>>> a4a79c27f83ba1ebce51a18020e77b941eb33d2b
 <step> run this pipeline step by step. (user must provide)
@@ -123,16 +115,11 @@ my $group_name="";
 my $status = &GetOptions (
       "step=i" => \$step_number,
       "srg=i" => \$status_rg,
-<<<<<<< HEAD
       "sre=i" => \$status_rerun,	
-      "wgs=i"  => \$s_wgs,
-=======
-      "wgs=i"  => \$s_wgs,
-      "sre=i" => \$status_rerun,
-	      "groupname=s" => \$group_name,
+      "wgs=i"  => \$s_wgs, 
+      "groupname=s" => \$group_name,
       "users=s" => \$compute_username,	
->>>>>>> a4a79c27f83ba1ebce51a18020e77b941eb33d2b
-	  "exonic=i" => \$status_exonic,
+       "exonic=i" => \$status_exonic,
       "rdir=s" => \$run_dir,
 	  "ref=s"  => \$h38_REF,
 	  "smg=s" => \$db_smg,
@@ -550,16 +537,13 @@ sub bsub_strelka{
 
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-<<<<<<< HEAD
 	if($q_name eq "research-hpc")
 	{
     $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     }
 	else { 
 	    $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err bash $sh_file\n"; 
 	}
-=======
     #$bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     
->>>>>>> a4a79c27f83ba1ebce51a18020e77b941eb33d2b
 
     $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
     print $bsub_com;
@@ -695,19 +679,16 @@ sub bsub_varscan{
 
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-<<<<<<< HEAD
     if($q_name eq "research-hpc")
     {
     $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
     else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
     print $bsub_com;
     system ($bsub_com);
-=======
     $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
         print $bsub_com;
         system ($bsub_com);
->>>>>>> a4a79c27f83ba1ebce51a18020e77b941eb33d2b
 
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
     #system ( $bsub_com );
@@ -1287,9 +1268,8 @@ sub bsub_mutect{
 
       $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
-<<<<<<< HEAD
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
- 	my $sh_file=$job_files_dir."/".$current_job_file;
+     my $sh_file=$job_files_dir."/".$current_job_file;
     if($q_name eq "research-hpc")
     {
     $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }    
@@ -1297,11 +1277,8 @@ sub bsub_mutect{
 	{        
 	$bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                
     }
-    print $bsub_com;
-=======
       print $bsub_com;
       system ($bsub_com);
->>>>>>> a4a79c27f83ba1ebce51a18020e77b941eb33d2b
 
 }
 
