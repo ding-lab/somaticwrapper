@@ -223,7 +223,7 @@ my $samtools="/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin";
 my $varscan="/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8";
 my $bamreadcount="/gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount";
 my $vepannot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
-my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v85";
+my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v102";
 
 my $DB_SNP_NO_CHR="/gscmnt/gc3027/dinglab/medseq/hg38_database/DBSNP/00-All.vcf";
 my $DB_SNP="/gscmnt/gc3027/dinglab/medseq/hg38_database/DBSNP/00-All.chr.vcf";
