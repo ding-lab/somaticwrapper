@@ -222,7 +222,7 @@ my $mutect1="/gscmnt/gc2518/dinglab/scao/tools/mutect/mutect-1.1.7.jar";
 my $samtools="/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin";
 my $varscan="/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8";
 my $bamreadcount="/gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount";
-my $vepannot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
+my $vepannot="/gscmnt/gc2524/dinglab/scao/conda_root/envs/vep/bin/vep";
 my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v102";
 
 my $DB_SNP_NO_CHR="/gscmnt/gc3027/dinglab/medseq/hg38_database/DBSNP/00-All.vcf";
