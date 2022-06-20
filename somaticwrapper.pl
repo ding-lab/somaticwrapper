@@ -29,7 +29,7 @@ use warnings;
 #use POSIX;
 use Getopt::Long;
 
-my $version = 1.6.1;
+my $version = 1.8;
 
 #color code
 my $red = "\e[31m";
@@ -1545,8 +1545,8 @@ sub bsub_merge_vcf{
 	print MERGE "MERGER_OUT="."\${RUNDIR}/merged.withmutect.vcf\n";
     print MERGE "PINDEL_VCF_FILTER="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.filtered.vcf\n";
 	#print MERGE "cat > \${RUNDIR}/vep.merged.input <<EOF\n";
-    #print MERGE "merged.vep.vcf = ./merged.filtered.vcf\n"; 
-    #print MERGE "merged.vep.output = ./merged.VEP.vcf\n";
+    #print MERGE "merged_vep_vcf = ./merged.filtered.vcf\n"; 
+    #print MERGE "merged_vep_output = ./merged.VEP.vcf\n";
     #print MERGE "merged.vep.vep_cmd = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl\n";
     #print MERGE "merged.vep.cachedir = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache\n";
     #print MERGE "merged.vep.reffasta = /gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/cache/homo_sapiens/85_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa\n";
@@ -1580,7 +1580,7 @@ sub bsub_merge_vcf{
     print $bsub_com;
    	system ($bsub_com);
 
-	}
+}
 
 sub bsub_vcf_2_maf{
   
@@ -1628,41 +1628,43 @@ sub bsub_vcf_2_maf{
     print MAF "RUNDIR=".$sample_full_path."\n";
 	
 	print MAF "F_log=".$sample_full_path."/vep.merged.withmutect.log"."\n";
-    print MAF "cat > \${RUNDIR}/vep.merged.withmutect.input <<EOF\n";
-    print MAF "merged.vep.vcf = ./merged.withmutect.vcf\n";
-    print MAF "merged.vep.output = ./merged.VEP.withmutect.vcf\n";
-    print MAF "merged.vep.vep_cmd = $vepannot\n";
-    print MAF "merged.vep.cachedir = $vepcache\n";
-    print MAF "merged.vep.reffasta = $f_ref_annot\n";
-    print MAF "merged.vep.assembly = GRCh38\n";
-    print MAF "EOF\n";
+   # print MAF "cat > \${RUNDIR}/vep.merged.withmutect.input <<EOF\n";
+    print MAF "merged_vep_vcf=".$sample_full_path."/merged.withmutect.vcf\n";
+    print MAF "merged_vep_output=".$sample_full_path."/merged.VEP.withmutect.vcf\n";
+  #  print MAF "merged.vep.vep_cmd = $vepannot\n";
+  #  print MAF "merged.vep.cachedir = $vepcache\n";
+  #  print MAF "merged.vep.reffasta = $f_ref_annot\n";
+   # print MAF "merged.vep.assembly = GRCh38\n";
+   # print MAF "EOF\n";
     print MAF "rm \${F_log}\n";
-	
+    print MAF "rm \${merged_vep_output}\n";	
  	print MAF "F_log_filtered=".$sample_full_path."/vep.merged.withmutect.filtered.log"."\n";
-    print MAF "cat > \${RUNDIR}/vep.merged.withmutect.filtered.input <<EOF\n";
-    print MAF "merged.vep.vcf = ./merged.filtered.withmutect.vcf\n";
-    print MAF "merged.vep.output = ./merged.VEP.withmutect.filtered.vcf\n";
-    print MAF "merged.vep.vep_cmd = $vepannot\n";
-    print MAF "merged.vep.cachedir = $vepcache\n";
-    print MAF "merged.vep.reffasta = $f_ref_annot\n";
-    print MAF "merged.vep.assembly = GRCh38\n";
-    print MAF "EOF\n";
-	print MAF "rm \${F_log_filtered}\n";	
-  
+ #   print MAF "cat > \${RUNDIR}/vep.merged.withmutect.filtered.input <<EOF\n";
+    print MAF "merged_vep_filtered_vcf=".$sample_full_path."/merged.filtered.withmutect.vcf\n";
+    print MAF "merged_vep_filtered_output=".$sample_full_path."/merged.VEP.withmutect.filtered.vcf\n";
+  #  print MAF "merged.vep.vep_cmd = $vepannot\n";
+  #  print MAF "merged.vep.cachedir = $vepcache\n";
+  #  print MAF "merged.vep.reffasta = $f_ref_annot\n";
+  #  print MAF "merged.vep.assembly = GRCh38\n";
+  #  print MAF "EOF\n";
+	print MAF "rm \${F_log_filtered}\n";
+    print MAF "rm \${merged_vep_filtered_output}\n";
+## activate perl env for vep annotation
+   # print MAF "conda activate vep\n";  
 	### vep and vcf2maf annotation for all variants to get the annotated gene name for each variant ##
-    print MAF "cd \${RUNDIR}\n";
-    print MAF ". $script_dir/set_envvars\n";
- 	print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.input >&./vep.merged.withmutect.log\n";
+   # print MAF "cd \${RUNDIR}\n";
+   # print MAF ". $script_dir/set_envvars\n";
+ 	print MAF "$vepannot --species homo_sapiens --assembly GRCh38 --offline  --no_progress --no_stats --sift b --ccds --uniprot --hgvs --symbol --numbers --domains --gene_phenotype --canonical --protein --biotype --tsl --pubmed --variant_class --shift_hgvs 1 --check_existing --total_length --allele_number --no_escape --xref_refseq --failed 1 --vcf --minimal --flag_pick_allele --pick_order canonical,tsl,biotype,rank,ccds,length --dir $vepcache --fasta $f_ref_annot --input_file \${merged_vep_vcf} --output_file \${merged_vep_output} --polyphen b --af --af_1kg --af_esp --regulatory\n";
     print MAF "rm \${F_VCF_2}\n";
     print MAF "rm \${F_VEP_2}\n";
     print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
     print MAF "ln -s \${F_VEP_1} \${F_VEP_2}\n";
-    print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n";
-	
+    print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n";	
 	## do the filtering for variants and ignore tumor vaf > 0.05 for gene in smg ##
 	print MAF "     ".$run_script_path."vaf_filter_v1.4.pl \${RUNDIR} $sample_name $minvaf $mincov_t $mincov_n $maxindsize $db_smg\n";
   
-  	print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.filtered.input >&./vep.merged.withmutect.filtered.log\n";
+  	#print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.filtered.input >&./vep.merged.withmutect.filtered.log\n";
+    print MAF "$vepannot --species homo_sapiens --assembly GRCh38 --offline  --no_progress --no_stats --sift b --ccds --uniprot --hgvs --symbol --numbers --domains --gene_phenotype --canonical --protein --biotype --tsl --pubmed --variant_class --shift_hgvs 1 --check_existing --total_length --allele_number --no_escape --xref_refseq --failed 1 --vcf --minimal --flag_pick_allele --pick_order canonical,tsl,biotype,rank,ccds,length --dir $vepcache --fasta $f_ref_annot --input_file \${merged_vep_filtered_vcf} --output_file \${merged_vep_filtered_output} --polyphen b --af --af_1kg --af_esp --regulatory\n";
     print MAF "rm \${F_VCF_2_filtered}\n";
     print MAF "rm \${F_VEP_2_filtered}\n";
     print MAF "ln -s \${F_VCF_1_filtered} \${F_VCF_2_filtered}\n";

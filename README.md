@@ -9,7 +9,7 @@ Indel calls are called by 2 over 3 callers (Strelka2, Varscan2 and pindel).
 
 Improvements compared to version 1.6.1:
 
-1) Use Genecode V36 
+Use Genecode V36 (vep102); Use Bioperl-core for perl envs (see bashrc)
 
 If you want to run somaticwrapper for hg19 reference, you can git clone the withmutect branch. 
 
