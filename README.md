@@ -11,7 +11,7 @@ Improvements compared to version 1.6.1:
 
 Use Genecode V36 (vep102); Use Bioperl-core for perl envs (see bashrc)
 
-If you want to run somaticwrapper for hg19 reference, you can git clone the withmutect branch. 
+If you want to run somaticwrapper for hg19 reference, you can git clone the v1.1 branch. 
 
 ## Install the third-party software ##
 
