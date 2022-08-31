@@ -28,7 +28,7 @@ foreach my $l (`cat $f_maf`)
 
 	else {
 
-	 	$sn_1=$temp[15]; $sn_1=~s/_T//g; 
+	 	$sn_1=$temp[15]; $sn_1=~s/_T$//g; 
 
 		if($sn_2 eq "" || $sn_2 ne $sn_1)
 		{
