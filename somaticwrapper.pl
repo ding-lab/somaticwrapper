@@ -46,7 +46,8 @@ my $normal = "\e[0m";
 Somatic variant calling pipeline 
 Pipeline version: $version
 
-$yellow     Usage: perl $0  --srg --sre --wgs --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg --groupname --users --step 
+$yellow     
+Usage: perl $0  --srg --sre --wgs --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg --groupname --users --step 
 
 $normal
 
@@ -69,20 +70,20 @@ $normal
 <smg> use smg list for calling
 hg38: /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa
  
-$green       [1]  Run streka
-$green       [2]  Run Varscan
-$green       [3]  Run Pindel
-$green 	      [4]  Run mutect
-$yellow       [5]  Parse mutect result
-$yellow 	     [6]  Parse streka result
-$yellow 	     [7]  Parse VarScan result
-$yellow      [8]  Parse Pindel
-$cyan        [9]  QC vcf files  
-$cyan 	     [10] Merge vcf files  
-$cyan		 [11] Generate maf file 
-$cyan 		 [12] Generate merged maf file
-$cyan        [13] Annotate dnp and remove nearby snv near an indel
-$red 		 [14] Clean unnecessary intermediate files
+$green [1]  Run streka
+$green [2]  Run Varscan
+$green [3]  Run Pindel
+$green [4]  Run mutect
+$yellow [5]  Parse mutect result
+$yellow [6]  Parse streka result
+$yellow [7]  Parse VarScan result
+$yellow [8]  Parse Pindel
+$cyan [9]  QC vcf files  
+$cyan [10] Merge vcf files  
+$cyan [11] Generate maf file 
+$cyan [12] Generate merged maf file
+$cyan [13] Annotate dnp and remove nearby snv near an indel
+$red [14] Clean unnecessary intermediate files
 $normal
 
 OUT
