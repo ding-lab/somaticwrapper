@@ -25,7 +25,7 @@ perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/ctspkirc --log /scra
 perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/ctspkirc --log /scratch1/fs1/dinglab/scao/sw/ctspkirc.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.bailey.cell.kirc.tsv --users songcao --groupname SomaticWXS --sre 1 --step 13
 
 
- perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/ctspkirc.unfinished --log /scratch1/fs1/dinglab/scao/sw/ctspkirc.unfinished.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.bailey.cell.kirc.tsv --users songcao --groupname SomaticWXS --sre 1 --step 3 
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/ctspkirc.unfinished --log /scratch1/fs1/dinglab/scao/sw/ctspkirc.unfinished.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.bailey.cell.kirc.tsv --users songcao --groupname SomaticWXS --sre 1 --step 3 
 
  perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/ctspkirc.unfinished2 --log /scratch1/fs1/dinglab/scao/sw/ctspkirc.unfinished2.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.bailey.cell.kirc.tsv --users songcao --groupname SomaticWXS --sre 1 --step 3
 
@@ -40,3 +40,6 @@ perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/ctspkirc --log /scra
 perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/ctspkirc.unfinished2 --log /scratch1/fs1/dinglab/scao/sw/ctspkirc.unfinished2.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.bailey.cell.kirc.tsv --users songcao --groupname SomaticWXS --sre 1 --step 12
 
 perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/ctspkirc.unfinished2 --log /scratch1/fs1/dinglab/scao/sw/ctspkirc.unfinished2.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.bailey.cell.kirc.tsv --users songcao --groupname SomaticWXS --sre 1 --step 13
+
+
+perl somaticwrapper.pl --rdir /storage1/fs1/dinglab/Active/Projects/scao/ctspkirc/sw/b1/unfinished --log /storage1/fs1/dinglab/Active/Projects/scao/ctspkirc/sw/b1/unfinished.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.bailey.cell.kirc.tsv --users songcao --groupname SomaticWXS --sre 1 --step 8
