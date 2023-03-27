@@ -271,7 +271,7 @@ if($step_number == 2)
 
 	print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
 	$hold_job_file=$current_job_file; 
-	$current_job_file = "j12_Run_report_".$working_name.".sh"; 
+	$current_job_file = "j2_Run_report_".$working_name.".sh"; 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
@@ -312,7 +312,7 @@ sub bsub_vcf_2_maf{
     }
 
 
-    $current_job_file = "j11_vcf_2_maf.".$sample_name.".sh";
+    $current_job_file = "j1_vcf_2_maf.".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 
