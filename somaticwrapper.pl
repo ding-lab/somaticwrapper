@@ -324,10 +324,10 @@ sub bsub_vcf_2_maf{
     open(MAF, ">$job_files_dir/$current_job_file") or die $!;
     print MAF "#!/bin/bash\n";
   	
-    print MAF "F_vcf_VEP=".$sample_full_path."/".$sample_name.".vep.vcf\n";
+    print MAF "F_vcf=".$sample_full_path."/".$sample_name.".vcf\n";
     print MAF "F_maf=".$sample_full_path."/".$sample_name.".maf\n";
  
-    print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_vcf_VEP} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n"; 
+    print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_vcf} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n"; 
     close MAF;
 
 
