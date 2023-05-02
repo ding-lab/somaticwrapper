@@ -1,0 +1,27 @@
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 1
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 2
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 3
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 4
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 5
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 6
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 7
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 8 --sre 1
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 9 --sre 1
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 10 --sre 1
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 11 --sre 1
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 12 --sre 1
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --sre 1 --step 13 --sre 1
+
+
