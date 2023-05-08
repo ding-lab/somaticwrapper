@@ -230,8 +230,8 @@ my $mutect1="/storage1/fs1/songcao/Active/Software/mutect/mutect-1.1.7.jar";
 my $samtools="/storage1/fs1/songcao/Active/Software/samtools/1.2/bin";
 my $varscan="/storage1/fs1/songcao/Active/Software/varscan/2.3.8.ndown";
 my $bamreadcount="/storage1/fs1/songcao/Active/Software/bam-readcount/0.7.4/bam-readcount";
-my $vepannot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.v102.pl";
-my $vepannot="/storage1/fs1/songcao/Active/Git/ensembl-vep/vep";
+#my $vepannot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.v102.pl";
+my $vepannot="/storage1/fs1/dinglab/Active/Projects/scao/gitshared/ensembl-vep/vep";
 
 #my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v85";
 
