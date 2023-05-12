@@ -228,6 +228,7 @@ my $snpsift="/storage1/fs1/songcao/Active/Software/snpEff/20150522/SnpSift.jar";
 my $gatkexe3="/storage1/fs1/songcao/Active/Software/gatk/3.7/GenomeAnalysisTK.jar";
 my $mutect1="/storage1/fs1/songcao/Active/Software/mutect/mutect-1.1.7.jar";
 my $samtools="/storage1/fs1/songcao/Active/Software/samtools/1.2/bin";
+my $samtoolsexe="/storage1/fs1/songcao/Active/Software/samtools/1.2/bin/samtools";
 my $varscan="/storage1/fs1/songcao/Active/Software/varscan/2.3.8.ndown";
 my $bamreadcount="/storage1/fs1/songcao/Active/Software/bam-readcount/0.7.4/bam-readcount";
 #my $vepannot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.v102.pl";
@@ -400,7 +401,7 @@ if($step_number==13)
 	## remove snv nearby an indel ##
     print DNP "      ".$run_script_path."remove_nearby_snv.pl $f_maf $f_maf_rm_snv"."\n";
    ## annotate dnp ##
-	print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --samt $samtools --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
+	print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --samt $samtoolsexe --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
 	## add dnp to the maf ##
 	print DNP "		 ".$run_script_path."add_dnp.pl $f_maf_rm_snv $f_maf_dnp_tmp_merge $f_maf_dnp"."\n";
 ### remove tmp files ##
