@@ -54,3 +54,10 @@ perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/MMfail2 --lo
 
 perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/MMfail2 --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/MMfail2.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 4 --sre 1
 
+perl somaticwrapper.pl --rdir /storage1/fs1/dinglab/Active/Projects/scao/pecgsb1/MMfail --log /storage1/fs1/dinglab/Active/Projects/scao/pecgsb1/MMfail.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 1
+
+perl somaticwrapper.pl --rdir /storage1/fs1/dinglab/Active/Projects/scao/pecgsb1/MMfail --log /storage1/fs1/dinglab/Active/Projects/scao/pecgsb1/MMfail.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 2
+
+perl somaticwrapper.pl --rdir /storage1/fs1/dinglab/Active/Projects/scao/pecgsb1/MMfail --log /storage1/fs1/dinglab/Active/Projects/scao/pecgsb1/MMfail.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 3
+
+perl somaticwrapper.pl --rdir /storage1/fs1/dinglab/Active/Projects/scao/pecgsb1/MMfail --log /storage1/fs1/dinglab/Active/Projects/scao/pecgsb1/MMfail.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 4
