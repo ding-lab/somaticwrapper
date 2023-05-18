@@ -38,9 +38,11 @@ my $f_maf=$run_dir."/".$dtr."/".$dtr.".withmutect.filtered.maf";
 				my @temp=split("\t",$ltr); 
 				my $annot=$temp[8];
 				my $af=$temp[99];
-				if($annot=~/Frame_Shift_Del/ || $annot=~/Frame_Shift_Ins/ || $annot=~/Missense_Mutation/ || $annot=~/Nonsense_Mutation/ ||  $annot=~/Nonstop_Mutation/ || $annot=~/Silent/ || $annot=~/Splice_Site/ || $annot=~/In_Frame_Ins/ || $annot=~/In_Frame_Del/  || $s_exonic==0) {
+				#if($annot=~/Frame_Shift_Del/ || $annot=~/Frame_Shift_Ins/ || $annot=~/Missense_Mutation/ || $annot=~/Nonsense_Mutation/ ||  $annot=~/Nonstop_Mutation/ || $annot=~/Silent/ || $annot=~/Splice_Site/ || $annot=~/In_Frame_Ins/ || $annot=~/In_Frame_Del/  || $s_exonic==0) {
 					#if($af eq "" || (($af ne "") && $af<0.005))
 					#{
+					if(1==1)
+					{
 					print OUT1 $ltr,"\n"; 
 					$count++;
 					#}

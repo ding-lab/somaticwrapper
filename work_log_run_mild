@@ -24,4 +24,6 @@ perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1
 
 perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mild --log /scratch1/fs1/dinglab/scao/sw/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --sre 1 --step 13 --sre 1
 
+perl somaticwrapper.pl --rdir /storage1/fs1/dinglab/Active/Projects/scao/mild/datafreeze/somatic.WXS/mild --log /storage1/fs1/dinglab/Active/Projects/scao/mild/datafreeze/somatic.WXS/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 12 --sre 1
 
+perl somaticwrapper.pl --rdir /storage1/fs1/dinglab/Active/Projects/scao/mild/datafreeze/somatic.WXS/mild --log /storage1/fs1/dinglab/Active/Projects/scao/mild/datafreeze/somatic.WXS/mild.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --step 13 --sre 1

@@ -22,3 +22,35 @@ perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/CHOL --log /
 
 perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/CRC --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/CRC.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 9
 
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/MM --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/MM.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.mm.tsv --users songcao --groupname SomaticWXS --step 10
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/CHOL --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/CHOL.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.chol.tsv --users songcao --groupname SomaticWXS --step 10
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/CRC --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/CRC.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 10
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/MM --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/MM.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.mm.tsv --users songcao --groupname SomaticWXS --step 11
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/CHOL --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/CHOL.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.chol.tsv --users songcao --groupname SomaticWXS --step 11
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/CRC --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/CRC.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 11
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/MM --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/MM.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.mm.tsv --users songcao --groupname SomaticWXS --step 12
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/CHOL --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/CHOL.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.chol.tsv --users songcao --groupname SomaticWXS --step 12
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/CRC --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/CRC.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 12
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/MM --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/MM.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.mm.tsv --users songcao --groupname SomaticWXS --step 13
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/CHOL --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/CHOL.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.chol.tsv --users songcao --groupname SomaticWXS --step 13
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/CRC --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/CRC.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 13
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/MMfail2 --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/MMfail2.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 1 --sre 1 
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/MMfail2 --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/MMfail2.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 2 --sre 1
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/MMfail2 --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/MMfail2.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 3 --sre 1 
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/pecgsb1/MMfail2 --log /scratch1/fs1/dinglab/scao/sw/pecgsb1/MMfail2.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q dinglab --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.pecgs.crc.tsv --users songcao --groupname SomaticWXS --step 4 --sre 1
+

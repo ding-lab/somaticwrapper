@@ -369,14 +369,15 @@ if($step_number==13)
     my $working_name= (split(/\//,$run_dir))[-1];
     my $f_maf=$run_dir."/".$working_name.".withmutect.maf.rc.caller";
     my $f_maf_rm_snv=$run_dir."/".$working_name.".remove.nearby.snv.maf";
-	my $f_maf_removed=$run_dir."/".$working_name.".remove.nearby.snv.maf.removed";
-	my $f_maf_dnp_tmp=$run_dir."/".$working_name.".dnp.annotated.tmp.maf";
-	my $f_maf_dnp_tmp_merge=$run_dir."/".$working_name.".dnp.annotated.tmp.maf.merge";
-	my $f_maf_dnp=$run_dir."/".$working_name.".dnp.annotated.maf";
+    my $f_maf_removed=$run_dir."/".$working_name.".remove.nearby.snv.maf.removed";
+    my $f_maf_dnp_tmp=$run_dir."/".$working_name.".dnp.annotated.tmp.maf";
+    my $f_maf_dnp_tmp_merge=$run_dir."/".$working_name.".dnp.annotated.tmp.maf.merge";
+    my $f_maf_dnp=$run_dir."/".$working_name.".dnp.annotated.maf";
+    my $f_maf_coding_dnp=$run_dir."/".$working_name.".dnp.annotated.coding.maf";
 
-	my $f_bam_list=$run_dir."/input.bam.list";
+    my $f_bam_list=$run_dir."/input.bam.list";
 
-	open(OUTB,">$f_bam_list"); 
+    open(OUTB,">$f_bam_list"); 
 
 	foreach my $s (`ls $run_dir`) 
 	{
@@ -397,13 +398,13 @@ if($step_number==13)
 	}
 	
     open(DNP, ">$job_files_dir/$current_job_file") or die $!;
+
     print DNP "#!/bin/bash\n";
-	## remove snv nearby an indel ##
     print DNP "      ".$run_script_path."remove_nearby_snv.pl $f_maf $f_maf_rm_snv"."\n";
-   ## annotate dnp ##
-	print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --samt $samtoolsexe --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
-	## add dnp to the maf ##
-	print DNP "		 ".$run_script_path."add_dnp.pl $f_maf_rm_snv $f_maf_dnp_tmp_merge $f_maf_dnp"."\n";
+    print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --samt $samtoolsexe --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
+    print DNP "		 ".$run_script_path."add_dnp.pl $f_maf_rm_snv $f_maf_dnp_tmp_merge $f_maf_dnp"."\n";
+
+    print DNP "          ".$run_script_path."generate_coding_report.pl $f_maf_dnp $f_maf_coding_dnp"."\n";
 ### remove tmp files ##
     print DNP "rm $f_maf_dnp_tmp_merge\n";
     print DNP "rm $f_maf_dnp_tmp\n";
