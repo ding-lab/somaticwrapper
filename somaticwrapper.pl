@@ -1446,6 +1446,7 @@ sub bsub_vcf_2_maf{
     print MAF "#!/bin/bash\n";
   	
     print MAF "F_VCF_1=".$sample_full_path."/merged.withmutect.vcf\n";
+    print MAF "F_VCF_rm=".$sample_full_path."/merged.withmutect.rm.largeindel.vcf\n";
     print MAF "F_VCF_1_filtered=".$sample_full_path."/merged.filtered.withmutect.vcf\n";
     print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".withmutect.vcf\n";
     print MAF "F_VCF_2_filtered=".$sample_full_path."/".$sample_name.".withmutect.filtered.vcf\n";
@@ -1459,7 +1460,7 @@ sub bsub_vcf_2_maf{
 	
     print MAF "F_log=".$sample_full_path."/vep.merged.withmutect.log"."\n";
     print MAF "cat > \${RUNDIR}/vep.merged.withmutect.input <<EOF\n";
-    print MAF "merged.vep.vcf = ./merged.withmutect.vcf\n";
+    print MAF "merged.vep.vcf = ./merged.withmutect.rm.largeindel.vcf\n";
     print MAF "merged.vep.output = ./merged.VEP.withmutect.vcf\n";
     print MAF "merged.vep.vep_cmd = $vepannot\n";
     print MAF "merged.vep.cachedir = $vepcache\n";
@@ -1482,6 +1483,7 @@ sub bsub_vcf_2_maf{
 	### vep and vcf2maf annotation for all variants to get the annotated gene name for each variant ##
     print MAF "cd \${RUNDIR}\n";
     print MAF ". $script_dir/set_envvars\n";
+    print MAF "     ".$run_script_path."remove_largeindel.pl \${F_VCF_1} \${F_VCF_rm}\n";
     print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.input >&./vep.merged.withmutect.log\n";
     print MAF "rm \${F_VCF_2}\n";
     print MAF "rm \${F_VEP_2}\n";
