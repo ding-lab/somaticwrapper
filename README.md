@@ -3,6 +3,7 @@
 
 Detect somatic variants from tumor only data based on HG38 reference. SomaticWrapper pipeline is a fully automated and modular software package designed for detection of somatic variants from tumor exome data. It works on LSF job scheduler and can run multiple jobs in parallel. 
 
+Use VEP102 for annotation 
 ## Install the third-party software ##
 
 
