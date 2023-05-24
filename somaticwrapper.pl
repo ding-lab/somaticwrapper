@@ -518,8 +518,8 @@ sub bsub_mutect2{
         my $IN_bam_T = $sample_full_path."/".$sample_name.".remDup.bam";
         my $lsf_out=$lsf_file_dir."/".$current_job_file."_".$chr1.".out";
         my $lsf_err=$lsf_file_dir."/".$current_job_file."_".$chr1.".err";
-		my $f_out_gz=$out_mutect2."/".$chr1."-f1r2.tar.gz"; 
-		my $f_out_vcf=$out_mutect2."/".$chr1."-unfiltered.vcf";
+	my $f_out_gz=$out_mutect2."/".$chr1."-f1r2.tar.gz"; 
+	my $f_out_vcf=$out_mutect2."/".$chr1."-unfiltered.vcf";
 
         `rm $lsf_out`;
         `rm $lsf_err`;
