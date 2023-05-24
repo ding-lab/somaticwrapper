@@ -36,20 +36,23 @@ $normal
 <sre> = re-run: 1, yes and 0, no  (default 0)
 <step> run this pipeline step by step. (user must provide)
 <ref> the human reference: 
-<q> which queue for submitting job; research-hpc, ding-lab, long (default)
+<q> which queue for submitting job; general (default), dinglab
+<groupname> which job group to use when submitting jobs on compute1
+<users> username on compute1 to use for submitting jobs to job groups
+<group> compute-group on compute1 to use for submitting jobs to the specified queue.
 <exonic> output exonic region: 1 Yes, 0 No
 hg38:/gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa
 
 lscc smg: /gscmnt/gc3027/dinglab/medseq/smg_database/smg.lscc.tsv
  
-$red 	     [0]  Trim fastq if input files are fastqs
-$green       [1]  generate bams if input files are fastqs
-$green 		 [2]  Run Mutect2
-$green       [3]  Run filter Mutect2 result
-$green 		 [4]  Run parse Mutect2 result
-$cyan		 [5] Generate maf file 
-$cyan 		 [6] Generate merged maf file
-$cyan        [7] Annotate dnp and remove nearby snv near an indel
+$red [0]  Trim fastq if input files are fastqs
+$green [1]  generate bams if input files are fastqs
+$green [2]  Run Mutect2
+$green [3]  Run filter Mutect2 result
+$green [4]  Run parse Mutect2 result
+$cyan [5] Generate maf file 
+$cyan [6] Generate merged maf file
+$cyan [7] Annotate dnp and remove nearby snv near an indel
 $normal
 
 OUT
@@ -75,13 +78,19 @@ my $maxindsize=100;
 my $mincov_t=14; 
 #my $mincov_n=8; 
 my $minvaf=0.05;
+my $compute_username="";
+my $group_name="";
+my $compute_group;
 
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
       "step=i" => \$step_number,
       "chr=i" => \$chr_status,
-      "sre=i" => \$status_rerun,	
+      "sre=i" => \$status_rerun,
+      "groupname=s" => \$group_name,
+      "users=s" => \$compute_username,		
 	  "exonic=i" => \$status_exonic,
+      "group=s" => \$compute_group,
       "rdir=s" => \$run_dir,
 	  "ref=s"  => \$h38_REF,
 #	  "smg=s" => \$db_smg,
@@ -97,7 +106,7 @@ my $status = &GetOptions (
  
 #print $status,"\n";
 
-if ($help || $run_dir eq "" || $log_dir eq "" || $step_number<0) {
+if ($help || $run_dir eq "" || $log_dir eq "" || $step_number<0 || $group_name eq "" || $compute_username eq "" || $compute_group eq "") {
 	 print "wrong option\n";
 	  print $usage;
       exit;
@@ -132,7 +141,7 @@ if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
 
-die $usage unless ($step_number >=0)&&(($step_number <= 14));
+die $usage unless ($step_number >=0)&&(($step_number <= 7));
 my $email = "scao\@wustl\.edu";
 # everything else below should be automated
 my $HOME = $ENV{HOME};
@@ -165,7 +174,7 @@ print $script_dir,"\n";
 #chomp $run_script_path;
 
 #$run_script_path = "/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl ".$run_script_path."/";
-$run_script_path = "/gsc/bin/perl ".$run_script_path."/";
+$run_script_path = "/usr/bin/perl ".$run_script_path."/";
 
 print $run_script_path,"\n";
 my $hold_RM_job = "norm";
@@ -194,53 +203,59 @@ my $TRIMGALORE="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/trim_galore"
 # set for target coverage
 #REF=/gscmnt/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.fa
 
-my $TARGET="/gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/proteinCoding.cds.merged.gencode_hg38_v29.interval_list"; 
-my $GNOMAD_VCF="/gscmnt/gc3021/dinglab/hsun/Database/gatk/mutect2_gatk-best-practices.broadIns/af-only-gnomad.hg38.vcf.gz";
+my $TARGET="/storage1/fs1/songcao/Active/Database/tonlydb/proteinCoding.cds.merged.gencode_hg38_v29.interval_list";
+my $GNOMAD_VCF="/storage1/fs1/songcao/Active/Database/tonlydb/af-only-gnomad.hg38.vcf.gz";
 # pon normal
-my $PANEL_OF_NORMALS_VCF="/gscmnt/gc3021/dinglab/hsun/Database/gatk/GDC-gatk4_panel_of_normals/6c4c4a48-3589-4fc0-b1fd-ce56e88c06e4/gatk4_mutect2_4136_pon.hg38.vcf.gz";
+my $PANEL_OF_NORMALS_VCF="/storage1/fs1/dinglab/Active/Projects/austins2/tools/somaticwrapper_tonly.v1.0/db/gatk/GDC-gatk4_panel_of_normals/6c4c4a48-3589-4fc0-b1fd-ce56e88c06e4/gatk4_mutect2_4136_pon.hg38.vcf.gz";
 # common_biallelic
-my $COMMON_BIALLELIC="/gscmnt/gc3021/dinglab/hsun/Database/gatk/mutect2_gatk-best-practices.broadIns/af-only-gnomad.hg38.common_biallelic.chr1-22XY.vcf";
+my $COMMON_BIALLELIC="/storage1/fs1/dinglab/Active/Projects/austins2/tools/somaticwrapper_tonly.v1.0/db/gatk/mutect2_gatk-best-practices.broadIns/af-only-gnomad.hg38.common_biallelic.chr1-22XY.vcf";
 # gencode
-my $GENOME="/gscmnt/gc3021/dinglab/PDX/Analysis/PDX_U54/scao/db/gencode_GRCh38_v29/GRCh38.primary_assembly.genome.fa";
+my $GENOME="/storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa";
+#my $GENOME="/storage1/fs1/dinglab/Active/Projects/austins2/tools/somaticwrapper_tonly.v1.0/db/gencode_GRCh38_v29/GRCh38.primary_assembly.genome.fa";
 #GENOME=/gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
-my $GATK="/gscmnt/gc3021/dinglab/hsun/software/gatk-4.1.2.0/gatk-package-4.1.2.0-local.jar";
+my $GATK="/storage1/fs1/dinglab/Active/Projects/austins2/software/gatk-4.1.2.0/gatk-package-4.1.2.0-local.jar";
 
 #my $JAVA=/gscmnt/gc2737/ding/hsun/software/jre1.8.0_152/bin/java
-my $PICARD="/gscmnt/gc2737/ding/hsun/software/picard.jar";
-my $BWA="/gscmnt/gc2737/ding/hsun/software/bwa-0.7.17/bwa";
+my $PICARD="/storage1/fs1/songcao/Active/Software/picard/picard.jar";
+#not installed
+#my $BWA="/gscmnt/gc2737/ding/hsun/software/bwa-0.7.17/bwa";
 
-my $SAMTOOLS="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/samtools";
+my $BWA="/storage1/fs1/songcao/Active/Software/anaconda3/bin/bwa"; 
 
-my $mutect="/gscuser/scao/tools/mutect-1.1.7.jar";
-my $STRELKA_DIR2="/gscmnt/gc2518/dinglab/scao/tools/strelka2_linux/strelka-2.9.2.centos6_x86_64/bin";
-my $pindel="/gscuser/scao/tools/pindel/pindel";
-my $PINDEL_DIR="/gscuser/scao/tools/pindel";
-my $picardexe="/gscuser/scao/tools/picard.jar";
-my $gatk="/gscuser/scao/tools/GenomeAnalysisTK.jar";
-my $java_dir="/gscuser/scao/tools/jre1.8.0_121";
-my $java_bin="/gscuser/scao/tools/jre1.8.0_121/bin/java";
-my $java_mutect="/gscmnt/gc2518/dinglab/scao/tools/jre1.7.0_80";
-my $snpsift="/gscmnt/gc2525/dinglab/rmashl/Software/bin/snpEff/20150522/SnpSift.jar";
-my $gatkexe3="/gscmnt/gc2525/dinglab/rmashl/Software/bin/gatk/3.7/GenomeAnalysisTK.jar";
-my $mutect1="/gscmnt/gc2518/dinglab/scao/tools/mutect/mutect-1.1.7.jar";
-my $samtools="/gscmnt/gc2525/dinglab/rmashl/Software/bin/samtools/1.2/bin";
-my $varscan="/gscmnt/gc2525/dinglab/rmashl/Software/bin/varscan/2.3.8";
-my $bamreadcount="/gscmnt/gc2525/dinglab/rmashl/Software/bin/bam-readcount/0.7.4/bam-readcount";
-my $vepannot="/gscmnt/gc2525/dinglab/rmashl/Software/bin/VEP/v85/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
-my $vepcache="/gscmnt/gc2518/dinglab/scao/tools/vep/v85";
+my $SAMTOOLS="/storage1/fs1/songcao/Active/Software/anaconda3/bin/samtools";
 
-my $DB_SNP_NO_CHR="/gscmnt/gc3027/dinglab/medseq/hg38_database/DBSNP/00-All.vcf";
-my $DB_SNP="/gscmnt/gc3027/dinglab/medseq/hg38_database/DBSNP/00-All.chr.vcf";
+my $mutect="/storage1/fs1/songcao/Active/Software/mutect/mutect-1.1.7.jar";
+my $STRELKA_DIR2="/storage1/fs1/songcao/Active/Software/strelka-2.9.10.centos6_x86_64/bin";
+my $pindel="/storage1/fs1/songcao/Active/Software/anaconda3/bin/pindel";
+my $PINDEL_DIR="/storage1/fs1/songcao/Active/Software/anaconda3/bin";
+my $picardexe="/storage1/fs1/songcao/Active/Software/picard/picard.jar";
+my $gatk="/storage1/fs1/songcao/Active/Software/GenomeAnalysis/GenomeAnalysisTK.jar";
+my $java_dir="/storage1/fs1/songcao/Active/Software/jre1.8.0_121";
+my $java_bin="/storage1/fs1/songcao/Active/Software/jre1.8.0_121/bin/java";
+my $java_mutect="/storage1/fs1/songcao/Active/Software/jre1.7.0_80";
+my $snpsift="/storage1/fs1/songcao/Active/Software/snpEff/20150522/SnpSift.jar";
+my $gatkexe3="/storage1/fs1/songcao/Active/Software/gatk/3.7/GenomeAnalysisTK.jar";
+my $mutect1="/storage1/fs1/songcao/Active/Software/mutect/mutect-1.1.7.jar";
+my $samtools="/storage1/fs1/songcao/Active/Software/samtools/1.2/bin";
+my $varscan="/storage1/fs1/songcao/Active/Software/varscan/2.3.8.ndown";
+my $bamreadcount="/storage1/fs1/songcao/Active/bam-readcount/0.7.4/bam-readcount";
+#my $vepannot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
+my $vepannot="/storage1/fs1/dinglab/Active/Projects/scao/gitshared/ensembl-vep/vep";
+#my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v85";
+my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v102";
 
-my $DB_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
-my $DB_COSMIC_NO_CHR="/gscmnt/gc3027/dinglab/medseq/cosmic/CosmicAllMuts.HG38.sort.vcf"; 
+my $DB_SNP_NO_CHR="/storage1/fs1/songcao/Active/Database/hg38_database/DBSNP/00-All.vcf";
+my $DB_SNP="/storage1/fs1/songcao/Active/Database/hg38_database/DBSNP/00-All.chr.vcf";
 
-my $DB_SNP_NO_COSMIC="/gscmnt/gc3027/dinglab/medseq/cosmic/00-All.HG38.pass.cosmic.vcf";
-my $f_ref_annot="/gscmnt/gc2518/dinglab/scao/tools/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
-my $TSL_DB="/gscmnt/gc2518/dinglab/scao/db/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
+my $DB_COSMIC="/storage1/fs1/songcao/Active/Database/hg38_database/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
+my $DB_COSMIC_NO_CHR="/storage1/fs1/songcao/Active/Database/hg38_database/cosmic/CosmicAllMuts.HG38.sort.vcf"; 
+
+my $DB_SNP_NO_COSMIC="/storage1/fs1/songcao/Active/Database/hg38_database/cosmic/00-All.HG38.pass.cosmic.vcf";
+my $f_ref_annot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
+my $TSL_DB="/storage1/fs1/songcao/Active/Database/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
 my $h38_REF_bai=$h38_REF.".fai";
-my $f_gtf= "/gscmnt/gc3027/dinglab/medseq/hg38_database/GTF/Homo_sapiens.GRCh38.85.gtf";
+my $f_gtf= "/storage1/fs1/songcao/Active/Database/hg38_database/GTF/Homo_sapiens.GRCh38.85.gtf";
 
 my $first_line=`head -n 1 $h38_REF`;
 
@@ -304,7 +319,7 @@ if($step_number==6)
     #print REPRUN "#BSUB -n 1\n";
     #print REPRUN "#BSUB -R \"rusage[mem=40000]\"","\n";
     #print REPRUN "#BSUB -M 40000000\n";
-    #print REPRUN "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print REPRUN "#BSUB -a \'docker(scao/dailybox)\'\n";
     #print REPRUN "#BSUB -q research-hpc\n";
    # print REPRUN "#BSUB -q ding-lab\n";
 	#print REPRUN "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
@@ -320,10 +335,8 @@ if($step_number==6)
 
  	my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+    $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    
     print $bsub_com;
     system ($bsub_com);
 
@@ -397,10 +410,7 @@ if($step_number==7)
 
  	my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>10000] rusage[mem=10000]\" -M 10000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>10000] rusage[mem=10000]\" -M 10000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+    $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>10000] rusage[mem=10000]\" -M 10000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
 
@@ -431,12 +441,8 @@ sub bsub_trim{
     close TRIM;
 
     my $sh_file=$job_files_dir."/".$current_job_file;
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {
-        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err bash $sh_file\n";
-    }
+
+    $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
     system ($bsub_com);
@@ -479,12 +485,8 @@ sub bsub_fq2bam{
 	close FQ2BAM;
 
     my $sh_file=$job_files_dir."/".$current_job_file;
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {
-        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err bash $sh_file\n";
-    }
+
+    $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
     system ($bsub_com);
@@ -527,13 +529,8 @@ sub bsub_mutect2{
 		print MUTECT2 "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK Mutect2 -I $IN_bam_T -R $h38_REF -L $chr1 --germline-resource $GNOMAD_VCF -pon $PANEL_OF_NORMALS_VCF --f1r2-tar-gz $f_out_gz -O $f_out_vcf","\n";
 		close MUTECT2;
     	my $sh_file=$job_files_dir."/".$current_job_file;
-   	 	if($q_name eq "research-hpc")
-    	{
-    	$bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    	else 
-		{
-        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err bash $sh_file\n";
-    	}
+
+    	$bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
     system ($bsub_com);
@@ -628,10 +625,8 @@ sub bsub_filter_mutect2 {
 
  	my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+    $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    
     print $bsub_com;
     system ($bsub_com);
 
@@ -678,10 +673,8 @@ sub bsub_parse_mutect2{
 
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
+    $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\'  -o $lsf_out -e $lsf_err bash $sh_file\n";
+    
     print $bsub_com;
     system ($bsub_com);
 
@@ -716,24 +709,19 @@ sub bsub_vcf_2_maf{
     #print MAF "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     #print MAF "#BSUB -J $current_job_file\n";
     #print MAF "#BSUB -q ding-lab\n";
-    #print MAF "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
+    #print MAF "#BSUB -a \'docker(scao/dailybox)\'\n";
     #print VARSCANP "#BSUB -q long\n";
     #print MAF "#BSUB -q research-hpc\n";
     #print MAF "#BSUB -w \"$hold_job_file\"","\n";
   	
-	print MAF "F_VCF_1=".$sample_full_path."/merged.mutect2.vcf\n";
-    #print MAF "F_VCF_1_filtered=".$sample_full_path."/merged.filtered.mutect2.vcf\n";
-	print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".mutect2.vcf\n";
-    #print MAF "F_VCF_2_filtered=".$sample_full_path."/".$sample_name.".mutect2.filtered.vcf\n";
+    print MAF "F_VCF_1=".$sample_full_path."/merged.mutect2.vcf\n";
+    print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".mutect2.vcf\n";
     print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.mutect2.vcf\n";
-	#print MAF "F_VEP_1_filtered=".$sample_full_path."/merged.VEP.mutect2.filtered.vcf\n";
-	print MAF "F_VEP_2=".$sample_full_path."/".$sample_name.".mutect2.vep.vcf\n";
-    #print MAF "F_VEP_2_filtered=".$sample_full_path."/".$sample_name.".mutect2.filtered.vep.vcf\n";
-	print MAF "F_maf=".$sample_full_path."/".$sample_name.".mutect2.maf\n";
-	#print MAF "F_maf_filtered=".$sample_full_path."/".$sample_name.".mutect2.filtered.maf\n";
+    print MAF "F_VEP_2=".$sample_full_path."/".$sample_name.".mutect2.vep.vcf\n";
+    print MAF "F_maf=".$sample_full_path."/".$sample_name.".mutect2.maf\n";
     print MAF "RUNDIR=".$sample_full_path."\n";
 	
-	print MAF "F_log=".$sample_full_path."/vep.merged.mutect2.log"."\n";
+    print MAF "F_log=".$sample_full_path."/vep.merged.mutect2.log"."\n";
     print MAF "cat > \${RUNDIR}/vep.merged.mutect2.input <<EOF\n";
     print MAF "merged.vep.vcf = ./merged.mutect2.vcf\n";
     print MAF "merged.vep.output = ./merged.VEP.mutect2.vcf\n";
@@ -746,10 +734,12 @@ sub bsub_vcf_2_maf{
 	
   
 	### vep and vcf2maf annotation for all variants to get the annotated gene name for each variant ##
+    #print MAF "export PERL5LIB=/storage1/fs1/dinglab/Active/Projects/austins2/test/perl-5.24.1/lib/perl5:/storage1/fs1/dinglab/Active/Projects/austins2/test/perl-5.24.1/x86_64-linux-gnu-thread-multi/:\$PERL5LIB\n";
+    #print MAF ". $script_dir/set_envvars\n";
     print MAF "cd $sample_full_path\n";
-    print MAF ". $script_dir/set_envvars\n";
- 	print MAF "cp $f_m_vcf_in \${F_VCF_1}","\n";  
-	print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.mutect2.input >&./vep.merged.mutect2.log\n";
+    #print MAF ". $script_dir/set_envvars\n";
+    print MAF "cp $f_m_vcf_in \${F_VCF_1}","\n";  
+    print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.mutect2.input >&./vep.merged.mutect2.log\n";
     print MAF "rm \${F_VCF_2}\n";
     print MAF "rm \${F_VEP_2}\n";
     print MAF "ln -s \${F_VCF_1} \${F_VCF_2}\n";
@@ -758,16 +748,16 @@ sub bsub_vcf_2_maf{
 	
     close MAF;
 
-  	my $sh_file=$job_files_dir."/".$current_job_file;
+    my $sh_file=$job_files_dir."/".$current_job_file;
 
-    if($q_name eq "research-hpc")
-    {
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-    else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                
-    }
+    $bsub_com = "LSF_DOCKER_ENTRYPOINT=/bin/bash LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(ensemblorg/ensembl-vep:release_102.0)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    print $bsub_com;
+    system ($bsub_com);
+
+   # $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
  
-   print $bsub_com;
-	system ($bsub_com);
+   #print $bsub_com;
+#	system ($bsub_com);
 
  }
 
