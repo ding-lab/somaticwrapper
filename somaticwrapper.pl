@@ -277,42 +277,40 @@ if (($step_number < 12 && $step_number>0) || $step_number == 14) {
                 $current_job_file="";
                 if($step_number==0)
                 {  
-				   &bsub_strelka();
-				   &bsub_varscan();
-				   &bsub_pindel();
-				   &bsub_mutect();
-				   &bsub_parse_mutect(); 
-				   &bsub_parse_strelka();
-				   &bsub_parse_varscan();
-				   &bsub_parse_pindel();
-				   &bsub_merge_vcf();
-				   &bsub_vcf_2_maf();
-				} elsif ($step_number == 1) {
+			&bsub_strelka();
+			&bsub_varscan();
+			&bsub_pindel();
+			&bsub_mutect();
+			&bsub_parse_mutect(); 
+			&bsub_parse_strelka();
+			&bsub_parse_varscan();
+			&bsub_parse_pindel();
+			&bsub_merge_vcf();
+			&bsub_vcf_2_maf();
+		}elsif ($step_number == 1) {
                     &bsub_strelka();
-                } elsif ($step_number == 2) {
+                }elsif ($step_number == 2) {
                     &bsub_varscan(1);
-                } elsif ($step_number == 3) {
-					&bsub_pindel(1);
-                } elsif ($step_number == 4){
+                }elsif ($step_number == 3) {
+		    &bsub_pindel(1);
+                }elsif ($step_number == 4){
                     &bsub_mutect(1);
-                } elsif ($step_number == 5){
+                }elsif ($step_number == 5){
                     &bsub_parse_mutect(1);
-                } 
-				elsif ($step_number == 6) {
-					&bsub_parse_strelka(1);
+                }elsif ($step_number == 6) {
+		    &bsub_parse_strelka(1);
                 }elsif ($step_number == 7) {
-					&bsub_parse_varscan(1);
+		    &bsub_parse_varscan(1);
                 }elsif ($step_number == 8) {
                     &bsub_parse_pindel(1);
                 }elsif ($step_number == 9) {
                     &bsub_qc_vcf(1);
-                }
-				elsif ($step_number == 10) {
+                }elsif ($step_number == 10) {
                     &bsub_merge_vcf(1);
                 }elsif ($step_number == 11) {
                     &bsub_vcf_2_maf(1);
                 }elsif ($step_number == 14) {
-					&bsub_clean(1);
+		    &bsub_clean(1);
 				} 
            }
         }
@@ -322,9 +320,9 @@ if (($step_number < 12 && $step_number>0) || $step_number == 14) {
 if($step_number==12)
     {
 
-	print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
-	$hold_job_file=$current_job_file; 
-	$current_job_file = "j12_Run_report_".$working_name.".sh"; 
+    print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
+    $hold_job_file=$current_job_file; 
+    $current_job_file = "j12_Run_report_".$working_name.".sh"; 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
@@ -341,7 +339,7 @@ if($step_number==12)
     print REPRUN "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
     close REPRUN;
 
-     my $sh_file=$job_files_dir."/".$current_job_file;
+    my $sh_file=$job_files_dir."/".$current_job_file;
 
     $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
