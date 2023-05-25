@@ -41,18 +41,14 @@ $normal
 <users> username on compute1 to use for submitting jobs to job groups
 <group> compute-group on compute1 to use for submitting jobs to the specified queue.
 <exonic> output exonic region: 1 Yes, 0 No
-hg38:/gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1/GRCh38.d1.vd1.fa
-
-lscc smg: /gscmnt/gc3027/dinglab/medseq/smg_database/smg.lscc.tsv
  
-$red [0]  Trim fastq if input files are fastqs
-$green [1]  generate bams if input files are fastqs
-$green [2]  Run Mutect2
-$green [3]  Run filter Mutect2 result
-$green [4]  Run parse Mutect2 result
-$cyan [5] Generate maf file 
-$cyan [6] Generate merged maf file
-$cyan [7] Annotate dnp and remove nearby snv near an indel
+$green [0] Generate bams if input files are fastqs
+$green [1] Run Mutect2
+$green [2] Run filter Mutect2 result
+$green [3] Run parse Mutect2 result
+$cyan [4] Generate maf file 
+$cyan [5] Generate merged maf file
+$cyan [6] Annotate dnp and remove nearby snv near an indel
 $normal
 
 OUT
@@ -175,6 +171,7 @@ print $script_dir,"\n";
 
 #$run_script_path = "/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl ".$run_script_path."/";
 $run_script_path = "/usr/bin/perl ".$run_script_path."/";
+my $run_py_script_path = "python ".$run_script_path."/";
 
 print $run_script_path,"\n";
 my $hold_RM_job = "norm";
@@ -191,10 +188,10 @@ my $MIN_VAF=0.02;
 my $MIN_DEP=8;
 my $MIN_MUT=3;
 
-my $FASTQC="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/fastqc";
-my $Z7="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/7z"; 
+#my $FASTQC="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/fastqc";
+#my $Z7="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/7z"; 
 # set trimGalore
-my $TRIMGALORE="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/trim_galore";
+#my $TRIMGALORE="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/trim_galore";
 
 #TRIMGALORE=/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/trim_galore
 
@@ -202,6 +199,7 @@ my $TRIMGALORE="/gscmnt/gc3021/dinglab/hsun/software/miniconda2/bin/trim_galore"
 ##================================= Human Genomics
 # set for target coverage
 #REF=/gscmnt/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.fa
+my $f_known_site="/storage1/fs1/dinglab/Active/Projects/estorrs/pecgs_resources/dnaseq_alignment/dbsnp/00-All.chr.vcf.gz"; 
 
 my $TARGET="/storage1/fs1/songcao/Active/Database/tonlydb/proteinCoding.cds.merged.gencode_hg38_v29.interval_list";
 my $GNOMAD_VCF="/storage1/fs1/songcao/Active/Database/tonlydb/af-only-gnomad.hg38.vcf.gz";
@@ -213,18 +211,14 @@ my $COMMON_BIALLELIC="/storage1/fs1/dinglab/Active/Projects/austins2/tools/somat
 my $GENOME="/storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa";
 #my $GENOME="/storage1/fs1/dinglab/Active/Projects/austins2/tools/somaticwrapper_tonly.v1.0/db/gencode_GRCh38_v29/GRCh38.primary_assembly.genome.fa";
 #GENOME=/gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
-
 my $GATK="/storage1/fs1/dinglab/Active/Projects/austins2/software/gatk-4.1.2.0/gatk-package-4.1.2.0-local.jar";
-
 #my $JAVA=/gscmnt/gc2737/ding/hsun/software/jre1.8.0_152/bin/java
 my $PICARD="/storage1/fs1/songcao/Active/Software/picard/picard.jar";
 #not installed
 #my $BWA="/gscmnt/gc2737/ding/hsun/software/bwa-0.7.17/bwa";
 
 my $BWA="/storage1/fs1/songcao/Active/Software/anaconda3/bin/bwa"; 
-
 my $SAMTOOLS="/storage1/fs1/songcao/Active/Software/anaconda3/bin/samtools";
-
 my $mutect="/storage1/fs1/songcao/Active/Software/mutect/mutect-1.1.7.jar";
 my $STRELKA_DIR2="/storage1/fs1/songcao/Active/Software/strelka-2.9.10.centos6_x86_64/bin";
 my $pindel="/storage1/fs1/songcao/Active/Software/anaconda3/bin/pindel";
@@ -269,7 +263,7 @@ close DH;
 #&check_input_dir($run_dir);
 # start data processsing
 
-if ($step_number < 12) {
+if ($step_number < 5) {
     #begin to process each sample
     for (my $i=0;$i<@sample_dir_list;$i++) {#use the for loop instead. the foreach loop has some problem to pass the global variable $sample_name to the sub functions
         $sample_name = $sample_dir_list[$i];
@@ -281,17 +275,14 @@ if ($step_number < 12) {
                 $current_job_file="";
                 if($step_number==0)
                 {  
-				   &bsub_trim();
-				   #&bsub_varscan();
-				} elsif ($step_number == 1) {
-                    &bsub_fq2bam();
-                } elsif ($step_number == 2) {
+		    &bsub_fq2bam();
+		} elsif ($step_number == 1) {
                     &bsub_mutect2(1);
-                } elsif ($step_number == 3) {
+                } elsif ($step_number == 2) {
 					&bsub_filter_mutect2(1);
-                } elsif ($step_number == 4){
+                } elsif ($step_number == 3){
                     &bsub_parse_mutect2(1);
-                } elsif ($step_number == 5) {
+                } elsif ($step_number == 4) {
                     &bsub_vcf_2_maf(1);
                 } 
            }
@@ -299,12 +290,12 @@ if ($step_number < 12) {
     }
 }
 
-if($step_number==6)
+if($step_number==5)
     {
 
-	print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
-	$hold_job_file=$current_job_file; 
-	$current_job_file = "j6_Run_report_".$working_name.".sh"; 
+    print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
+    $hold_job_file=$current_job_file; 
+    $current_job_file = "j6_Run_report_".$working_name.".sh"; 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
@@ -313,9 +304,8 @@ if($step_number==6)
     my $working_name= (split(/\//,$run_dir))[-1];
     my $f_maf=$run_dir."/".$working_name.".mutect2.maf";
     my $f_maf_rc=$f_maf.".rc";
-	#my $f_maf_rc_caller=$f_maf_rc.".caller";
-	open(REPRUN, ">$job_files_dir/$current_job_file") or die $!;
-	print REPRUN "#!/bin/bash\n";
+    open(REPRUN, ">$job_files_dir/$current_job_file") or die $!;
+    print REPRUN "#!/bin/bash\n";
     #print REPRUN "#BSUB -n 1\n";
     #print REPRUN "#BSUB -R \"rusage[mem=40000]\"","\n";
     #print REPRUN "#BSUB -M 40000000\n";
@@ -326,20 +316,16 @@ if($step_number==6)
     #print REPRUN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
     #print REPRUN "#BSUB -J $current_job_file\n";
 	#print REPRUN "#BSUB -w \"$hold_job_file\"","\n";
-	print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir." ".$status_exonic."\n";
+    print REPRUN "		".$run_script_path."generate_final_report.pl ".$run_dir." ".$status_exonic."\n";
     print REPRUN "      ".$run_script_path."add_rc.pl ".$run_dir." ".$f_maf." ".$f_maf_rc."\n";
     #print REPRUN "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
-	close REPRUN;
+    close REPRUN;
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
 	#system ($bsub_com);
-
- 	my $sh_file=$job_files_dir."/".$current_job_file;
-
+    my $sh_file=$job_files_dir."/".$current_job_file;
     $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
-    
     print $bsub_com;
     system ($bsub_com);
-
 }
 
 ### Annotate dnp 
@@ -347,12 +333,12 @@ if($step_number==6)
 
 print "annotation\n"; 
 
-if($step_number==7)
+if($step_number==6)
     {
 
     print $yellow, "annotate dnp and remove snv near an indel",$normal, "\n";
     $hold_job_file=$current_job_file;
-    $current_job_file = "j7_dnp_".$working_name.".sh";
+    $current_job_file = "j6_dnp_".$working_name.".sh";
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
@@ -361,16 +347,16 @@ if($step_number==7)
     my $working_name= (split(/\//,$run_dir))[-1];
     my $f_maf=$run_dir."/".$working_name.".mutect2.maf.rc";
     my $f_maf_rm_snv=$run_dir."/".$working_name.".remove.nearby.snv.maf";
-	my $f_maf_removed=$run_dir."/".$working_name.".remove.nearby.snv.maf.removed";
-	my $f_maf_dnp_tmp=$run_dir."/".$working_name.".dnp.annotated.tmp.maf";
-	my $f_maf_dnp_tmp_merge=$run_dir."/".$working_name.".dnp.annotated.tmp.maf.merge";
-	my $f_maf_dnp=$run_dir."/".$working_name.".dnp.annotated.maf";
+    my $f_maf_removed=$run_dir."/".$working_name.".remove.nearby.snv.maf.removed";
+    my $f_maf_dnp_tmp=$run_dir."/".$working_name.".dnp.annotated.tmp.maf";
+    my $f_maf_dnp_tmp_merge=$run_dir."/".$working_name.".dnp.annotated.tmp.maf.merge";
+    my $f_maf_dnp=$run_dir."/".$working_name.".dnp.annotated.maf";
 
-	my $f_bam_list=$run_dir."/input.bam.list";
+    my $f_bam_list=$run_dir."/input.bam.list";
 
-	open(OUTB,">$f_bam_list"); 
+    open(OUTB,">$f_bam_list"); 
 
-	foreach my $s (`ls $run_dir`) 
+    foreach my $s (`ls $run_dir`) 
 	{
 
 	my $str=$s; 
@@ -390,25 +376,21 @@ if($step_number==7)
 	
     open(DNP, ">$job_files_dir/$current_job_file") or die $!;
     print DNP "#!/bin/bash\n";
-	## remove snv nearby an indel ##
+    ## remove snv nearby an indel ##
     print DNP "      ".$run_script_path."remove_nearby_snv.pl $f_maf $f_maf_rm_snv"."\n";
-   ## annotate dnp ##
-	print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --samt $samtools --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
-	## add dnp to the maf ##
-	print DNP "		 ".$run_script_path."add_dnp.pl $f_maf_rm_snv $f_maf_dnp_tmp_merge $f_maf_dnp"."\n";
-### remove tmp files ##
+    ## annotate dnp ##
+    print DNP "      ".$run_script_path."cocoon.pl $f_maf_rm_snv $f_maf_dnp_tmp $log_dir --bam $f_bam_list --samt $samtools --merge --genome $h38_REF --gtf $f_gtf --snvonly"."\n";
+    ## add dnp to the maf ##
+    print DNP "		 ".$run_script_path."add_dnp.pl $f_maf_rm_snv $f_maf_dnp_tmp_merge $f_maf_dnp"."\n";
+    ### remove tmp files ##
     print DNP "rm $f_maf_dnp_tmp_merge\n";
-	print DNP "rm $f_maf_dnp_tmp\n";
-	print DNP "rm $f_maf_rm_snv\n"; 
-	print DNP "rm $f_maf_removed\n";
+    print DNP "rm $f_maf_dnp_tmp\n";
+    print DNP "rm $f_maf_rm_snv\n"; 
+    print DNP "rm $f_maf_removed\n";
 	
-	#print DNP "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
     close DNP;
 
-    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    #system ($bsub_com);
-
- 	my $sh_file=$job_files_dir."/".$current_job_file;
+    my $sh_file=$job_files_dir."/".$current_job_file;
 
     $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>10000] rusage[mem=10000]\" -M 10000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
@@ -421,75 +403,35 @@ if($step_number==7)
 
 exit;
 
-
-sub bsub_trim{
-    #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
-    $current_job_file = "j0_trim_".$sample_name.".sh";
-    my $IN_fq1 = $sample_full_path."/".$sample_name.".R1.fastq.gz";
-    my $IN_fq2 = $sample_full_path."/".$sample_name.".R2.fastq.gz";
-	my $OUT_trim=$sample_full_path."/trimmed"; 
-
-	my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
-    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
-    `rm $lsf_out`;
-    `rm $lsf_err`;
-    #`rm $current_job_file`;
-
-    open(TRIM, ">$job_files_dir/$current_job_file") or die $!;
-    print TRIM "#!/bin/bash\n";
-	print TRIM "$TRIMGALORE --phred33 --fastqc --length $MINLEN -q 20 -o $OUT_trim --paired $IN_fq1 $IN_fq2","\n";
-    close TRIM;
-
-    my $sh_file=$job_files_dir."/".$current_job_file;
-
-    $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
-
-    print $bsub_com;
-    system ($bsub_com);
-}
-
 sub bsub_fq2bam{
 
     #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
 
-    $current_job_file = "j1_fq2bam_".$sample_name.".sh";
-    my $IN_fq1 = $sample_full_path."/trimmed/".$sample_name.".R1_val_1.fq.gz";
-    my $IN_fq2 = $sample_full_path."/trimmed/".$sample_name.".R2_val_2.fq.gz";
-    #my $OUT_trim=$sample_full_path."/trimmed";
-	my $out_bam=$sample_full_path."/".$sample_name.".bam";
-	my $out_sorted_bam=$sample_full_path."/".$sample_name.".sorted.bam";
-	 my $out_sorted_bam_bai=$sample_full_path."/".$sample_name.".sorted.bam.bai";
-	my $out_rem_bam=$sample_full_path."/".$sample_name.".remDup.bam";
-	my $out_metrics=$sample_full_path."/".$sample_name.".remdup.metrics.txt";
+    $current_job_file = "j0_fq2bam_".$sample_name.".sh";
+    my $IN_fq1 = $sample_full_path."/".$sample_name.".R1.fq.gz";
+    my $IN_fq2 = $sample_full_path."/".$sample_name.".R2.fq.gz";
+    my $out_bam=$sample_full_path."/".$sample_name.".bam";
+    my $out_sorted_bam=$sample_full_path."/".$sample_name.".sorted.bam";
+    my $out_sorted_bam_bai=$sample_full_path."/".$sample_name.".sorted.bam.bai";
+    my $out_rem_bam=$sample_full_path."/".$sample_name.".remDup.bam";
+    my $out_metrics=$sample_full_path."/".$sample_name.".remdup.metrics.txt";
 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
 
     `rm $lsf_out`;
     `rm $lsf_err`;
-    #`rm $current_job_file`;
 
     open(FQ2BAM, ">$job_files_dir/$current_job_file") or die $!;
     print FQ2BAM "#!/bin/bash\n";
-	print FQ2BAM "$BWA mem -t 8 -M -R \"\@RG\\tID:$sample_name\\tPL:illumina\\tLB$sample_name\\tPU:$sample_name\\tSM:$sample_name\" $h38_REF $IN_fq1 $IN_fq2 | $SAMTOOLS view -Shb -o $out_bam -","\n"; 
- 	print FQ2BAM "$java_bin -Xmx16G -jar $picardexe SortSam CREATE_INDEX=true I=$out_bam O=$out_sorted_bam SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT","\n"; 
-	print FQ2BAM "rm -f $out_bam","\n"; 
-	print FQ2BAM "$java_bin -Xmx16G -jar $picardexe MarkDuplicates I=$out_sorted_bam O=$out_rem_bam REMOVE_DUPLICATES=true M=$out_metrics","\n"; 
-
-	print FQ2BAM "$SAMTOOLS index $out_rem_bam","\n";
-# remove bam and fastq for save space
-	print FQ2BAM "rm -f $out_sorted_bam","\n"; 
-	print FQ2BAM "rm -f $out_sorted_bam_bai","\n";     
-	print FQ2BAM "rm -rf $IN_fq1","\n"; 
-	print FQ2BAM "rm -rf $IN_fq2","\n"; 
-	close FQ2BAM;
-
+    print "export PATH=/miniconda/envs/align_dnaseq/bin:\${PATH}","\n"; 
+    print FQ2BAM "              ".$run_py_script_path."align_dnaseq.py --out-prefix output --cpu 40 --flowcell HFMFWDSXY --index-sequencer CCAGTAGCGT-ATGTATTGGC --known-sites $f_known_site --lane 2 --library-preparation TWCE-HT191P1-S1H1A3Y3D1_1-lib1 --platform ILLUMINA --reference $GENOME $IN_fq1 $IN_fq2","\n";;
+    close FQ2BAM;
     my $sh_file=$job_files_dir."/".$current_job_file;
-
     $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
-
     print $bsub_com;
     system ($bsub_com);
+
 }
 
 sub bsub_mutect2{
@@ -654,8 +596,7 @@ sub bsub_parse_mutect2{
 	
     open(MUTECT2P, ">$job_files_dir/$current_job_file") or die $!;
     print MUTECT2P "#!/bin/bash\n";
-
- 	print MUTECT2P "export JAVA_HOME=$java_dir\n";
+    print MUTECT2P "export JAVA_HOME=$java_dir\n";
     print MUTECT2P "export JAVA_OPTS=\"-Xmx10g\"\n";
     print MUTECT2P "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
     print MUTECT2P "cat > $out_mutect2/mutect2_dbsnp_filter.input <<EOF\n";
@@ -666,10 +607,10 @@ sub bsub_parse_mutect2{
     print MUTECT2P "streka.dbsnp.passfile  = ./mutect2.somatic.dbsnp_pass.vcf\n";
     print MUTECT2P "streka.dbsnp.dbsnpfile = ./mutect2.somatic.dbsnp_present.vcf\n";
     print MUTECT2P "EOF\n";
-	print MUTECT2P "cd $out_mutect2\n";
-	print MUTECT2P "		".$run_script_path."filter_mutect2.pl $f_filtered_vcf $f_passed_vcf $mincov_t $minvaf\n";
+    print MUTECT2P "cd $out_mutect2\n";
+    print MUTECT2P "		".$run_script_path."filter_mutect2.pl $f_filtered_vcf $f_passed_vcf $mincov_t $minvaf\n";
     print MUTECT2P "     ".$run_script_path."dbsnp_filter.pl ./mutect2_dbsnp_filter.input\n";
-	close MUTECT2P;	
+    close MUTECT2P;	
 
     my $sh_file=$job_files_dir."/".$current_job_file;
 
