@@ -22,3 +22,5 @@ perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mildwgs --log /scrat
 perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mildwgs --log /scratch1/fs1/dinglab/scao/sw/mildwgs.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --wgs 1 --step 11
 
 perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mildwgstest --log /scratch1/fs1/dinglab/scao/sw/mildwgstest.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --wgs 1 --step 11 --sre 1
+
+perl somaticwrapper.pl --rdir /scratch1/fs1/dinglab/scao/sw/mildwgs --log /scratch1/fs1/dinglab/scao/sw/mildwgs.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --smg  /storage1/fs1/songcao/Active/Database/smg_database/smg.lung.tsv --users songcao --groupname SomaticWXS --wgs 1 --step 11 --sre 1
