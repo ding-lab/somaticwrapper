@@ -7,9 +7,11 @@ SNV calls are intersecting results from 2 over 3 callers (Strelka2, Mutect1, and
 
 Indel calls are called by 2 over 3 callers (Strelka2, Varscan2 and pindel). 
 
-Improvements compared to version 1.6.1:
+Improvements compared to version v2.1:
 
-Use ensembl V102 for annotation 
+1. Remove indels > 100 nt before annotation
+
+2. Fix false alarm for step 7
 
 ## Usage ##
 

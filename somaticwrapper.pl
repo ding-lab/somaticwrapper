@@ -913,7 +913,7 @@ sub bsub_parse_varscan{
         print VARSCANP "del_cmd=\"rm -f\"\n";
         print VARSCANP "del_local=\"rm -f\"\n";
         print VARSCANP "statfile=complete.vs_som_parser\n";
-        print VARSCANP "localstatus=\${RUNDIR}\/status\/\${statfile}\n";
+        print VARSCANP "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
         print VARSCANP "if [ ! -d \${myRUNDIR}\/status ]\n";
         print VARSCANP "then\n";
         print VARSCANP "mkdir \${myRUNDIR}\/status\n";
