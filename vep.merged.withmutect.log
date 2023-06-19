@@ -1,0 +1,10 @@
+Can't open ./vep.merged.withmutect.input: No such file or directory at /storage1/fs1/songcao/Active/Git/somaticwrapper/vep_annotator.pl line 23.
+Use of uninitialized value $paras{"vcf"} in concatenation (.) or string at /storage1/fs1/songcao/Active/Git/somaticwrapper/vep_annotator.pl line 34.
+Use of uninitialized value $paras{"vep_cmd"} in concatenation (.) or string at /storage1/fs1/songcao/Active/Git/somaticwrapper/vep_annotator.pl line 45.
+Use of uninitialized value in concatenation (.) or string at /storage1/fs1/songcao/Active/Git/somaticwrapper/vep_annotator.pl line 45.
+Use of uninitialized value in concatenation (.) or string at /storage1/fs1/songcao/Active/Git/somaticwrapper/vep_annotator.pl line 45.
+Use of uninitialized value in concatenation (.) or string at /storage1/fs1/songcao/Active/Git/somaticwrapper/vep_annotator.pl line 45.
+Unrecognized switch: --buffer_size  (-h will show valid options).
+Use of uninitialized value $paras{"vcf"} in concatenation (.) or string at /storage1/fs1/songcao/Active/Git/somaticwrapper/vep_annotator.pl line 62.
+Use of uninitialized value in concatenation (.) or string at /storage1/fs1/songcao/Active/Git/somaticwrapper/vep_annotator.pl line 66.
+sh: 1: Syntax error: end of file unexpected

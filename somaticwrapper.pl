@@ -217,8 +217,10 @@ my $mutect1="/storage1/fs1/songcao/Active/Software/mutect/mutect-1.1.7.jar";
 my $samtools="/storage1/fs1/songcao/Active/Software/samtools/1.2/bin";
 my $varscan="/storage1/fs1/songcao/Active/Software/varscan/2.3.8.ndown";
 my $bamreadcount="/storage1/fs1/songcao/Active/Software/bam-readcount/0.7.4/bam-readcount";
-my $vepannot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
-my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v85";
+#my $vepannot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
+#my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v85";
+my $vepannot="/storage1/fs1/dinglab/Active/Projects/scao/gitshared/ensembl-vep/vep";
+my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v102";
 
 my $DB_SNP_NO_CHR="/storage1/fs1/songcao/Active/Database/hg38_database/DBSNP/00-All.vcf";
 my $DB_SNP="/storage1/fs1/songcao/Active/Database/hg38_database/DBSNP/00-All.chr.vcf";
@@ -259,7 +261,7 @@ if ($step_number == 1) {
                 $current_job_file="";
                 if($step_number==1)
                 {  
-				   &bsub_vcf_2_maf();
+	          &bsub_vcf_2_maf();
 	        } 
            }
         }
@@ -323,19 +325,36 @@ sub bsub_vcf_2_maf{
 
     open(MAF, ">$job_files_dir/$current_job_file") or die $!;
     print MAF "#!/bin/bash\n";
-  	
+    print MAF "F_VCF_1=".$sample_full_path."/merged.withmutect.vcf\n";
     print MAF "F_vcf=".$sample_full_path."/".$sample_name.".vcf\n";
+    print MAF "F_vcf_vep=".$sample_full_path."/".$sample_name.".vep.vcf\n";
+    print MAF "F_VCF_1_vep=".$sample_full_path."/merged.VEP.withmutect.vcf\n";
     print MAF "F_maf=".$sample_full_path."/".$sample_name.".maf\n";
- 
+    print MAF "F_log=".$sample_full_path."/vep.merged.withmutect.log"."\n";
+    print MAF "RUNDIR=".$sample_full_path."\n";
+    print MAF "cat > \${RUNDIR}/vep.merged.withmutect.input <<EOF\n";
+    print MAF "merged.vep.vcf = ./merged.withmutect.vcf\n";
+    print MAF "merged.vep.output = ./merged.VEP.withmutect.vcf\n";
+    print MAF "merged.vep.vep_cmd = $vepannot\n";
+    print MAF "merged.vep.cachedir = $vepcache\n";
+    print MAF "merged.vep.reffasta = $f_ref_annot\n";
+    print MAF "merged.vep.assembly = GRCh38\n";
+    print MAF "EOF\n";
+    print MAF "rm \${F_log}\n";
+    print MAF "cd \${RUNDIR}\n";
+    print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.input >&./vep.merged.withmutect.log\n";
+    print MAF "rm \${F_vcf}\n";
+    print MAF "rm \${F_vcf_vep}\n";
+
+    print MAF "ln -s \${F_VCF_1} \${F_vcf}\n";
+    print MAF "ln -s \${F_VCF_1_vep} \${F_vcf_vep}\n";
     print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_vcf} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n"; 
     close MAF;
 
-
     my $sh_file=$job_files_dir."/".$current_job_file;
-    $bsub_com = "LSF_DOCKER_ENTRYPOINT=/bin/bash LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "LSF_DOCKER_ENTRYPOINT=/bin/bash LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(ensemblorg/ensembl-vep:release_102.0)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
     print $bsub_com;
     system ($bsub_com);
-
 
  }
 

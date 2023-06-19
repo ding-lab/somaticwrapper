@@ -19,8 +19,10 @@ my ( $ref_fasta, $filter_vcf ) = ( "$ENV{HOME}/.vep/homo_sapiens/86_GRCh37/Homo_
 my ( $species, $ncbi_build, $cache_version, $maf_center, $retain_info, $min_hom_vaf, $max_filter_ac ) = ( "homo_sapiens", "GRCh38", "", ".", "", 0.7, 16 );
 my $perl_bin = $Config{perlpath};
 
+my $samtools = "/storage1/fs1/songcao/Active/Software/anaconda3/bin/samtools"; 
+
 # Find out if samtools and tabix are properly installed, and warn the user if it's not
-my ( $samtools ) = map{chomp; $_}`which samtools`;
+#my ( $samtools ) = map{chomp; $_}`which samtools`;
 ( $samtools and -e $samtools ) or die "ERROR: Please install samtools, and make sure it's in your PATH\n";
 my ( $tabix ) = map{chomp; $_}`which tabix`;
 ( $tabix and -e $tabix ) or die "ERROR: Please install tabix, and make sure it's in your PATH\n";
