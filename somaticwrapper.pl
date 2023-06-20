@@ -48,7 +48,6 @@ $green [2] Run filter Mutect2 result
 $green [3] Run parse Mutect2 result
 $cyan [4] Generate maf file 
 $cyan [5] Generate merged maf file
-$cyan [6] Annotate dnp and remove nearby snv near an indel
 $normal
 
 OUT
@@ -137,7 +136,7 @@ if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
 
-die $usage unless ($step_number >=0)&&(($step_number <= 7));
+die $usage unless ($step_number >=0)&&(($step_number <= 5));
 my $email = "scao\@wustl\.edu";
 # everything else below should be automated
 my $HOME = $ENV{HOME};

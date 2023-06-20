@@ -25,21 +25,19 @@ q: which queue for submitting job; research-hpc, ding-lab, long (default)
 
 hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
 
-[0]  Trim fastq if input files are fastqs
 
-[1]  generate bams if input files are fastqs
+[0]  generate bams if input files are fastqs
 
-[2]  Run Mutect2
+[1]  Run Mutect2
 
-[3]  Run filter Mutect2 result
+[2]  Run filter Mutect2 result
 
-[4]  Run parse Mutect2 result
+[3]  Run parse Mutect2 result
 
-[5] Generate maf file
+[4] Generate maf file
 
-[6] Generate merged maf file
+[5] Generate merged maf file
 
-[7] Annotate dnp and remove nearby snv near an indel
 
 ## Contact ##
 
