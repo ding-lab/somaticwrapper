@@ -554,11 +554,11 @@ sub bsub_filter_mutect2 {
  
 	open(MUTECT2F, ">$job_files_dir/$current_job_file") or die $!;
 
-    print MUTECT2F "#!/bin/bash\n";
+        print MUTECT2F "#!/bin/bash\n";
 	print MUTECT2F "$java_bin -Xmx16g -jar $picardexe GatherVcfs $all_unfiltered_input O=$f_merged_vcf","\n";
 	print MUTECT2F "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK MergeMutectStats $all_unfiltered_stats_input -O $f_merged_status\n"; 
 	print MUTECT2F  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK LearnReadOrientationModel $all_f1r2_input -O $f_ori\n";
-    print MUTECT2F  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx8g -jar $GATK GetPileupSummaries -I $IN_bam_T -V $COMMON_BIALLELIC -L $COMMON_BIALLELIC -O $f_sum\n";
+        print MUTECT2F  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx8g -jar $GATK GetPileupSummaries -I $IN_bam_T -V $COMMON_BIALLELIC -L $COMMON_BIALLELIC -O $f_sum\n";
 	print MUTECT2F  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK CalculateContamination -I $f_sum --tumor-segmentation $f_seg -O $f_tab\n";
 	print MUTECT2F  "		".$run_script_path."check_contamination.pl $f_tab $f_tab2","\n"; 
 	print MUTECT2F  "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK FilterMutectCalls -V $f_merged_vcf -R $h38_REF --tumor-segmentation $f_seg --contamination-table $f_tab2 --ob-priors $f_ori -O $f_filtered_vcf\n";	
@@ -566,10 +566,10 @@ sub bsub_filter_mutect2 {
 
  	my $sh_file=$job_files_dir."/".$current_job_file;
 
-    $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+        $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
     
-    print $bsub_com;
-    system ($bsub_com);
+        print $bsub_com;
+        system ($bsub_com);
 
 }
 
