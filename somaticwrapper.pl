@@ -25,7 +25,7 @@ my $normal = "\e[0m";
 Somatic variant calling pipeline 
 Pipeline version: $version
 
-$yellow     Usage: perl $0 --chr --step --sre --rdir --ref --log --q --exonic 
+$yellow     Usage: perl $0 --chr --step --sre --rdir --ref --log --q --exonic --groupname --users --step 
 
 $normal
 
@@ -39,7 +39,6 @@ $normal
 <q> which queue for submitting job; general (default), dinglab
 <groupname> which job group to use when submitting jobs on compute1
 <users> username on compute1 to use for submitting jobs to job groups
-<group> compute-group on compute1 to use for submitting jobs to the specified queue.
 <exonic> output exonic region: 1 Yes, 0 No
  
 $green [0] Generate bams if input files are fastqs
@@ -75,7 +74,7 @@ my $mincov_t=14;
 my $minvaf=0.05;
 my $compute_username="";
 my $group_name="";
-my $compute_group;
+#my $compute_group;
 
 #__PARSE COMMAND LINE
 my $status = &GetOptions (
@@ -85,7 +84,7 @@ my $status = &GetOptions (
       "groupname=s" => \$group_name,
       "users=s" => \$compute_username,		
 	  "exonic=i" => \$status_exonic,
-      "group=s" => \$compute_group,
+ #     "group=s" => \$compute_group,
       "rdir=s" => \$run_dir,
 	  "ref=s"  => \$h38_REF,
 #	  "smg=s" => \$db_smg,
@@ -101,7 +100,7 @@ my $status = &GetOptions (
  
 #print $status,"\n";
 
-if ($help || $run_dir eq "" || $log_dir eq "" || $step_number<0 || $group_name eq "" || $compute_username eq "" || $compute_group eq "") {
+if ($help || $run_dir eq "" || $log_dir eq "" || $step_number<0 || $group_name eq "" || $compute_username eq "") {
 	 print "wrong option\n";
 	  print $usage;
       exit;
@@ -323,7 +322,7 @@ if($step_number==5)
     #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
 	#system ($bsub_com);
     my $sh_file=$job_files_dir."/".$current_job_file;
-    $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
     print $bsub_com;
     system ($bsub_com);
 }
@@ -392,7 +391,7 @@ if($step_number==6)
 
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-    $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>10000] rusage[mem=10000]\" -M 10000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>10000] rusage[mem=10000]\" -M 10000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
 
@@ -428,7 +427,7 @@ sub bsub_fq2bam{
     print FQ2BAM "              ".$run_py_script_path."align_dnaseq.py --out-prefix output --cpu 40 --flowcell HFMFWDSXY --index-sequencer CCAGTAGCGT-ATGTATTGGC --known-sites $f_known_site --lane 2 --library-preparation TWCE-HT191P1-S1H1A3Y3D1_1-lib1 --platform ILLUMINA --reference $GENOME $IN_fq1 $IN_fq2","\n";;
     close FQ2BAM;
     my $sh_file=$job_files_dir."/".$current_job_file;
-    $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
     print $bsub_com;
     system ($bsub_com);
 
@@ -472,7 +471,7 @@ sub bsub_mutect2{
 		close MUTECT2;
     	my $sh_file=$job_files_dir."/".$current_job_file;
 
-    	$bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    	$bsub_com = "bsub -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
     system ($bsub_com);
@@ -567,7 +566,7 @@ sub bsub_filter_mutect2 {
 
  	my $sh_file=$job_files_dir."/".$current_job_file;
 
-    $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
     
     print $bsub_com;
     system ($bsub_com);
@@ -614,7 +613,7 @@ sub bsub_parse_mutect2{
 
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-    $bsub_com = "bsub -G $compute_group -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\'  -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub  -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\'  -o $lsf_out -e $lsf_err bash $sh_file\n";
     
     print $bsub_com;
     system ($bsub_com);

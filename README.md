@@ -11,7 +11,7 @@ Use VEP102 for annotation
 
 Step1: Enter the directory where you downloaded somaticwrapper pipeline 
 
-Step2: Type the coommand line: perl somaticwrapper.pl  --step --rdir --ref --log --q
+Step2: Type the coommand line: perl somaticwrapper.pl --rdir --ref --log --q --groupname --users --step 
 
 rdir = full path of the folder holding files for this sequence run (user must provide)
 
