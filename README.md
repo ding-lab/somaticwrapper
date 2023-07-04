@@ -1,5 +1,5 @@
 
-# vcf2maf, compute1 #
+# vcf2maf, compute1, v2.3 #
 
 Convert vep annotated vcf to maf file 
 
