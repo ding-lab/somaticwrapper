@@ -233,10 +233,10 @@ my $samtools="/storage1/fs1/songcao/Active/Software/samtools/1.2/bin";
 my $samtoolexe="/storage1/fs1/songcao/Active/Software/samtools/1.2/bin/samtools";
 my $varscan="/storage1/fs1/songcao/Active/Software/varscan/2.3.8.ndown";
 my $bamreadcount="/storage1/fs1/songcao/Active/bam-readcount/0.7.4/bam-readcount";
-#my $vepannot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
-my $vepannot="/storage1/fs1/dinglab/Active/Projects/scao/gitshared/ensembl-vep/vep";
-#my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v85";
-my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v102";
+my $vepannot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
+#my $vepannot="/storage1/fs1/dinglab/Active/Projects/scao/gitshared/ensembl-vep/vep";
+my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v85";
+#my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v102";
 
 my $DB_SNP_NO_CHR="/storage1/fs1/songcao/Active/Database/hg38_database/DBSNP/00-All.vcf";
 my $DB_SNP="/storage1/fs1/songcao/Active/Database/hg38_database/DBSNP/00-All.chr.vcf";
@@ -690,7 +690,7 @@ sub bsub_vcf_2_maf{
 
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-    $bsub_com = "LSF_DOCKER_ENTRYPOINT=/bin/bash LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(ensemblorg/ensembl-vep:release_102.0)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "LSF_DOCKER_ENTRYPOINT=/bin/bash LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'  -o $lsf_out -e $lsf_err bash $sh_file\n";
     print $bsub_com;
     system ($bsub_com);
 
