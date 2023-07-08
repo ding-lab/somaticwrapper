@@ -294,7 +294,7 @@ if($step_number==5)
 
     print $yellow, "Submitting jobs for generating the report for the run ....",$normal, "\n";
     $hold_job_file=$current_job_file; 
-    $current_job_file = "j6_Run_report_".$working_name.".sh"; 
+    $current_job_file = "j5_Run_report_".$working_name.".sh"; 
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
@@ -455,7 +455,7 @@ sub bsub_mutect2{
         $chr1="chr".$chr;
         }
 
-        $current_job_file = "j2_mutect2_".$sample_name."_".$chr1.".sh";
+        $current_job_file = "j1_mutect2_".$sample_name."_".$chr1.".sh";
         my $IN_bam_T = $sample_full_path."/".$sample_name.".remDup.bam";
         my $lsf_out=$lsf_file_dir."/".$current_job_file."_".$chr1.".out";
         my $lsf_err=$lsf_file_dir."/".$current_job_file."_".$chr1.".err";
@@ -490,7 +490,7 @@ sub bsub_filter_mutect2 {
     }
 
 
-    $current_job_file = "j3_parse_mutect2_".$sample_name.".sh";
+    $current_job_file = "j2_filter_mutect2_".$sample_name.".sh";
 	my $out_mutect2=$sample_full_path."/mutect2";
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
@@ -583,7 +583,7 @@ sub bsub_parse_mutect2{
     }
 
 
-    $current_job_file = "j4_parse_mutect2_".$sample_name.".sh";
+    $current_job_file = "j3_parse_mutect2_".$sample_name.".sh";
 
 	my $out_mutect2=$sample_full_path."/mutect2";
     my $f_filtered_vcf=$out_mutect2."/filtered.vcf";
@@ -630,7 +630,7 @@ sub bsub_vcf_2_maf{
     }
 
 
-    $current_job_file = "j5_vcf_2_maf.".$sample_name.".sh";
+    $current_job_file = "j4_vcf_2_maf.".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     #my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
 

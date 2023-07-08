@@ -23,8 +23,9 @@ ref: the human reference:
 
 q: which queue for submitting job; research-hpc, ding-lab, long (default)
 
-hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Reference/GRCh38.d1.vd1.fa
+groupname = job group name: Format; users/groupname
 
+users = user name for job group: Format; users/groupname
 
 [0]  generate bams if input files are fastqs
 
@@ -38,6 +39,9 @@ hg38: /gscmnt/gc2521/dinglab/mwyczalk/somatic-wrapper-data/image.data/A_Referenc
 
 [5] Generate merged maf file
 
+## Example ##
+
+perl somaticwrapper.pl --rdir /storage1/fs1/dinglab/Active/Projects/scao/gbm/GSAM --log /storage1/fs1/dinglab/Active/Projects/scao/gbm/GSAM.log --ref  /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa --q general --users songcao --groupname SomaticWXS --step 2
 
 ## Contact ##
 
