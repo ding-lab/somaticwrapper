@@ -20,7 +20,9 @@ Step 0: set environment for LSF job on compute1 by adding the following to ~/.ba
 export PATH=/storage1/fs1/songcao/Active/Software/anaconda3/bin:$PATH
 
 export STORAGE1=/storage1/fs1/songcao/Active
+
 export STORAGE2=/storage1/fs1/dinglab/Active
+
 export STORAGE3=/storage1/fs1/m.wyczalkowski/Active
 
 export LSF_DOCKER_VOLUMES="$STORAGE1:$STORAGE1 $STORAGE2:$STORAGE2 $STORAGE3:$STORAGE3"
