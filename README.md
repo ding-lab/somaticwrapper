@@ -27,6 +27,8 @@ export STORAGE3=/storage1/fs1/m.wyczalkowski/Active
 
 export LSF_DOCKER_VOLUMES="$STORAGE1:$STORAGE1 $STORAGE2:$STORAGE2 $STORAGE3:$STORAGE3"
 
+then run "source  ~/.bashrc"
+
 Then, start interactive queue environment for running jobs: 
 bsub -G compute-dinglab -q dinglab-interactive -Is -a 'docker(scao/dailybox)' /bin/bash
 
