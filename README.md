@@ -19,13 +19,11 @@ Step 0: set environment for LSF job on compute1 by adding the following to ~/.ba
 
 export PATH=/storage1/fs1/songcao/Active/Software/anaconda3/bin:$PATH
 
-export STORAGE2=/storage1/fs1/dinglab/Active
-export SCRATCH2=/storage1/fs1/dinglab/
-
 export STORAGE1=/storage1/fs1/songcao/Active
-export SCRATCH1=/storage1/fs1/songcao/
+export STORAGE2=/storage1/fs1/dinglab/Active
+export STORAGE3=/storage1/fs1/m.wyczalkowski/Active
 
-export LSF_DOCKER_VOLUMES="$STORAGE1:$STORAGE1 $STORAGE2:$STORAGE2"
+export LSF_DOCKER_VOLUMES="$STORAGE1:$STORAGE1 $STORAGE2:$STORAGE2 $STORAGE3:$STORAGE3"
 
 Then, start interactive queue environment for running jobs: 
 bsub -G compute-dinglab -q dinglab-interactive -Is -a 'docker(scao/dailybox)' /bin/bash
