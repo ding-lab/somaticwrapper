@@ -1,5 +1,5 @@
 
-# Somaticwrapper version 2.2, compute1 #
+# Somaticwrapper version 2.3, compute1 #
 
 Detect somatic variants from tumor and normal WGS/WXS data (HG38 reference). SomaticWrapper pipeline is a fully automated and modular software package designed for detection of somatic variants from tumor and normal exome data. It works on LSF job scheduler and can run multiple jobs in parallel. Multiple standard variant calling tools are included in the pipeline such as varscan2, strelka2, mutect1 and pindel. The final called variant can be found from dnp.annotated.maf for all variants and dnp.annotated.coding.maf for coding variants.  
 
@@ -7,11 +7,9 @@ SNV calls are intersecting results from 2 over 3 callers (Strelka2, Mutect1, and
 
 Indel calls are called by 2 over 3 callers (Strelka2, Varscan2 and pindel). 
 
-Improvements compared to version v2.1:
+Improvements compared to version v2.2:
 
-1. Remove indels > 100 nt before annotation
-
-2. Fix false alarm for step 7
+1. Implement AF <= 0.005
 
 ## Usage ##
 

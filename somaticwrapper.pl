@@ -1446,12 +1446,15 @@ sub bsub_vcf_2_maf{
     print MAF "F_VCF_1=".$sample_full_path."/merged.withmutect.vcf\n";
     print MAF "F_VCF_rm=".$sample_full_path."/merged.withmutect.rm.largeindel.vcf\n";
     print MAF "F_VCF_1_filtered=".$sample_full_path."/merged.filtered.withmutect.vcf\n";
+    print MAF "F_VCF_1_filtered_2=".$sample_full_path."/merged.filtered.withmutect.2.vcf\n";
     print MAF "F_VCF_2=".$sample_full_path."/".$sample_name.".withmutect.vcf\n";
     print MAF "F_VCF_2_filtered=".$sample_full_path."/".$sample_name.".withmutect.filtered.vcf\n";
     print MAF "F_VEP_1=".$sample_full_path."/merged.VEP.withmutect.vcf\n";
     print MAF "F_VEP_1_filtered=".$sample_full_path."/merged.VEP.withmutect.filtered.vcf\n";
+    print MAF "F_VEP_1_filtered_2=".$sample_full_path."/merged.VEP.withmutect.filtered.2.vcf\n";
     print MAF "F_VEP_2=".$sample_full_path."/".$sample_name.".withmutect.vep.vcf\n";
     print MAF "F_VEP_2_filtered=".$sample_full_path."/".$sample_name.".withmutect.filtered.vep.vcf\n";
+  
     print MAF "F_maf=".$sample_full_path."/".$sample_name.".withmutect.maf\n";
     print MAF "F_maf_filtered=".$sample_full_path."/".$sample_name.".withmutect.filtered.maf\n";
     print MAF "RUNDIR=".$sample_full_path."\n";
@@ -1490,12 +1493,14 @@ sub bsub_vcf_2_maf{
     print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n";	
 	## do the filtering for variants and ignore tumor vaf > 0.05 for gene in smg ##
     print MAF "     ".$run_script_path."vaf_filter_v1.4.pl \${RUNDIR} $sample_name $minvaf $mincov_t $mincov_n $maxindsize $db_smg\n"; 
-    print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.filtered.input >&./vep.merged.withmutect.filtered.log\n";
+    print MAF "     ".$run_perl_script_path."vep_annotator_all.pl ./vep.merged.withmutect.filtered.input >&./vep.merged.withmutect.filtered.log\n";
+    print MAF "     ".$run_perl_script_path."af_filter.pl \${F_VEP_1_filtered} \${F_VCF_1_filtered} \${F_VEP_1_filtered_2} \${F_VCF_1_filtered_2}\n";
+    #print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.filtered.input >&./vep.merged.withmutect.filtered.log\n";
     print MAF "rm \${F_VCF_2_filtered}\n";
     print MAF "rm \${F_VEP_2_filtered}\n";
-    print MAF "ln -s \${F_VCF_1_filtered} \${F_VCF_2_filtered}\n";
-    print MAF "ln -s \${F_VEP_1_filtered} \${F_VEP_2_filtered}\n";
-    print MAF "     ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2_filtered} --output-maf \${F_maf_filtered} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n"; 
+    print MAF "ln -s \${F_VCF_1_filtered_2} \${F_VCF_2_filtered}\n";
+    print MAF "ln -s \${F_VEP_1_filtered_2} \${F_VEP_2_filtered}\n";
+    print MAF "     ".$run_perl_script_path."vcf2maf.pl --input-vcf \${F_VCF_2_filtered} --output-maf \${F_maf_filtered} --tumor-id $sample_name\_T --normal-id $sample_name\_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n"; 
     close MAF;
 
 
@@ -1503,7 +1508,6 @@ sub bsub_vcf_2_maf{
     $bsub_com = "LSF_DOCKER_ENTRYPOINT=/bin/bash LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(ensemblorg/ensembl-vep:release_102.0)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
     print $bsub_com;
     system ($bsub_com);
-
 
  }
 
