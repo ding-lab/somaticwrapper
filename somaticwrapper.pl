@@ -205,6 +205,7 @@ print $script_dir,"\n";
 
 #$run_script_path = "/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl ".$run_script_path."/";
 $run_script_path = "/usr/bin/perl ".$run_script_path."/";
+my $run_perl_script_path = "/usr/bin/perl ".$run_script_path."/";
 
 print $run_script_path,"\n";
 my $hold_RM_job = "norm";
