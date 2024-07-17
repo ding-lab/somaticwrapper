@@ -1495,6 +1495,8 @@ sub bsub_vcf_2_maf{
 	## do the filtering for variants and ignore tumor vaf > 0.05 for gene in smg ##
     print MAF "     ".$run_script_path."vaf_filter_v1.4.pl \${RUNDIR} $sample_name $minvaf $mincov_t $mincov_n $maxindsize $db_smg\n"; 
     print MAF "     ".$run_perl_script_path."vep_annotator_all.pl ./vep.merged.withmutect.filtered.input >&./vep.merged.withmutect.filtered.log\n";
+
+    ## implement AF < 0.005 filtering
     print MAF "     ".$run_perl_script_path."af_filter.pl \${F_VEP_1_filtered} \${F_VCF_1_filtered} \${F_VEP_1_filtered_2} \${F_VCF_1_filtered_2}\n";
     #print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.filtered.input >&./vep.merged.withmutect.filtered.log\n";
     print MAF "rm \${F_VCF_2_filtered}\n";
