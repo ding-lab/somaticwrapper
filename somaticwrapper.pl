@@ -347,7 +347,7 @@ sub bsub_vcf_2_maf{
     print MAF "gunzip -c \${F_VCF_1_gz} > \${F_VCF_1}\n";
     print MAF "fi\n";
     print MAF "cd \${RUNDIR}\n";
-    print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.input >&./vep.merged.withmutect.log\n";
+    print MAF "     ".$run_script_path."vep_annotator_all.pl ./vep.merged.withmutect.input >&./vep.merged.withmutect.log\n";
     print MAF "rm \${F_vcf}\n";
     print MAF "rm \${F_vcf_vep}\n";
     print MAF "ln -s \${F_VCF_1} \${F_vcf}\n";
