@@ -30,7 +30,7 @@ use warnings;
 #use POSIX;
 use Getopt::Long;
 
-my $version = 2.3;
+my $version = 2.4;
 
 #color code
 my $red = "\e[31m";
@@ -1409,6 +1409,55 @@ sub bsub_merge_vcf{
     print MERGE	"MUTECT_VCF="."\${RUNDIR}/mutect1/mutect.filter.snv.vcf\n";
     print MERGE "STRELKA_INDEL="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";; 
     print MERGE "MERGER_OUT="."\${RUNDIR}/merged.withmutect.vcf\n";
+    print MERGE "PINDEL_VCF_FILTER="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.filtered.vcf\n";
+    print MERGE "     ".$run_script_path."filter_large_indel.pl \${PINDEL_VCF} \${PINDEL_VCF_FILTER} $maxindsize\n";
+    print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h38_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:sindel \${STRELKA_INDEL} --variant:pindel \${PINDEL_VCF_FILTER} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,mutect,sindel,varindel,pindel\n"; 
+    close MERGE;
+    my $sh_file=$job_files_dir."/".$current_job_file;
+    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+
+    print $bsub_com;
+    system ($bsub_com);
+
+
+   }
+
+sub bsub_merge_dbsnp_vcf{
+  
+    my ($step_by_step) = @_;
+    if ($step_by_step) {
+        $hold_job_file = "";
+    }else{
+        $hold_job_file = $current_job_file;
+    }
+
+    $current_job_file = "j10_merge_vcf.".$sample_name.".sh";
+    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
+    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+    my $hg19="Hg19"; 
+    open(MERGE, ">$job_files_dir/$current_job_file") or die $!;
+    print MERGE "#!/bin/bash\n";
+    print MERGE "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
+    print MERGE "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
+    print MERGE "myRUNDIR=".$sample_full_path."/varscan\n";
+    print MERGE "STATUSDIR=".$sample_full_path."/status\n";
+    print MERGE "RUNDIR=".$sample_full_path."\n";
+    print MERGE "export SAMTOOLS_DIR=$samtools\n";
+    print MERGE "export JAVA_HOME=$java_dir\n";
+    print MERGE "export JAVA_OPTS=\"-Xmx10g\"\n";
+    print MERGE "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
+    print MERGE "STRELKA_VCF="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.snv.all.gvip.dbsnp_present.vcf\n";
+    print MERGE "VARSCAN_VCF="."\${RUNDIR}/varscan/varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.dbsnp_present.vcf\n";
+    print MERGE "PINDEL_VCF="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.qced.vcf\n";
+    print MERGE "VARSCAN_INDEL="."\${RUNDIR}/varscan/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_present.vcf\n";
+    print MERGE	"MUTECT_VCF="."\${RUNDIR}/mutect1/mutect.filter.snv.vcf\n";
+    print MERGE "STRELKA_INDEL="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.indel.all.gvip.dbsnp_present.vcf\n";; 
+    print MERGE "MERGER_OUT="."\${RUNDIR}/merged.withmutect.dbsnp.present.vcf\n";
     print MERGE "PINDEL_VCF_FILTER="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.filtered.vcf\n";
     print MERGE "     ".$run_script_path."filter_large_indel.pl \${PINDEL_VCF} \${PINDEL_VCF_FILTER} $maxindsize\n";
     print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h38_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:sindel \${STRELKA_INDEL} --variant:pindel \${PINDEL_VCF_FILTER} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,mutect,sindel,varindel,pindel\n"; 
