@@ -993,6 +993,13 @@ sub bsub_pindel{
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
     `rm $lsf_err`;
+
+    my $pindel_raw = $sample_full_path."/pindel/pindel.out.raw";
+    my $f_pindel_complete_status = $sample_full_path."/pindel/status/complete.pindel";
+
+    if (-z $pindel_raw && -e $f_pindel_complete_status) {
+    `rm $f_pindel_complete_status`; }
+
     open(PINDEL, ">$job_files_dir/$current_job_file") or die $!;
     print PINDEL "#!/bin/bash\n";
     print PINDEL "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
