@@ -1056,6 +1056,12 @@ sub bsub_parse_pindel {
 
     $current_job_file = "j8_parse_pindel".$sample_name.".sh";
 
+    my $pindel_pass = $sample_full_path."/pindel/pindel.out.current_final.gvip.dbsnp_pass.vcf";
+    my $f_pindel_parser_complete_status = $sample_full_path."/pindel/status/complete.pindel.parser";
+
+    if (-z $pindel_pass && -e $f_pindel_parser_complete_status) {
+    `rm $f_pindel_parser_complete_status`; }
+
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
     `rm $lsf_out`;
