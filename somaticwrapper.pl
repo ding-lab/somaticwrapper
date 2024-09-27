@@ -568,6 +568,12 @@ sub bsub_varscan{
 		$hold_job_file = $current_job_file;
 	}
 
+    my $varscan_raw = $sample_full_path."/varscan/varscan.out.som_snv.vcf";
+    my $f_varscan_complete_status = $sample_full_path."/varscan/status/complete.vs_som_snvindelsl";
+
+    if (-z $varscan_raw && -e $f_varscan_complete_status) {
+    `rm $f_varscan_complete_status`; }
+
     $current_job_file = "j2_varscan_".$sample_name.".sh";
     my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
     my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
@@ -848,19 +854,25 @@ sub bsub_parse_varscan{
 
         open(VARSCANP, ">$job_files_dir/$current_job_file") or die $!;
 
-        print VARSCANP "#!/bin/bash\n";
-        print VARSCANP "scr_t0=\`date \+\%s\`\n";
+    my $varscan_pass = $sample_full_path."/varscan/varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf";
+    my $f_varscan_parser_complete_status = $sample_full_path."/varscan/status/complete.vs_som_parser";
+
+    if (-z $varscan_pass && -e $f_varscan_parser_complete_status) {
+    `rm $f_varscan_parser_complete_status`; }
+
+    print VARSCANP "#!/bin/bash\n";
+    print VARSCANP "scr_t0=\`date \+\%s\`\n";
 	print VARSCANP "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
-    	print VARSCANP "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
-        print VARSCANP "myRUNDIR=".$sample_full_path."/varscan\n";
-        print VARSCANP "STATUSDIR=".$sample_full_path."/status\n";
-        print VARSCANP "RUNDIR=".$sample_full_path."\n";
-        print VARSCANP "export VARSCAN_DIR=$varscan\n"; 
-        print VARSCANP "export SAMTOOLS_DIR=$samtools\n";
-        print VARSCANP "export JAVA_HOME=$java_dir\n";
-        print VARSCANP "export JAVA_OPTS=\"-Xmx10g\"\n";
-        print VARSCANP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-        print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input <<EOF\n";
+    print VARSCANP "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
+    print VARSCANP "myRUNDIR=".$sample_full_path."/varscan\n";
+    print VARSCANP "STATUSDIR=".$sample_full_path."/status\n";
+    print VARSCANP "RUNDIR=".$sample_full_path."\n";
+    print VARSCANP "export VARSCAN_DIR=$varscan\n"; 
+    print VARSCANP "export SAMTOOLS_DIR=$samtools\n";
+    print VARSCANP "export JAVA_HOME=$java_dir\n";
+    print VARSCANP "export JAVA_OPTS=\"-Xmx10g\"\n";
+    print VARSCANP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
+    print VARSCANP "cat > \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input <<EOF\n";
 	print VARSCANP "varscan.dbsnp.snv.annotator = $snpsift\n";
 	print VARSCANP "varscan.dbsnp.snv.db = $DB_SNP_NO_COSMIC\n"; 
 	print VARSCANP "varscan.dbsnp.snv.rawvcf = ./varscan.out.som_snv.gvip.Somatic.hc.somfilter_pass.vcf\n";
