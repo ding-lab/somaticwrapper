@@ -464,6 +464,12 @@ sub bsub_strelka{
     `rm $lsf_err`;
 	#`rm $current_job_file`;
 
+    my $strelka_raw = $sample_full_path."/strelka/strelka_out/results/variants/somatic.snvs.vcf.gz";
+    my $f_strelka_complete_status = $sample_full_path."/strelka/strelka_out/task.complete";
+
+    if (-z $strelka_raw && -e $f_strelka_complete_status) {
+    `rm $f_strelka_complete_status`; }
+
     open(STREKA, ">$job_files_dir/$current_job_file") or die $!;
     print STREKA "#!/bin/bash\n";
     #print STREKA "#BSUB -n 1\n";
@@ -1435,11 +1441,15 @@ sub bsub_merge_vcf{
     print MERGE "STRELKA_INDEL="."\${RUNDIR}/strelka/strelka_out/results/strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";; 
     print MERGE "MERGER_OUT="."\${RUNDIR}/merged.withmutect.vcf\n";
     print MERGE "PINDEL_VCF_FILTER="."\${RUNDIR}/pindel/pindel.out.current_final.gvip.dbsnp_pass.filtered.vcf\n";
+    print MERGE '  if [ ! -s \${MERGER_OUT} ]',"\n";
+    print MERGE "  then\n"; 
     print MERGE "     ".$run_script_path."filter_large_indel.pl \${PINDEL_VCF} \${PINDEL_VCF_FILTER} $maxindsize\n";
     print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h38_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:sindel \${STRELKA_INDEL} --variant:pindel \${PINDEL_VCF_FILTER} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,mutect,sindel,varindel,pindel\n"; 
+ 	print MERGE "  fi\n";
     close MERGE;
     my $sh_file=$job_files_dir."/".$current_job_file;
-    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+   # $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>100000 && !hname='compute1-exec-411'] rusage[mem=100000]\" -M 100000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name  -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
     system ($bsub_com);
