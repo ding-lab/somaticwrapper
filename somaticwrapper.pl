@@ -467,7 +467,7 @@ sub bsub_mutect2{
 
         open(MUTECT2, ">$job_files_dir/$current_job_file") or die $!;
         print MUTECT2 "#!/bin/bash\n";
-		print MUTECT2 "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK Mutect2 -I $IN_bam_T -R $h38_REF -L $chr1 --germline-resource $GNOMAD_VCF -pon $PANEL_OF_NORMALS_VCF --f1r2-tar-gz $f_out_gz -O $f_out_vcf","\n";
+	print MUTECT2 "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK Mutect2 -I $IN_bam_T -R $h38_REF -L $chr1 --germline-resource $GNOMAD_VCF -pon $PANEL_OF_NORMALS_VCF --f1r2-tar-gz $f_out_gz -O $f_out_vcf","\n";
 		close MUTECT2;
     	my $sh_file=$job_files_dir."/".$current_job_file;
 
