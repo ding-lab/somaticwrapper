@@ -158,5 +158,3 @@ perl somaticwrapper.pl ... --step 5
 
 ---
 
-## License
-Specify a license for this repository (e.g., MIT, BSD-3-Clause). Add a `LICENSE` file at the repo root.
