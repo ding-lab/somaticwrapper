@@ -32,7 +32,7 @@ It runs on **LSF** (compute1) with per-chromosome parallelism and stage-to-stage
 ## Requirements
 - **Platform:** LSF (compute1)
 - **Docker images (used by the scripts):**
-  - `scao/dailybox` (Mutect2, GATK, Picard, utilities)
+  - `scao/dailybox` (Perl)
   - `ensemblorg/ensembl-vep:release_102.0` (VEP 102 / vcf2maf)
 - **References / Databases (HG38):**
   - GRCh38 FASTA (+ `.fai`)
@@ -108,8 +108,6 @@ perl somaticwrapper.pl   --rdir <run_dir>   --ref  <path/to/GRCh38.fa>   --log  
 - **[3]** Parse Mutect2 results (coverage/VAF thresholds, dbSNP filter)  
 - **[4]** Generate **per-sample** MAF (VEP 102 + vcf2maf)  
 - **[5]** Generate **run-level** merged report (aggregates per-sample outputs)
-
-> Step 6 (near-indel SNV removal / DNP annotate) has been **removed** in v3.0.
 
 ---
 
