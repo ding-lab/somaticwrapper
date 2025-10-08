@@ -1,5 +1,5 @@
 
-# somaticwrapper: tumor only pipeline, compute1 version 2.0  #
+# somaticwrapper: tumor only pipeline, compute1 version 3.0  #
 
 Detect somatic variants from tumor only data based on HG38 reference. SomaticWrapper pipeline is a fully automated and modular software package designed for detection of somatic variants from tumor exome data. It works on LSF job scheduler and can run multiple jobs in parallel. 
 
@@ -27,7 +27,7 @@ groupname = job group name: Format; users/groupname
 
 users = user name for job group: Format; users/groupname
 
-[0]  generate bams if input files are fastqs
+[0]  run all steps
 
 [1]  Run Mutect2
 
