@@ -6,6 +6,10 @@
 ##!/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl
 use strict;
 use warnings;
+# ---- dependency globals ----
+our @J1_JIDS = ();
+our $J2_JID = '';
+# --------------------------------
 #use POSIX;
 use Getopt::Long;
 
@@ -274,7 +278,7 @@ if ($step_number < 5) {
                 $current_job_file="";
                 if($step_number==0)
                 {  
-		    &bsub_fq2bam();
+                &bsub_submit_all;
 		} elsif ($step_number == 1) {
                     &bsub_mutect2(1);
                 } elsif ($step_number == 2) {
@@ -406,7 +410,7 @@ sub bsub_fq2bam{
 
     #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
 
-    $current_job_file = "j0_fq2bam_".$sample_name.".sh";
+    $current_job_file = "jA_fq2bam_".$sample_name.".sh";
     my $IN_fq1 = $sample_full_path."/".$sample_name.".R1.fq.gz";
     my $IN_fq2 = $sample_full_path."/".$sample_name.".R2.fq.gz";
     my $out_bam=$sample_full_path."/".$sample_name.".bam";
@@ -473,10 +477,10 @@ sub bsub_mutect2{
 
     	$bsub_com = "bsub -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
-    print $bsub_com;
-    system ($bsub_com);
-
-    }
+    print $bsub_com, "\n";
+my $bsub_out = `$bsub_com`;
+if ($bsub_out =~ /Job <(\d+)>/) { push @J1_JIDS, $1; }
+}
 
 }
 
@@ -566,10 +570,13 @@ sub bsub_filter_mutect2 {
 
  	my $sh_file=$job_files_dir."/".$current_job_file;
 
-        $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+        my $dep = join(" && ", map { "done($_)" } @J1_JIDS);
+$dep = $dep eq "" ? "" : "-w \"$dep\" ";
+$bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub ${dep}-q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
     
-        print $bsub_com;
-        system ($bsub_com);
+        print $bsub_com, "\n";
+my $bsub_out = `$bsub_com`;
+if ($bsub_out =~ /Job <(\d+)>/) { $J2_JID = $1; }
 
 }
 
@@ -613,7 +620,8 @@ sub bsub_parse_mutect2{
 
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-    $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub  -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\'  -o $lsf_out -e $lsf_err bash $sh_file\n";
+    my $dep2 = $J2_JID ? "-w \"done($J2_JID)\" " : "";
+$bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub  ${dep2}-q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\'  -o $lsf_out -e $lsf_err bash $sh_file\n";
     
     print $bsub_com;
     system ($bsub_com);
@@ -701,3 +709,15 @@ sub bsub_vcf_2_maf{
  }
 
  
+
+# ---- submission orchestrator (new j0) ----
+sub bsub_submit_all {
+    # Submit all steps with dependencies
+    # 1) j1*: per-chrom Mutect2 (fills @J1_JIDS)
+    bsub_mutect2(0);
+    # 2) j2 depends on all j1 done()
+    bsub_filter_mutect2(0);
+    # 3) j3 depends on j2 done()
+    bsub_parse_mutect2(0);
+    print "Submitted: ", scalar(@J1_JIDS), " j1 jobs; j2 JID=", $J2_JID, "\n";
+}
