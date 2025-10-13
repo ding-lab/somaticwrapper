@@ -30,7 +30,7 @@ $yellow     Usage: perl \$0 --chr --step --sre --rdir --ref --log --q --exonic -
 
 <rdir> = full path of the folder holding files for this sequence run (required)
 <log>  = full path of the folder for saving log files (required)
-<chr>  = whether reference has 'chr' prefix (1 yes / 0 no; default 1)
+<chr>  = whether reference has 'chr' prefix (1 yes / 0 no; default 1; auto-detected if possible)
 <sre>  = rerun: 1 yes / 0 no (default 0)
 <step> = run a stage (required): 
 $green [0] Submit all steps with dependencies
@@ -46,21 +46,26 @@ Options:
 <groupname> job group name used as /<users>/<groupname> (required)
 <users>     compute1 username used in job group path (required)
 <exonic>    exonic output flag for reporting: 1 yes / 0 no (default 1)
+
+Advanced (partial chains):
+  step=12 : run j2 → j3 → j4 → j5  (start at j2; j3 waits on j2; j4 waits on j3; j5 waits on all j4)
+  step=13 : run j3 → j4 → j5       (start at j3; j4 waits on j3; j5 waits on all j4)
+  step=14 : run j4 → j5            (start at j4; no dependencies)
 OUT
 
 # ---- CLI args ----
-my $step_number   = -1;
-my $status_rerun  = 0;
-my $status_exonic = 1;
-my $q_name        = 'long';
-my $run_dir       = '';
-my $log_dir       = '';
-my $h38_REF       = '';
-my $chr_status    = 1;
+my $step_number      = -1;
+my $status_rerun     = 0;
+my $status_exonic    = 1;
+my $q_name           = 'long';
+my $run_dir          = '';
+my $log_dir          = '';
+my $h38_REF          = '';
+my $chr_status       = 1;         # will be auto-detected below if possible
 my $compute_username = '';
 my $group_name       = '';
-my $mincov_t      = 14;      # used by parser
-my $minvaf        = 0.05;    # used by parser
+my $mincov_t         = 14;        # used by parser
+my $minvaf           = 0.05;      # used by parser
 
 GetOptions(
   "step=i"      => \$step_number,
@@ -91,7 +96,7 @@ print "status exonic=$status_exonic\n";
 print "queue name=$q_name\n";
 
 $run_dir =~ s/(.+)\/$/$1/;
-die $usage unless ($step_number >= 0 && $step_number <= 5);
+die $usage unless ($step_number >= 0 && $step_number <= 14);
 
 # ---- paths & dirs ----
 my $HOME1 = $log_dir;
@@ -117,15 +122,16 @@ my $vepannot  = "/storage1/fs1/dinglab/Active/Projects/scao/gitshared/ensembl-ve
 my $vepcache  = "/storage1/fs1/songcao/Active/Database/hg38_database/vep/v102";
 
 # resources used by pipeline
-my $GNOMAD_VCF          = "/storage1/fs1/songcao/Active/Database/tonlydb/af-only-gnomad.hg38.vcf.gz";
-my $PANEL_OF_NORMALS_VCF= "/storage1/fs1/dinglab/Active/Projects/austins2/tools/somaticwrapper_tonly.v1.0/db/gatk/GDC-gatk4_panel_of_normals/6c4c4a48-3589-4fc0-b1fd-ce56e88c06e4/gatk4_mutect2_4136_pon.hg38.vcf.gz";
-my $COMMON_BIALLELIC    = "/storage1/fs1/dinglab/Active/Projects/austins2/tools/somaticwrapper_tonly.v1.0/db/gatk/mutect2_gatk-best-practices.broadIns/af-only-gnomad.hg38.common_biallelic.chr1-22XY.vcf";
-my $DB_SNP_NO_COSMIC    = "/storage1/fs1/songcao/Active/Database/hg38_database/cosmic/00-All.HG38.pass.cosmic.vcf";
-my $f_ref_annot         = "/storage1/fs1/songcao/Active/Database/hg38_database/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
+my $GNOMAD_VCF           = "/storage1/fs1/songcao/Active/Database/tonlydb/af-only-gnomad.hg38.vcf.gz";
+my $PANEL_OF_NORMALS_VCF = "/storage1/fs1/dinglab/Active/Projects/austins2/tools/somaticwrapper_tonly.v1.0/db/gatk/GDC-gatk4_panel_of_normals/6c4c4a48-3589-4fc0-b1fd-ce56e88c06e4/gatk4_mutect2_4136_pon.hg38.vcf.gz";
+my $COMMON_BIALLELIC     = "/storage1/fs1/dinglab/Active/Projects/austins2/tools/somaticwrapper_tonly.v1.0/db/gatk/mutect2_gatk-best-practices.broadIns/af-only-gnomad.hg38.common_biallelic.chr1-22XY.vcf";
+my $DB_SNP_NO_COSMIC     = "/storage1/fs1/songcao/Active/Database/hg38_database/cosmic/00-All.HG38.pass.cosmic.vcf";
+my $f_ref_annot          = "/storage1/fs1/songcao/Active/Database/hg38_database/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
+my $TSL_DB               = "/storage1/fs1/songcao/Active/Database/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
 
-# infer chr prefix from ref (optional convenience)
+# infer chr prefix from ref (robust)
 my $first_line = `head -n 1 $h38_REF`;
-if ($first_line =~ /^\>chr/) { $chr_status = 1; }
+$chr_status = ($first_line =~ /^\>chr/) ? 1 : 0;
 
 # input samples
 opendir(my $DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
@@ -139,7 +145,7 @@ sub bsub_mutect2 {
 
   my $sample_full_path = shift;
   my $sample_name      = shift;
-
+  
   my $out_mutect2="$sample_full_path/mutect2";	
   if(! -d $out_mutect2) { `mkdir -p $out_mutect2`; } 
 
@@ -167,8 +173,7 @@ sub bsub_mutect2 {
 }
 
 sub bsub_filter_mutect2 {
-  my $sample_full_path = shift;
-  my $sample_name      = shift;
+  my ($sample_full_path, $sample_name, $status_dep) = @_;
 
   my $current_job_file = "j2_filter_mutect2_${sample_name}.sh";
   my $out_mutect2 = "$sample_full_path/mutect2";
@@ -213,15 +218,18 @@ sub bsub_filter_mutect2 {
   print $FH "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK FilterMutectCalls -V $f_merged_vcf -R $h38_REF --tumor-segmentation $f_seg --contamination-table $f_tab2 --ob-priors $f_ori -O $f_filtered_vcf\n";	
   close $FH;
 
-  my $dep = @J1_JIDS ? "-w \"" . (join(" && ", map { "done($_)" } @J1_JIDS)) . "\" " : "";
+  my $dep = "";
+  if (defined $status_dep && $status_dep eq "1") {
+    $dep = @J1_JIDS ? "-w \"" . (join(" && ", map { "done($_)" } @J1_JIDS)) . "\" " : "";
+  }
+
   my $cmd = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub ${dep}-q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $job_files_dir/$current_job_file";
   my $out = `$cmd`;
   if ($out =~ /Job <(\d+)>/) { $J2_JID = $1; }
 }
 
 sub bsub_parse_mutect2 {
-  my $sample_full_path = shift;
-  my $sample_name      = shift;
+  my ($sample_full_path, $sample_name, $status_dep) = @_;
 
   my $current_job_file = "j3_parse_mutect2_${sample_name}.sh";
   my $out_mutect2 = "$sample_full_path/mutect2";
@@ -249,15 +257,18 @@ sub bsub_parse_mutect2 {
   print $FH "    ".$run_script_path."dbsnp_filter.pl ./mutect2_dbsnp_filter.input\n";
   close $FH;	
 
-  my $dep2 = $J2_JID ? "-w \"done($J2_JID)\" " : "";
+  my $dep2 = "";
+  if (defined $status_dep && $status_dep eq "1") {
+    $dep2 = $J2_JID ? "-w \"done($J2_JID)\" " : "";
+  }
+
   my $cmd = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub ${dep2}-q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $job_files_dir/$current_job_file";
   my $out = `$cmd`;
   if ($out =~ /Job <(\d+)>/) { $J3_JID = $1; }
 }
 
 sub bsub_vcf_2_maf {
-  my $sample_full_path = shift;
-  my $sample_name      = shift;
+  my ($sample_full_path, $sample_name, $status_dep) = @_;
 
   my $current_job_file = "j4_vcf_2_maf.${sample_name}.sh";
   my $lsf_out = "$lsf_file_dir/$current_job_file.out";
@@ -290,16 +301,22 @@ sub bsub_vcf_2_maf {
   print $FH "rm -f \${F_VCF_2} \${F_VEP_2}\n";
   print $FH "ln -s \${F_VCF_1} \${F_VCF_2}\n";
   print $FH "ln -s \${F_VEP_1} \${F_VEP_2}\n";
-  print $FH "    ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id ${sample_name}_T --normal-id ${sample_name}_N --ref-fasta $f_ref_annot --file-tsl /storage1/fs1/songcao/Active/Database/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt\n";	
+  print $FH "    ".$run_script_path."vcf2maf.pl --input-vcf \${F_VCF_2} --output-maf \${F_maf} --tumor-id ${sample_name}_T --normal-id ${sample_name}_N --ref-fasta $f_ref_annot --file-tsl $TSL_DB\n";	
   close $FH;
 
-  my $dep3 = $J3_JID ? "-w \"done($J3_JID)\" " : "";
+  my $dep3 = "";
+  if (defined $status_dep && $status_dep eq "1") {
+    $dep3 = $J3_JID ? "-w \"done($J3_JID)\" " : "";
+  }
+
   my $cmd = "LSF_DOCKER_ENTRYPOINT=/bin/bash LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub ${dep3}-g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(ensemblorg/ensembl-vep:release_102.0)' -o $lsf_out -e $lsf_err bash $job_files_dir/$current_job_file";
   my $out = `$cmd`;
   if ($out =~ /Job <(\d+)>/) { push @ALL_J4_JIDS, $1; }
 }
 
 sub bsub_run_report {
+  my ($status_dep) = @_;
+
   my $working_name = (split(/\//,$run_dir))[-1];
   my $current_job_file = "j5_Run_report_${working_name}.sh";
   my $lsf_out = "$lsf_file_dir/$current_job_file.out";
@@ -315,7 +332,11 @@ sub bsub_run_report {
   print $FH "    ".$run_script_path."add_rc.pl $run_dir $f_maf $f_maf_rc\n";
   close $FH;
 
-  my $dep_all = @ALL_J4_JIDS ? "-w \"" . (join(" && ", map { "done($_)" } @ALL_J4_JIDS)) . "\" " : "";
+  my $dep_all = "";
+  if (defined $status_dep && $status_dep eq "1") {
+    $dep_all = @ALL_J4_JIDS ? "-w \"" . (join(" && ", map { "done($_)" } @ALL_J4_JIDS)) . "\" " : "";
+  }
+
   my $cmd = "bsub ${dep_all}-q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $job_files_dir/$current_job_file";
   my $out = `$cmd`;
   if ($out =~ /Job <(\d+)>/) { $J5_JID = $1; }
@@ -323,15 +344,16 @@ sub bsub_run_report {
 
 sub submit_all_for_sample {
   my ($sample_full_path, $sample_name) = @_;
-  bsub_mutect2($sample_full_path, $sample_name);
-  bsub_filter_mutect2($sample_full_path, $sample_name);
-  bsub_parse_mutect2($sample_full_path, $sample_name);
-  bsub_vcf_2_maf($sample_full_path, $sample_name);
+  bsub_mutect2($sample_full_path, $sample_name);         # j1
+  bsub_filter_mutect2($sample_full_path, $sample_name, 1); # j2 waits on j1*
+  bsub_parse_mutect2($sample_full_path, $sample_name, 1);  # j3 waits on j2
+  bsub_vcf_2_maf($sample_full_path, $sample_name, 1);      # j4 waits on j3
 }
 
 # ---------------- MAIN ----------------
 
-if ($step_number < 5) {
+if ($step_number < 5 || $step_number == 12 || $step_number == 13 || $step_number == 14) {
+
   for my $sample_name (@sample_dir_list) {
     next if ($sample_name =~ /\./ || $sample_name =~ /worklog/);
     my $sample_full_path = "$run_dir/$sample_name";
@@ -339,22 +361,35 @@ if ($step_number < 5) {
 
     print $yellow, "\nSubmitting jobs for sample $sample_name ...",$normal,"\n";
 
-    if    ($step_number == 0) { submit_all_for_sample($sample_full_path, $sample_name) }
-    elsif ($step_number == 1) { bsub_mutect2($sample_full_path, $sample_name) }
-    elsif ($step_number == 2) { bsub_filter_mutect2($sample_full_path, $sample_name) }
-    elsif ($step_number == 3) { bsub_parse_mutect2($sample_full_path, $sample_name) }
-    elsif ($step_number == 4) { bsub_vcf_2_maf($sample_full_path, $sample_name) }
+    if    ($step_number == 0)  { submit_all_for_sample($sample_full_path, $sample_name); }
+    elsif ($step_number == 1)  { bsub_mutect2($sample_full_path, $sample_name); }
+    elsif ($step_number == 2)  { bsub_filter_mutect2($sample_full_path, $sample_name, 0); }
+    elsif ($step_number == 3)  { bsub_parse_mutect2($sample_full_path, $sample_name, 0); }
+    elsif ($step_number == 4)  { bsub_vcf_2_maf($sample_full_path, $sample_name, 0); }
+    elsif ($step_number == 12) { 
+      bsub_filter_mutect2($sample_full_path, $sample_name, 0);  # j2 no deps
+      bsub_parse_mutect2($sample_full_path, $sample_name, 1);   # j3 waits on j2
+      bsub_vcf_2_maf($sample_full_path, $sample_name, 1);       # j4 waits on j3
+    }
+    elsif ($step_number == 13) {
+      bsub_parse_mutect2($sample_full_path, $sample_name, 0);   # j3 no deps
+      bsub_vcf_2_maf($sample_full_path, $sample_name, 1);       # j4 waits on j3
+    }
+    elsif ($step_number == 14) {
+      bsub_vcf_2_maf($sample_full_path, $sample_name, 0);       # j4 no deps
+    }
   }
 
-  if ($step_number == 0) {
-    bsub_run_report();  # waits on ALL j4 jobs
+  # queue run-level step 5 if we ran any chain that leads to j4s
+  if ($step_number == 0 || $step_number == 12 || $step_number == 13 || $step_number == 14) {
+    bsub_run_report(1);  # waits on ALL j4 jobs (if any were queued)
     print "Queued run-level job: j5=$J5_JID\n";
   }
 }
 
 if ($step_number == 5) {
   print $yellow, "Submitting jobs for generating the run-level report ...",$normal,"\n";
-  bsub_run_report();
+  bsub_run_report(0);  # report only; no deps
 }
 
 exit 0;

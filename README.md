@@ -109,6 +109,10 @@ perl somaticwrapper.pl   --rdir <run_dir>   --ref  <path/to/GRCh38.fa>   --log  
 - **[4]** Generate **per-sample** MAF (VEP 102 + vcf2maf)  
 - **[5]** Generate **run-level** merged report (aggregates per-sample outputs)
 
+- **[12]** run j2 → j3 → j4 → j5  (start at j2; j3 waits on j2; j4 waits on j3; j5 waits on all j4)
+- **[13]** start at j3; j4 waits on j3; j5 waits on all j4) 
+- **[14]** run j4 → j5            (start at j4; no dependencies)
+
 ---
 
 ## Examples
