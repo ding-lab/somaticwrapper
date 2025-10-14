@@ -30,7 +30,23 @@ use warnings;
 #use POSIX;
 use Getopt::Long;
 
-my $version = 2.2;
+# ---- dependency globals ----
+our $J1_JIDS      = '';   # per-sample, many jobs (one per chr)
+our $J2_JID       = '';   # per-sample, single job (filter)
+our $J3_JID       = '';   # per-sample, single job (parse)
+our @ALL_J4_JIDS  = ();   # collect all samples' j4 job IDs (for run-level deps)
+our $J5_JID       = '';   # run-level report job
+# --------------------------------
+
+my $version = 3.0.0;
+
+# ---- dependency globals ----
+our $J1_JID      = '';   # per-sample, strekla
+our $J2_JID       = '';   # per-sample, single job (filter)
+our $J3_JID       = '';   # per-sample, single job (parse)
+our @ALL_J4_JIDS  = ();   # collect all samples' j4 job IDs (for run-level deps)
+our $J5_JID       = '';   # run-level report job
+# --------------------------------
 
 #color code
 my $red = "\e[31m";
@@ -552,7 +568,8 @@ sub bsub_strelka{
 
     $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
     print $bsub_com;
-    system ($bsub_com);
+    my $out = `$bsub_com`;
+    if ($out =~ /Job <(\d+)>/) { $J1_JID = $1; }
 
 }
 
@@ -690,8 +707,13 @@ sub bsub_varscan{
    # else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
    # print $bsub_com;
    # system ($bsub_com);
-    
-     $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+
+    my $dep2 = "";
+    if (defined $status_dep && $status_dep eq "1") {
+    $dep2 = $J1_JID ? "-w \"done($J1_JID)\" " : "";
+    }
+
+     $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub ${dep2}-g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
         print $bsub_com;
         system ($bsub_com);
