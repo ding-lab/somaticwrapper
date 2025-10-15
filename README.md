@@ -22,10 +22,25 @@ Final output files:
 
 ## 🚀 Improvements (v3.0.0)
 
-1. Added **Step 0** — automatically submits the full pipeline (Steps 1 → 14) with job dependencies (`j2` waits for `j1`, etc.).  
-2. Removed indels > 100 nt before annotation  
-3. Fixed false alarms for Step 7 (VarScan parser)  
-4. Enhanced LSF dependency handling and job-group tracking  
+1. Added **Step 0** — automatically submits the full pipeline (Steps 1 → 11) with job dependencies (`j2` waits for `j1`, etc.).  
+
+2. Added **Step 22** — automatically submits the full pipeline (Steps 2 → 11) with job dependencies (`j3` waits for `j2`, etc.).  
+
+3. Added **Step 23** — automatically submits the full pipeline (Steps 3 → 11) with job dependencies
+
+4. Added **Step 24** — automatically submits the full pipeline (Steps 4 → 11) with job dependencies
+
+5. Added **Step 25** — automatically submits the full pipeline (Steps 5 → 11) with job dependencies
+
+6. Added **Step 26** — automatically submits the full pipeline (Steps 6 → 11) with job dependencies
+
+7. Added **Step 27** — automatically submits the full pipeline (Steps 7 → 11) with job dependencies
+
+8. Added **Step 28** — automatically submits the full pipeline (Steps 8 → 11) with job dependencies
+
+9. Added **Step 29** — automatically submits the full pipeline (Steps 9 → 11) with job dependencies
+
+10. Added **Step 30** — automatically submits the full pipeline (Steps 10 → 11) with job dependencies
 
 ---
 
