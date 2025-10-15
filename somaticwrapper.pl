@@ -863,9 +863,9 @@ sub bsub_parse_varscan{
 	print VARSCANP "mv \${snvoutbase} \${snvoutbase}.vcf","\n";
 	print VARSCANP "fi\n";
 	print VARSCANP "if [ ! -f \${indeloutbase}.vcf ]","\n";
-        print VARSCANP " then\n";
+    print VARSCANP " then\n";
 	print VARSCANP "mv \${indeloutbase} \${indeloutbase}.vcf","\n";
-        print VARSCANP "fi\n";
+    print VARSCANP "fi\n";
 	print VARSCANP "     ".$run_script_path."genomevip_label.pl VarScan \${snvoutbase}.vcf  \${snvoutbase}.gvip.vcf\n";
 	print VARSCANP "     ".$run_script_path."genomevip_label.pl VarScan \${indeloutbase}.vcf \${indeloutbase}.gvip.vcf\n";
 	print VARSCANP "echo 'APPLYING PROCESS FILTER TO SOMATIC SNVS:' &>> \${LOG}\n";
@@ -900,9 +900,9 @@ sub bsub_parse_varscan{
 	close VARSCANP; 
 
  	my $sh_file=$job_files_dir."/".$current_job_file;
-        $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
 	print $bsub_com;
-        submit_with_dep_cmd($bsub_com);
+    submit_with_dep_cmd($bsub_com);
 	}
 
 sub bsub_pindel{
@@ -1180,16 +1180,16 @@ sub bsub_mutect{
          }
 
 
-	 print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";	
-         print MUTECT "if [ $status_rerun -eq 1 ]\n";
-         print MUTECT "  then\n";
-         print MUTECT "rm \${rawvcf}\n";
-         print MUTECT "fi\n";
-	 print MUTECT '  if [ ! -s $rawvcf ]',"\n"; 
-         print MUTECT "  then\n";
-         print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP_MUTECT --cosmic $DB_COSMIC_MUTECT -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
- 	 print MUTECT "  fi\n"; 
-      }
+	print MUTECT "rawvcf=".$sample_full_path."/mutect1/mutect.raw.$chr.vcf\n";	
+    print MUTECT "if [ $status_rerun -eq 1 ]\n";
+    print MUTECT "  then\n";
+    print MUTECT "rm \${rawvcf}\n";
+    print MUTECT "fi\n";
+	print MUTECT '  if [ ! -s $rawvcf ]',"\n"; 
+    print MUTECT "  then\n";
+    print MUTECT "java  \${JAVA_OPTS} -jar "."$mutect1  -T MuTect -R $h38_REF -L $chr1 --dbsnp $DB_SNP_MUTECT --cosmic $DB_COSMIC_MUTECT -I:normal \${NBAM} -I:tumor \${TBAM} --artifact_detection_mode -vcf \${rawvcf}\n";
+ 	print MUTECT "  fi\n"; 
+    }
 
       print MUTECT "fi\n";
 
