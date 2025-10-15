@@ -4,63 +4,105 @@ use warnings;
 #use POSIX;
 use Getopt::Long;
 
-my $version = 3.0.0;
+# ------------------------------------------------------------------------------
+# Version
+# ------------------------------------------------------------------------------
+my $version = '3.0.0';
 
-#color code
-my $red = "\e[31m";
-my $gray = "\e[37m";
-my $yellow = "\e[33m";
-my $green = "\e[32m";
-my $purple = "\e[35m";
-my $cyan = "\e[36m";
-my $normal = "\e[0m";
-#usage information
+# ------------------------------------------------------------------------------
+# Color handling
+# ------------------------------------------------------------------------------
+my $use_color = (-t *STDOUT) && !$ENV{NO_COLOR};
 
-(my $usage = <<OUT) =~ s/\t+//g;
-Somatic variant calling pipeline 
-Pipeline version: $version
+my $red    = $use_color ? "\e[31m" : '';
+my $gray   = $use_color ? "\e[37m" : '';
+my $yellow = $use_color ? "\e[33m" : '';
+my $green  = $use_color ? "\e[32m" : '';
+my $purple = $use_color ? "\e[35m" : '';
+my $cyan   = $use_color ? "\e[36m" : '';
+my $normal = $use_color ? "\e[0m"  : '';
 
-$yellow     
-Usage: perl $0  --srg --sre --wgs --rdir --ref --log --q --mincovt --mincovn --minvaf --maxindsize --exonic --smg --groupname --users --step 
+# ------------------------------------------------------------------------------
+# Usage information
+# ------------------------------------------------------------------------------
+(my $usage = <<'OUT') =~ s/\t+//g;
+Somatic Variant Calling Pipeline
+Pipeline version: __VERSION__
 
-$normal
+__YELLOW__Usage:__NORMAL__ perl $0
+    --rdir <run_dir>  --ref <reference_fasta>  --log <log_dir>
+    --wgs <0|1>  --q <queue>  --groupname <name>
+    --users <user>  --srg <0|1>  --sre <0|1>
+    --mincovt <int>  --mincovn <int>  --minvaf <float>
+    --maxindsize <int>  --exonic <0|1>  --smg <file>
+    --step <int>
 
-<rdir> = full path of the folder holding files for this sequence run (user must provide)
-<log> = full path of the folder for saving log file; usually upper folder of rdir
-<wgs> = 1 if it is wgs data and otherwise it is 0; If you want to output the maf for all variants, set exonic to 0
-<groupname> = job group name
-<users> = user name for job group
-<srg> = bam having read group or not: 1, yes and 0, no (default 1)
-<sre> = re-run and overwrite previous results: 1, yes and 0, no  (default 0)
->>>>>>> a4a79c27f83ba1ebce51a18020e77b941eb33d2b
-<step> run this pipeline step by step. (user must provide)
-<ref> the human reference: 
-<q> which queue for submitting job; research-hpc, ding-lab, long (default)
-<mincovt> minimum coverage for tumor: default >=14
-<mincovn> minimum coverage for normal: default >=8
-<minvaf> minimum somatic vaf: default >=0.05
-<maxindsize> default <=100
-<exonic> output exonic region: 1 Yes, 0 No
-<smg> use smg list for calling
-hg38: /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa
- 
-$green [1]  Run streka
-$green [2]  Run Varscan
-$green [3]  Run Pindel
-$green [4]  Run mutect
-$yellow [5]  Parse mutect result
-$yellow [6]  Parse streka result
-$yellow [7]  Parse VarScan result
-$yellow [8]  Parse Pindel
-$cyan [9]  QC vcf files  
-$cyan [10] Merge vcf files  
-$cyan [11] Generate maf file 
-$cyan [12] Generate merged maf file
-$cyan [13] Annotate dnp and remove nearby snv near an indel
-$red [14] Clean unnecessary intermediate files
-$normal
+Arguments:
+  <rdir>        Full path to the folder holding files for this sequence run. (required)
+  <ref>         Human reference FASTA (e.g., hg38). (required)
+  <log>         Folder for saving log files; usually parent of <rdir>.
+  <wgs>         1 = WGS data; 0 = non-WGS. Set --exonic 0 to output all variants.
+  <groupname>   LSF job group name.
+  <users>       User name for the job group.
+  <srg>         BAM has read group? 1=yes (default), 0=no.
+  <sre>         Overwrite previous results? 1=yes, 0=no (default 0).
+  <q>           Queue: research-hpc, ding-lab, long (default long).
+  <mincovt>     Minimum tumor coverage (default ≥14).
+  <mincovn>     Minimum normal coverage (default ≥8).
+  <minvaf>      Minimum somatic VAF (default ≥0.05).
+  <maxindsize>  Maximum indel size (default ≤100).
+  <exonic>      Output exonic region? 1=Yes, 0=No.
+  <smg>         Use SMG list for calling.
+  <step>        Pipeline step number to run (see below).
+
+Reference preset:
+  hg38: /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa
+
+Step menu:
+  __GREEN__[0]__NORMAL__   Run j1–j11
+  __GREEN__[1]__NORMAL__   Run Strelka
+  __GREEN__[2]__NORMAL__   Run VarScan
+  __GREEN__[3]__NORMAL__   Run Pindel
+  __GREEN__[4]__NORMAL__   Run MuTect
+  __YELLOW__[5]__NORMAL__  Parse MuTect results
+  __YELLOW__[6]__NORMAL__  Parse Strelka results
+  __YELLOW__[7]__NORMAL__  Parse VarScan results
+  __YELLOW__[8]__NORMAL__  Parse Pindel results
+  __CYAN__[9]__NORMAL__    QC VCF files
+  __CYAN__[10]__NORMAL__   Merge VCF files
+  __CYAN__[11]__NORMAL__   Generate MAF file
+  __CYAN__[12]__NORMAL__   Generate merged MAF
+  __CYAN__[13]__NORMAL__   Annotate DNPs and remove SNVs near indels
+  __RED__[14]__NORMAL__    Clean intermediate files
+  __PURPLE__[22]__NORMAL__ Run j2–j11
+  __PURPLE__[23]__NORMAL__ Run j3–j11
+  __PURPLE__[24]__NORMAL__ Run j4–j11
+  __PURPLE__[25]__NORMAL__ Run j5–j11
+  __PURPLE__[26]__NORMAL__ Run j6–j11
+  __PURPLE__[27]__NORMAL__ Run j7–j11
+  __PURPLE__[28]__NORMAL__ Run j8–j11
+  __PURPLE__[29]__NORMAL__ Run j9–j11
+  __PURPLE__[30]__NORMAL__ Run j10–j11
+
+Examples:
+  perl $0 --rdir /data/run42 --ref hg38 --log /data --wgs 1 --exonic 1 --step 0
+  perl $0 --rdir /data/run42 --ref /refs/hg38.fa --q general --minvaf 0.08 --step 10
+  perl $0 --rdir /data/run42 --ref hg38 --sre 1 --groupname somatic --users scao --step 14
 
 OUT
+
+# Replace tokens with actual colors and version
+$usage =~ s/__VERSION__/$version/g;
+$usage =~ s/__RED__/$red/g;
+$usage =~ s/__GRAY__/$gray/g;
+$usage =~ s/__YELLOW__/$yellow/g;
+$usage =~ s/__GREEN__/$green/g;
+$usage =~ s/__PURPLE__/$purple/g;
+$usage =~ s/__CYAN__/$cyan/g;
+$usage =~ s/__NORMAL__/$normal/g;
+
+# Print usage
+print $usage and exit if @ARGV == 0;
 
 #__DEFAULT NUMBER OF BINS IE (MUST BE INTEGER)
 my $step_number = -1;
@@ -145,7 +187,7 @@ if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
 
-die $usage unless ($step_number >=0)&&(($step_number <= 14));
+die $usage unless ($step_number >=0)&&(($step_number <= 14 || ($step_number >=22 && $step_number <=30)));
 my $email = "scao\@wustl\.edu";
 
 my $HOME = $ENV{HOME};
@@ -233,7 +275,7 @@ my @sample_dir_list = readdir DH;
 close DH;
 
 # --- NEW: chaining helpers ---
-my $CHAIN_MODE = ($step_number == 0) ? 1 : 0; # turn on when step 0
+my $CHAIN_MODE = ($step_number == 0 || $step_number >= 22) ? 1 : 0;  # turn on when step 0 or >=22
 my $last_job_id = undef;                      # reset per sample
 
 sub submit_with_dep_cmd {
@@ -262,7 +304,7 @@ sub submit_with_dep_cmd {
 #`bgadd -L 70 $compute_username/$group_name`;
 
 
-if (($step_number < 12 && $step_number>=0) || $step_number == 14) {
+if (($step_number < 12 && $step_number>=0) || $step_number == 14 || $step_number > 21 && $step_number<=31) {#step 0 means run all steps
     #begin to process each sample
     for (my $i=0;$i<@sample_dir_list;$i++) {#use the for loop instead. the foreach loop has some problem to pass the global variable $sample_name to the sub functions
         $sample_name = $sample_dir_list[$i];
@@ -273,18 +315,42 @@ if (($step_number < 12 && $step_number>=0) || $step_number == 14) {
                 # NEW: reset chain per sample
                 $last_job_id = undef;
                 $current_job_file="";
-                if($step_number==0)
+                if($step_number==0 || $step_number>21)
                 {  
+                    if($step_number==0)
+                    {
                     &bsub_strelka();
-                    &bsub_varscan();
-                    &bsub_pindel();
-                    &bsub_mutect();
-                    &bsub_parse_mutect(); 
-                    &bsub_parse_strelka();
-                    &bsub_parse_varscan();
-                    &bsub_parse_pindel();
-                    &bsub_merge_vcf();
-                    &bsub_vcf_2_maf();
+                    }
+                    if($step_number<=22)
+                    {
+                    &bsub_varscan(); }
+                    if($step_number<=23)
+                    { 
+                    &bsub_pindel(); }
+                    if($step_number<=24)
+                    {
+                    &bsub_mutect(); }
+                    if($step_number<=25)
+                    {
+                    &bsub_parse_mutect(); }
+                    if($step_number<=26)
+                    {
+                    &bsub_parse_strelka(); }
+                    if($step_number<=27)
+                    {
+                    &bsub_parse_varscan(); }
+                    if($step_number<=28)
+                    {
+                    &bsub_parse_pindel(); }
+                    if($step_number<=29)
+                    {
+		            &bsub_qc_vcf(); }
+                    if($step_number<=30)
+                    {
+                    &bsub_merge_vcf(); }
+                    if($step_number<=31)
+                    {
+                    &bsub_vcf_2_maf(); }
                 }elsif ($step_number == 1) {
                     &bsub_strelka();
                 }elsif ($step_number == 2) {

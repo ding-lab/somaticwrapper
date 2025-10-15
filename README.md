@@ -82,7 +82,7 @@ perl somaticwrapper.pl --step 5 --rdir <run_dir> --log <log_dir> ...
 
 | Step | Description |
 |------|--------------|
-| 0 | **Submit all steps (1–14) automatically with dependencies** |
+| 0 | **Submit steps (1–11) automatically with dependencies** |
 | 1 | Run Strelka2 |
 | 2 | Run VarScan2 |
 | 3 | Run Pindel |
@@ -97,7 +97,15 @@ perl somaticwrapper.pl --step 5 --rdir <run_dir> --log <log_dir> ...
 | 12 | Merge run-level MAF |
 | 13 | DNP annotation |
 | 14 | Clean unnecessary intermediate files |
-
+| 22 | **Submit steps (2–11) automatically with dependencies** |
+| 23 | **Submit steps (3–11) automatically with dependencies** |
+| 24 | **Submit steps (4–11) automatically with dependencies** |
+| 25 | **Submit steps (5–11) automatically with dependencies** |
+| 26 | **Submit steps (6–11) automatically with dependencies** |
+| 27 | **Submit steps (7–11) automatically with dependencies** |
+| 28 | **Submit steps (8–11) automatically with dependencies** |
+| 29 | **Submit steps (9–11) automatically with dependencies** |
+| 30 | **Submit steps (10–11) automatically with dependencies** |
 ---
 
 ## ⚙️ Key Parameters
