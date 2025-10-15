@@ -1,52 +1,10 @@
-######### Song Cao###########
-##### email: scao@wustl.edu ####
-## pipeline for somatic variant callings ##
-#	somatic_variant_callings.pl #
-###	updated date: 04/05/2017 ###
-### updated date: 04/18/2017 ###
-### add vcf2maf.pl ###
-### 07/14/2017 ##
-##3 vaf_filter.pl ###
-### 08/25/2017 ####
-### add docker env for mgi ##
-### 09/28/17##
-## add finishing checks##
-### 11/13/17 ###
-## add option for log directory##
-## 09/26/18 ##
-## use mutect1.7; merging using 2 over 3 callers ##
-## add tsl for vcf2maf.pl ##
-
-## 08/19/19 ##
-## add a checking step for vcf before merging ##
-
-## add smg recovering module, Apr 23, 2020 ##
-## cp1 version, Oct 06, 2021
-
 #!/usr/bin/perl
-##!/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl
 use strict;
 use warnings;
 #use POSIX;
 use Getopt::Long;
 
-# ---- dependency globals ----
-our $J1_JIDS      = '';   # per-sample, many jobs (one per chr)
-our $J2_JID       = '';   # per-sample, single job (filter)
-our $J3_JID       = '';   # per-sample, single job (parse)
-our @ALL_J4_JIDS  = ();   # collect all samples' j4 job IDs (for run-level deps)
-our $J5_JID       = '';   # run-level report job
-# --------------------------------
-
 my $version = 3.0.0;
-
-# ---- dependency globals ----
-our $J1_JID      = '';   # per-sample, strekla
-our $J2_JID       = '';   # per-sample, single job (filter)
-our $J3_JID       = '';   # per-sample, single job (parse)
-our @ALL_J4_JIDS  = ();   # collect all samples' j4 job IDs (for run-level deps)
-our $J5_JID       = '';   # run-level report job
-# --------------------------------
 
 #color code
 my $red = "\e[31m";
@@ -274,6 +232,29 @@ opendir(DH, $run_dir) or die "Cannot open dir $run_dir: $!\n";
 my @sample_dir_list = readdir DH;
 close DH;
 
+# --- NEW: chaining helpers ---
+my $CHAIN_MODE = ($step_number == 0) ? 1 : 0; # turn on when step 0
+my $last_job_id = undef;                      # reset per sample
+
+sub submit_with_dep_cmd {
+    my ($cmd) = @_;
+    if ($CHAIN_MODE && defined $last_job_id) {
+        my $dep = qq{ -w "done($last_job_id)"};
+        if ($cmd =~ / -o /) {
+            $cmd =~ s/ -o /$dep -o /;
+        } else {
+            $cmd .= $dep;
+        }
+    }
+    print $cmd, "\n";
+    my $out = `$cmd`;
+    my ($jobid) = ($out =~ /Job\s+<(\d+)>/);
+    if ($CHAIN_MODE && defined $jobid) {
+        $last_job_id = $jobid;
+    }
+    return $jobid;
+}
+
 # check to make sure the input directory has correct structure
 #&check_input_dir($run_dir);
 # start data processsing
@@ -281,7 +262,7 @@ close DH;
 #`bgadd -L 70 $compute_username/$group_name`;
 
 
-if (($step_number < 12 && $step_number>0) || $step_number == 14) {
+if (($step_number < 12 && $step_number>=0) || $step_number == 14) {
     #begin to process each sample
     for (my $i=0;$i<@sample_dir_list;$i++) {#use the for loop instead. the foreach loop has some problem to pass the global variable $sample_name to the sub functions
         $sample_name = $sample_dir_list[$i];
@@ -289,34 +270,35 @@ if (($step_number < 12 && $step_number>0) || $step_number == 14) {
             $sample_full_path = $run_dir."/".$sample_name;
             if (-d $sample_full_path) { # is a full path directory containing a sample
                 print $yellow, "\nSubmitting jobs for the sample ",$sample_name, "...",$normal, "\n";
-			#	sleep 1;
+                # NEW: reset chain per sample
+                $last_job_id = undef;
                 $current_job_file="";
                 if($step_number==0)
                 {  
-			&bsub_strelka();
-			&bsub_varscan();
-			&bsub_pindel();
-			&bsub_mutect();
-			&bsub_parse_mutect(); 
-			&bsub_parse_strelka();
-			&bsub_parse_varscan();
-			&bsub_parse_pindel();
-			&bsub_merge_vcf();
-			&bsub_vcf_2_maf();
-		}elsif ($step_number == 1) {
+                    &bsub_strelka();
+                    &bsub_varscan();
+                    &bsub_pindel();
+                    &bsub_mutect();
+                    &bsub_parse_mutect(); 
+                    &bsub_parse_strelka();
+                    &bsub_parse_varscan();
+                    &bsub_parse_pindel();
+                    &bsub_merge_vcf();
+                    &bsub_vcf_2_maf();
+                }elsif ($step_number == 1) {
                     &bsub_strelka();
                 }elsif ($step_number == 2) {
                     &bsub_varscan(1);
                 }elsif ($step_number == 3) {
-		    &bsub_pindel(1);
+                    &bsub_pindel(1);
                 }elsif ($step_number == 4){
                     &bsub_mutect(1);
                 }elsif ($step_number == 5){
                     &bsub_parse_mutect(1);
                 }elsif ($step_number == 6) {
-		    &bsub_parse_strelka(1);
+                    &bsub_parse_strelka(1);
                 }elsif ($step_number == 7) {
-		    &bsub_parse_varscan(1);
+                    &bsub_parse_varscan(1);
                 }elsif ($step_number == 8) {
                     &bsub_parse_pindel(1);
                 }elsif ($step_number == 9) {
@@ -326,8 +308,8 @@ if (($step_number < 12 && $step_number>0) || $step_number == 14) {
                 }elsif ($step_number == 11) {
                     &bsub_vcf_2_maf(1);
                 }elsif ($step_number == 14) {
-		    &bsub_clean(1);
-				} 
+                    &bsub_clean(1);
+                } 
            }
         }
     }
@@ -357,10 +339,10 @@ if($step_number==12)
 
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
-    system ($bsub_com);
+    submit_with_dep_cmd($bsub_com);
 
 }
 
@@ -428,16 +410,12 @@ if($step_number==13)
 	#print DNP "      ".$run_script_path."add_caller.pl ".$run_dir." ".$f_maf_rc." ".$f_maf_rc_caller."\n";
     close DNP;
 
-    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    #system ($bsub_com);
-
-
     my $sh_file=$job_files_dir."/".$current_job_file;
-    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
 
-    system ($bsub_com);
+    submit_with_dep_cmd($bsub_com);
 
 }
 
@@ -481,17 +459,6 @@ sub bsub_strelka{
 
     open(STREKA, ">$job_files_dir/$current_job_file") or die $!;
     print STREKA "#!/bin/bash\n";
-    #print STREKA "#BSUB -n 1\n";
-    #print STREKA "#BSUB -R \"rusage[mem=30000]\"","\n";
-    #print STREKA "#BSUB -M 30000000\n";
-    #print STREKA "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-    #print STREKA "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-    #print STREKA "#BSUB -J $current_job_file\n";
-    #print STREKA "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print STREKA "#BSUB -q long\n";
-    #print STREKA "#BSUB -q research-hpc\n";
-	#print STREKA "#BSUB -q long\n";
-	#print STREKA "scr_t0=\`date \+\%s\`\n";
     print STREKA "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print STREKA "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
     print STREKA "myRUNDIR=".$sample_full_path."/strelka\n";
@@ -501,8 +468,6 @@ sub bsub_strelka{
     print STREKA "RUNDIR=".$sample_full_path."\n";
     print STREKA "STRELKA_OUT=".$sample_full_path."/strelka/strelka_out"."\n";
     print STREKA "STRELKA_VCF=".$sample_full_path."/strelka/strelka_out/results/somatic.snvs.vcf.gz"."\n"; 
-    #print STREKA "STRELKA_VCF=".$sample_full_path."/strelka/strelka_out/results/passed.somatic.snvs.vcf"."\n";   
-	#print STREKA "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
     print STREKA "TASK_STATUS=".$sample_full_path."/strelka/strelka_out/task.complete"."\n";
     print STREKA "export SAMTOOLS_DIR=$samtools\n";
     print STREKA "export JAVA_HOME=$java_dir\n";
@@ -529,26 +494,16 @@ sub bsub_strelka{
     print STREKA "then\n";
     print STREKA "rm -rf \${STRELKA_OUT}\n";
     print STREKA "fi\n";
-    print STREKA "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n"; 
+    print STREKA "if [[ -z \"\$LD_LIBRARY_PATH\" ]] ; then\n"; 
     print STREKA "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
     print STREKA "else\n";
     print STREKA "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
     print STREKA "fi\n";
-	#print STREKA "put_cmd=\"ln -s\"\n";
-	#print STREKA "del_cmd=\"rm -f\"\n";
-	#print STREKA "del_local=\"rm -f\"\n";
-	#print STREKA "statfile=incomplete.strelka\n";
-	#print STREKA "localstatus=".$sample_full_path."/status/\$statfile\n";
-	#print STREKA "touch \$localstatus\n";
-    #print STREKA ". $script_dir/set_envvars\n";
-#   	print STREKA ". /gscmnt/gc2525/dinglab/rmashl/Software/perl/set_envvars\n";
-   # print STREKA 	
     print STREKA "if [ $s_wgs -eq 1 ]\n";
     print STREKA "  then\n";
     print STREKA "   ".$STRELKA_DIR2."/configureStrelkaSomaticWorkflow.py --normalBam=\$NBAM --tumorBam=\$TBAM --referenceFasta=$h38_REF --callMemMb=1024 --runDir=\$STRELKA_OUT\n";
     print STREKA "else\n";	
     print STREKA "   ".$STRELKA_DIR2."/configureStrelkaSomaticWorkflow.py --normalBam=\$NBAM --tumorBam=\$TBAM --referenceFasta=$h38_REF --callMemMb=1024 --exome --runDir=\$STRELKA_OUT\n";
-	#print STREKA "   ".$STRELKA_DIR2."/configureStrelkaWorkflow.pl --normal \$NBAM --tumor \$TBAM --ref ". $h38_REF." --config $script_dir/strelka.ini --output-dir \$STRELKA_OUT\n";
     print STREKA "fi\n";
     print STREKA "cd \$STRELKA_OUT\n";
     print STREKA "\$STRELKA_OUT/runWorkflow.py -m local -j 8 -g 4\n";
@@ -558,18 +513,9 @@ sub bsub_strelka{
 
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-	if($q_name eq "research-hpc")
-	{
-    $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-	else { 
-	    $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -o $lsf_out -e $lsf_err bash $sh_file\n"; 
-	}
-    #$bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";     
-
-    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
     print $bsub_com;
-    my $out = `$bsub_com`;
-    if ($out =~ /Job <(\d+)>/) { $J1_JID = $1; }
+    submit_with_dep_cmd($bsub_com);
 
 }
 
@@ -616,25 +562,12 @@ sub bsub_varscan{
     }
     open(VARSCAN, ">$job_files_dir/$current_job_file") or die $!;
     print VARSCAN "#!/bin/bash\n";
-   # print VARSCAN "#BSUB -n 1\n";
-   # print VARSCAN "#BSUB -R \"rusage[mem=30000]\"","\n";
-   # print VARSCAN "#BSUB -M 30000000\n";
-   # print VARSCAN "#BSUB -o $lsf_file_dir","/","$current_job_file.out\n";
-   # print VARSCAN "#BSUB -e $lsf_file_dir","/","$current_job_file.err\n";
-   # print VARSCAN "#BSUB -J $current_job_file\n";
-  #	print VARSCAN "#BSUB -w \"$hold_job_file\"","\n";
-   #   print VARSCAN "#BSUB -q long\n";
-    #print VARSCAN "#BSUB -a \'docker(registry.gsc.wustl.edu/genome/genome_perl_environment)\'\n";
-    #print VARSCANP "#BSUB -q long\n";
-    #print VARSCAN "#BSUB -q research-hpc\n";
     print VARSCAN "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     print VARSCAN "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
     print VARSCAN "myRUNDIR=".$sample_full_path."/varscan\n";
     print VARSCAN "STATUSDIR=".$sample_full_path."/status\n";
     print VARSCAN "RESULTSDIR=".$sample_full_path."/varscan_results\n";
     print VARSCAN "RUNDIR=".$sample_full_path."\n";
-    #print VARSCAN "CONFDIR="."/gscmnt/gc2521/dinglab/cptac_prospective_samples/exome/config\n";
-    #print VARSCAN "GENOMEVIP_SCRIPTS=/gscmnt/gc2525/dinglab/rmashl/Software/bin/genomevip\n";
     print VARSCAN "export VARSCAN_DIR=$varscan\n";
     print VARSCAN "export SAMTOOLS_DIR=$samtools\n";
     print VARSCAN "export JAVA_HOME=$java_dir\n";
@@ -644,7 +577,7 @@ sub bsub_varscan{
     print VARSCAN "then\n";
     print VARSCAN "mkdir \${myRUNDIR}\n";
     print VARSCAN "fi\n";
-    print VARSCAN "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+    print VARSCAN "if [[ -z \"\$LD_LIBRARY_PATH\" ]] ; then\n";
     print VARSCAN "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
     print VARSCAN "else\n";
     print VARSCAN "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
@@ -684,45 +617,24 @@ sub bsub_varscan{
     print VARSCAN "echo \"$IN_bam_N\" > \${BAMLIST}\n"; 
     print VARSCAN "echo \"$IN_bam_T\" >> \${BAMLIST}\n";  
     print VARSCAN "ncols=9\n"; 
-    print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal $mincov_n --min-coverage-tumor $mincov_t --min-var-freq $minvaf --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
-    print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";# one possible blast error (see the end of this script). 
+    print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols 'NF==ncols' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal $mincov_n --min-coverage-tumor $mincov_t --min-var-freq $minvaf --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
+    print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";
     print VARSCAN '      CHECK=$?',"\n";
     print VARSCAN '      while [ ${CHECK} -eq 0 ]',"\n";
     print VARSCAN "      do\n";
-    print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols \'NF==ncols\' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal $mincov_n --min-coverage-tumor $mincov_t --min-var-freq $minvaf --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
+    print VARSCAN "\${SAMTOOLS_DIR}/samtools mpileup -q 1 -Q 13 -B -f $h38_REF -b \${BAMLIST} | awk -v ncols=\$ncols 'NF==ncols' | java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somatic - \${TMPBASE} --mpileup 1 --p-value 0.99 --somatic-p-value 0.05 --min-coverage-normal $mincov_n --min-coverage-tumor $mincov_t --min-var-freq $minvaf --min-freq-for-hom 0.75 --normal-purity 1.00 --tumor-purity 1.00 --strand-filter 1 --min-avg-qual 15 --output-vcf 1 --output-snp \${snvoutbase} --output-indel \${indeloutbase} &> \${LOG}\n";
     print VARSCAN '      grep "Error occurred during initialization of VM" ${LOG}',"\n";
     print VARSCAN '          CHECK=$?',"\n";
     print VARSCAN "      done\n";
-    #print VARSCAN "  fi\n";
     print VARSCAN "touch \${localstatus}\n";
     print VARSCAN "fi\n";
     close VARSCAN;	
 
-
     my $sh_file=$job_files_dir."/".$current_job_file;
-
-  #  if($q_name eq "research-hpc")
-   # {
-   # $bsub_com = "bsub -q research-hpc -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }
-   # else {        $bsub_com = "bsub -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";   }
-   # print $bsub_com;
-   # system ($bsub_com);
-
-    my $dep2 = "";
-    if (defined $status_dep && $status_dep eq "1") {
-    $dep2 = $J1_JID ? "-w \"done($J1_JID)\" " : "";
-    }
-
-     $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub ${dep2}-g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
-
-        print $bsub_com;
-        system ($bsub_com);
-
-    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-    #system ( $bsub_com );
-
+    $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    print $bsub_com;
+    submit_with_dep_cmd($bsub_com);
 }
-
 
 sub bsub_parse_strelka{
 
@@ -732,7 +644,6 @@ sub bsub_parse_strelka{
     }else{
         $hold_job_file = $current_job_file;
     }
-
 
     $current_job_file = "j6_parse_strelka".$sample_name.".sh";
 
@@ -776,7 +687,7 @@ sub bsub_parse_strelka{
     print STREKAP "streka.dbsnp.indel.passfile  = ./strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
     print STREKAP "streka.dbsnp.indel.dbsnpfile = ./strelka.somatic.indel.all.gvip.dbsnp_present.vcf\n";
     print STREKAP "EOF\n";
-    print STREKAP "FP_BAM=\`awk \'{if(NR==1){print \$1}}\' \${RUNDIR}/varscan/bamfilelist.inp\`\n";
+    print STREKAP "FP_BAM=`awk '{if(NR==1){print $1}}' \${RUNDIR}/varscan/bamfilelist.inp`\n";
     print STREKAP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_fpfilter.snv.input <<EOF\n";
     print STREKAP "strelka.fpfilter.snv.bam_readcount = $bamreadcount\n";
     print STREKAP "strelka.fpfilter.snv.bam_file = $IN_bam_T\n";
@@ -835,16 +746,12 @@ sub bsub_parse_strelka{
     print STREKAP "  fi\n";
     close STREKAP;
 
-    #my $sh_file=$job_files_dir."/".$current_job_file;
-
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-  #  $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
-$bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
-
-        print $bsub_com;
-        system ($bsub_com);
+    print $bsub_com;
+    submit_with_dep_cmd($bsub_com);
 
 }
 sub bsub_parse_varscan{
@@ -855,7 +762,6 @@ sub bsub_parse_varscan{
          }else{
         $hold_job_file = $current_job_file;
         }
-
 
   	$current_job_file = "j7_parse_varscan".$sample_name.".sh";
 
@@ -870,7 +776,7 @@ sub bsub_parse_varscan{
         open(VARSCANP, ">$job_files_dir/$current_job_file") or die $!;
 
         print VARSCANP "#!/bin/bash\n";
-        print VARSCANP "scr_t0=\`date \+\%s\`\n";
+        print VARSCANP "scr_t0=`date +%s`\n";
 	print VARSCANP "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
     	print VARSCANP "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
         print VARSCANP "myRUNDIR=".$sample_full_path."/varscan\n";
@@ -897,7 +803,7 @@ sub bsub_parse_varscan{
 	print VARSCANP "varscan.dbsnp.indel.passfile  = ./varscan.out.som_indel.gvip.Somatic.hc.dbsnp_pass.vcf\n";
 	print VARSCANP "varscan.dbsnp.indel.dbsnpfile = ./varscan.out.som_indel.gvip.Somatic.hc.dbsnp_present.vcf\n";
 	print VARSCANP "EOF\n";
-	print VARSCANP "FP_BAM=\`awk \'{if(NR==2){print \$1}}\' \${RUNDIR}/varscan/bamfilelist.inp\`\n";	
+	print VARSCANP "FP_BAM=`awk '{if(NR==2){print $1}}' \${RUNDIR}/varscan/bamfilelist.inp`\n";	
 	print VARSCANP "cat > \${RUNDIR}/varscan/vs_fpfilter.somatic.snv.input <<EOF\n";
 	print VARSCANP "varscan.fpfilter.snv.bam_readcount = $bamreadcount\n";
 	print VARSCANP "varscan.fpfilter.snv.bam_file = \${FP_BAM}\n";
@@ -923,34 +829,34 @@ sub bsub_parse_varscan{
 	print VARSCANP "varscan.fpfilter.snv.max_avg_mapping_qual_difference = 50\n";
 	print VARSCANP "EOF\n";
 	print VARSCANP "if [ ! -d \${myRUNDIR} ]\n";
-        print VARSCANP "then\n";
-        print VARSCANP "mkdir \${myRUNDIR}\n";
-        print VARSCANP "fi\n";
-        print VARSCANP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
-        print VARSCANP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
-        print VARSCANP "else\n";
-        print VARSCANP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
-        print VARSCANP "fi\n";
-        print VARSCANP "put_cmd=\"ln -s\"\n";
-        print VARSCANP "del_cmd=\"rm -f\"\n";
-        print VARSCANP "del_local=\"rm -f\"\n";
-        print VARSCANP "statfile=complete.vs_som_parser\n";
-        print VARSCANP "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
-        print VARSCANP "if [ ! -d \${myRUNDIR}\/status ]\n";
-        print VARSCANP "then\n";
-        print VARSCANP "mkdir \${myRUNDIR}\/status\n";
-        print VARSCANP "fi\n";
-        print VARSCANP "if [ $status_rerun -eq 1 ]\n";
-        print VARSCANP "  then\n";
-        print VARSCANP "rm \${localstatus}\n";
-        print VARSCANP "fi\n";
-        print VARSCANP "if [ ! -f  \${localstatus} ]\n";
+    print VARSCANP "then\n";
+    print VARSCANP "mkdir \${myRUNDIR}\n";
+    print VARSCANP "fi\n";
+    print VARSCANP "if [[ -z \"\$LD_LIBRARY_PATH\" ]] ; then\n";
+    print VARSCANP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
+    print VARSCANP "else\n";
+    print VARSCANP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
+    print VARSCANP "fi\n";
+    print VARSCANP "put_cmd=\"ln -s\"\n";
+    print VARSCANP "del_cmd=\"rm -f\"\n";
+    print VARSCANP "del_local=\"rm -f\"\n";
+    print VARSCANP "statfile=complete.vs_som_parser\n";
+    print VARSCANP "localstatus=\${myRUNDIR}\/status\/\${statfile}\n";
+    print VARSCANP "if [ ! -d \${myRUNDIR}\/status ]\n";
+    print VARSCANP "then\n";
+    print VARSCANP "mkdir \${myRUNDIR}\/status\n";
+    print VARSCANP "fi\n";
+    print VARSCANP "if [ $status_rerun -eq 1 ]\n";
+    print VARSCANP "  then\n";
+    print VARSCANP "rm \${localstatus}\n";
+    print VARSCANP "fi\n";
+    print VARSCANP "if [ ! -f  \${localstatus} ]\n";
 	print VARSCANP "then\n";
-        print VARSCANP "cd \${RUNDIR}/varscan\n";
-        print VARSCANP "TMPBASE=.\/varscan.out.som\n";
-        print VARSCANP "LOG=\${TMPBASE}.log\n";
-        print VARSCANP "snvoutbase=\${TMPBASE}_snv\n";
-        print VARSCANP "indeloutbase=\${TMPBASE}_indel\n";
+    print VARSCANP "cd \${RUNDIR}/varscan\n";
+    print VARSCANP "TMPBASE=.\/varscan.out.som\n";
+    print VARSCANP "LOG=\${TMPBASE}.log\n";
+    print VARSCANP "snvoutbase=\${TMPBASE}_snv\n";
+    print VARSCANP "indeloutbase=\${TMPBASE}_indel\n";
 	print VARSCANP "cd \${RUNDIR}/varscan\n";
 	print VARSCANP "if [ ! -f \${snvoutbase}.vcf ]","\n";
 	print VARSCANP "  then\n";
@@ -962,41 +868,41 @@ sub bsub_parse_varscan{
         print VARSCANP "fi\n";
 	print VARSCANP "     ".$run_script_path."genomevip_label.pl VarScan \${snvoutbase}.vcf  \${snvoutbase}.gvip.vcf\n";
 	print VARSCANP "     ".$run_script_path."genomevip_label.pl VarScan \${indeloutbase}.vcf \${indeloutbase}.gvip.vcf\n";
-	print VARSCANP "echo \'APPLYING PROCESS FILTER TO SOMATIC SNVS:\' &>> \${LOG}\n";
+	print VARSCANP "echo 'APPLYING PROCESS FILTER TO SOMATIC SNVS:' &>> \${LOG}\n";
 	print VARSCANP "mysnvorig=./\${snvoutbase}.gvip.vcf\n";
 	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${mysnvorig} --min-tumor-freq $minvaf --max-normal-freq 0.05 --p-value 0.05  &>> \${LOG}\n";
 	print VARSCANP "     ".$run_script_path."extract_somatic_other.pl <  \${mysnvorig}  > \${mysnvorig/%vcf/other.vcf}\n";
-        print VARSCANP "for kk in Somatic Germline LOH ; do\n";
+    print VARSCANP "for kk in Somatic Germline LOH ; do\n";
    	print VARSCANP "thisorig=\${mysnvorig/%vcf/\$kk.vcf}\n";
-        print VARSCANP "thispass=\${mysnvorig/%vcf/\$kk.hc.vcf}\n";
+    print VARSCANP "thispass=\${mysnvorig/%vcf/\$kk.hc.vcf}\n";
    	print VARSCANP "thisfail=\${mysnvorig/%vcf/\$kk.lc.vcf}\n";
 	print VARSCANP "done\n";
-	print VARSCANP "echo \'APPLYING PROCESS FILTER TO SOMATIC INDELS:\' &>> \$LOG\n";
+	print VARSCANP "echo 'APPLYING PROCESS FILTER TO SOMATIC INDELS:' &>> \${LOG}\n";
 	print VARSCANP "myindelorig=./\$indeloutbase.gvip.vcf\n";
 	print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar processSomatic \${myindelorig}   --min-tumor-freq  $minvaf   --max-normal-freq  0.05   --p-value  0.05  &>> \${LOG}\n";
 	print VARSCANP "     ".$run_script_path."extract_somatic_other.pl <  \${myindelorig}  >  \${myindelorig/%vcf/other.vcf}\n";
 	print VARSCANP "for kk in Somatic Germline LOH ; do\n";
-        print VARSCANP "thisorig=\${myindelorig/%vcf/\$kk.vcf}\n";
+    print VARSCANP "thisorig=\${myindelorig/%vcf/\$kk.vcf}\n";
    	print VARSCANP "thispass=\${myindelorig/%vcf/\$kk.hc.vcf}\n";
    	print VARSCANP "thisfail=\${myindelorig/%vcf/\$kk.lc.vcf}\n";
 	print VARSCANP "done\n";
-	print VARSCANP "echo \'APPLYING SOMATIC FILTER:\' &>> \${LOG}\n";
+	print VARSCANP "echo 'APPLYING SOMATIC FILTER:' &>> \${LOG}\n";
 	print VARSCANP "thissnvorig=\${snvoutbase}.gvip.Somatic.hc.vcf\n";
 	print VARSCANP "myindelorig=\${indeloutbase}.gvip.vcf\n";
 	print VARSCANP "thissnvpass=\${snvoutbase}.gvip.Somatic.hc.somfilter_pass.vcf\n";
 	print VARSCANP "thissnvfail=\${snvoutbase}.gvip.Somatic.hc.somfilter_fail.vcf\n";
 ### remove mincov cut-off ##
-        print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somaticFilter  ./\${thissnvorig} --min-reads2  4   --min-strands2  1   --min-avg-qual  20   --min-var-freq  $minvaf --p-value  0.05   --indel-file  ./\${myindelorig} --output-file  ./\${thissnvpass}  &>> \${LOG}\n";
+    print VARSCANP "java \${JAVA_OPTS} -jar \${VARSCAN_DIR}/VarScan.jar somaticFilter  ./\${thissnvorig} --min-reads2  4   --min-strands2  1   --min-avg-qual  20   --min-var-freq  $minvaf --p-value  0.05   --indel-file  ./\${myindelorig} --output-file  ./\${thissnvpass}  &>> \${LOG}\n";
 	print VARSCANP "     ".$run_script_path."dbsnp_filter.pl  \${RUNDIR}/varscan/vs_dbsnp_filter.snv.input\n";
 	print VARSCANP "     ".$run_script_path."dbsnp_filter.pl \${RUNDIR}/varscan/vs_dbsnp_filter.indel.input\n";
-        print VARSCANP "touch \${localstatus}\n";
+    print VARSCANP "touch \${localstatus}\n";
 	print VARSCANP "fi\n";
 	close VARSCANP; 
 
  	my $sh_file=$job_files_dir."/".$current_job_file;
-        $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+        $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
 	print $bsub_com;
-        system ($bsub_com);
+        submit_with_dep_cmd($bsub_com);
 	}
 
 sub bsub_pindel{
@@ -1050,11 +956,10 @@ sub bsub_pindel{
 
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-    $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
-    system ($bsub_com);
-
+    submit_with_dep_cmd($bsub_com);
 
 	}
 
@@ -1118,7 +1023,7 @@ sub bsub_parse_pindel {
     print PP "then\n";
     print PP "cd \${RUNDIR}/pindel\n";
     print PP "outlist=pindel.out.filelist\n";
-    print PP "find \. -name \'*_D\' -o -name \'*_SI\' -o -name \'*_INV\' -o -name \'*_TD\'  > \./\${outlist}\n";
+    print PP "find \. -name '*_D' -o -name '*_SI' -o -name '*_INV' -o -name '*_TD'  > ./\${outlist}\n";
     print PP 'list=$(xargs -a  ./$outlist)'."\n";
     print PP "pin_var_file=pindel.out.raw\n";
     print PP 'cat $list | grep ChrID > ./$pin_var_file'."\n";
@@ -1129,11 +1034,10 @@ sub bsub_parse_pindel {
     print PP "done\n";
     print PP 'current_final=${pin_var_file/%raw/current_final.gvip.Somatic.vcf}'."\n";
     print PP 'cat ./${pre_current_final/%vcf/gvip.vcf} > ./$current_final'."\n";
-#	print PP "fi\n";
     print PP "export JAVA_HOME=$java_dir\n";
     print PP "export JAVA_OPTS=\"-Xmx10g\"\n";
     print PP "export PATH=\${JAVA_HOME}/bin:\${PATH}\n";
-    print PP "if \[\[ -z \"\$LD_LIBRARY_PATH\" \]\] \; then\n";
+    print PP "if [[ -z \"\$LD_LIBRARY_PATH\" ]] ; then\n";
     print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib\n";
     print PP "else\n";
     print PP "export LD_LIBRARY_PATH=\${JAVA_HOME}/lib:\${LD_LIBRARY_PATH}\n";
@@ -1152,9 +1056,9 @@ sub bsub_parse_pindel {
     close PP;
 
     my $sh_file=$job_files_dir."/".$current_job_file;
-    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
     print $bsub_com;
-    system ($bsub_com);	
+    submit_with_dep_cmd($bsub_com);	
  
  }
 
@@ -1294,19 +1198,10 @@ sub bsub_mutect{
 
       my $sh_file=$job_files_dir."/".$current_job_file;
 
-      $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+      $bsub_com = "LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
-    #$bsub_com = "bsub < $job_files_dir/$current_job_file\n";
-     #my $sh_file=$job_files_dir."/".$current_job_file;
-    #if($q_name eq "research-hpc")
-    #{
-   # $bsub_com = "bsub -q research-hpc -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";     }    
-#	else 
-#	{        
-#	$bsub_com = "bsub -q $q_name -n 4 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -w \"$hold_job_file\" -o $lsf_out -e $lsf_err bash $sh_file\n";                                
- #   }
       print $bsub_com;
-      system ($bsub_com);
+      submit_with_dep_cmd($bsub_com);
 
 }
 
@@ -1352,10 +1247,9 @@ sub bsub_parse_mutect{
     print PM "     ".$run_script_path."merge_mutect.pl $sample_full_path\n";   
     close PM;
     my $sh_file=$job_files_dir."/".$current_job_file;
-    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
     print $bsub_com;
-    system ($bsub_com);
-
+    submit_with_dep_cmd($bsub_com);
 
 }
 
@@ -1386,10 +1280,10 @@ sub bsub_qc_vcf{
     close QC;
     my $sh_file=$job_files_dir."/".$current_job_file;
 
-    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
-    system ($bsub_com);
+    submit_with_dep_cmd($bsub_com);
 
 }
 
@@ -1435,11 +1329,10 @@ sub bsub_merge_vcf{
     print MERGE "java \${JAVA_OPTS} -jar $gatk -R $h38_REF -T CombineVariants -o \${MERGER_OUT} --variant:varscan \${VARSCAN_VCF} --variant:strelka \${STRELKA_VCF} --variant:mutect \${MUTECT_VCF} --variant:varindel \${VARSCAN_INDEL} --variant:sindel \${STRELKA_INDEL} --variant:pindel \${PINDEL_VCF_FILTER} -genotypeMergeOptions PRIORITIZE -priority strelka,varscan,mutect,sindel,varindel,pindel\n"; 
     close MERGE;
     my $sh_file=$job_files_dir."/".$current_job_file;
-    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
-    system ($bsub_com);
-
+    submit_with_dep_cmd($bsub_com);
 
    }
 
@@ -1502,7 +1395,6 @@ sub bsub_vcf_2_maf{
   
 	### vep and vcf2maf annotation for all variants to get the annotated gene name for each variant ##
     print MAF "cd \${RUNDIR}\n";
-    #print MAF ". $script_dir/set_envvars\n";
     print MAF "     ".$run_script_path."remove_largeindel.pl \${F_VCF_1} \${F_VCF_rm}\n";
     print MAF "     ".$run_script_path."vep_annotator.pl ./vep.merged.withmutect.input >&./vep.merged.withmutect.log\n";
     print MAF "rm \${F_VCF_2}\n";
@@ -1522,10 +1414,9 @@ sub bsub_vcf_2_maf{
 
 
     my $sh_file=$job_files_dir."/".$current_job_file;
-    $bsub_com = "LSF_DOCKER_ENTRYPOINT=/bin/bash LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a \'docker(ensemblorg/ensembl-vep:release_102.0)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "LSF_DOCKER_ENTRYPOINT=/bin/bash LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(ensemblorg/ensembl-vep:release_102.0)' -o $lsf_out -e $lsf_err bash $sh_file\n";
     print $bsub_com;
-    system ($bsub_com);
-
+    submit_with_dep_cmd($bsub_com);
 
  }
 
@@ -1590,10 +1481,9 @@ sub bsub_clean{
 
 
     my $sh_file=$job_files_dir."/".$current_job_file;
-    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    $bsub_com = "bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>100000] rusage[mem=100000]\" -M 100000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $sh_file\n";
 
     print $bsub_com;
-    system ($bsub_com);
+    submit_with_dep_cmd($bsub_com);
 
 }
- 
