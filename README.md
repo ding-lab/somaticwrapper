@@ -1,5 +1,5 @@
 
-# Somaticwrapper version 2.3, compute1 #
+# Somaticwrapper version 2.4, compute1 #
 
 Detect somatic variants from tumor and normal WGS/WXS data (HG38 reference). SomaticWrapper pipeline is a fully automated and modular software package designed for detection of somatic variants from tumor and normal exome data. It works on LSF job scheduler and can run multiple jobs in parallel. Multiple standard variant calling tools are included in the pipeline such as varscan2, strelka2, mutect1 and pindel. The final called variant can be found from dnp.annotated.maf for all variants and dnp.annotated.coding.maf for coding variants.  
 
@@ -24,9 +24,6 @@ export STORAGE1=/storage1/fs1/songcao/Active
 export SCRATCH1=/storage1/fs1/songcao/
 
 export LSF_DOCKER_VOLUMES="$STORAGE1:$STORAGE1 $STORAGE2:$STORAGE2"
-
-Then, start interactive queue environment for running jobs: 
-bsub -G compute-dinglab -q dinglab-interactive -Is -a 'docker(scao/dailybox)' /bin/bash
 
 Step1: Enter the directory where you downloaded somaticwrapper pipeline 
 
