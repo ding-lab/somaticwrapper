@@ -74,7 +74,8 @@ Step menu:
   __CYAN__[12]__NORMAL__   Generate merged MAF
   __CYAN__[13]__NORMAL__   Annotate DNPs and remove SNVs near indels
   __CYAN__[14]__NORMAL__   Generate germline readcounts using curated variants (rs_markers.germlineMissense.hg38.loci)
-  __RED__[15]__NORMAL__   Clean intermediate files
+  __CYAN__[15]__NORMAL__   Sample QC
+  __RED__[16]__NORMAL__   Clean intermediate files
   __PURPLE__[22]__NORMAL__ Run j2–j11
   __PURPLE__[23]__NORMAL__ Run j3–j11
   __PURPLE__[24]__NORMAL__ Run j4–j11
@@ -188,7 +189,7 @@ if ($run_dir =~/(.+)\/$/) {
     $run_dir = $1;
 }
 
-die $usage unless ($step_number >=0)&&(($step_number <= 14 || ($step_number >=22 && $step_number <=30)));
+die $usage unless ($step_number >=0)&&(($step_number <= 16 || ($step_number >=22 && $step_number <=30)));
 my $email = "scao\@wustl\.edu";
 
 my $HOME = $ENV{HOME};
@@ -222,8 +223,11 @@ print $script_dir,"\n";
 
 #$run_script_path = "/gscmnt/gc2525/dinglab/rmashl/Software/perl/perl-5.22.0/bin/perl ".$run_script_path."/";
 $run_script_path = "/usr/bin/perl ".$run_script_path."/";
+my $run_python_path = "python ".$script_dir."/";
 
 print $run_script_path,"\n";
+print $run_python_path,"\n";
+
 my $hold_RM_job = "norm";
 my $current_job_file = "";#cannot be empty
 my $hold_job_file = "";
@@ -305,7 +309,7 @@ sub submit_with_dep_cmd {
 #`bgadd -L 70 $compute_username/$group_name`;
 
 
-if (($step_number < 12 && $step_number>=0) || $step_number == 14 || $step_number > 21 && $step_number<=31) {#step 0 means run all steps
+if (($step_number < 12 && $step_number>=0) || $step_number == 14 || $step_number == 16 || $step_number > 21 && $step_number<=31) {#step 0 means run all steps
     #begin to process each sample
     for (my $i=0;$i<@sample_dir_list;$i++) {#use the for loop instead. the foreach loop has some problem to pass the global variable $sample_name to the sub functions
         $sample_name = $sample_dir_list[$i];
@@ -376,7 +380,7 @@ if (($step_number < 12 && $step_number>=0) || $step_number == 14 || $step_number
                     &bsub_vcf_2_maf(1);
                 }elsif ($step_number == 14) {
                     &bsub_rc(1);
-                }elsif ($step_number == 15) {
+                }elsif ($step_number == 16) {
                     &bsub_clean(1);
                 } 
            }
@@ -488,6 +492,32 @@ if($step_number==13)
 
 }
 
+if($step_number==15)
+{
+    print $yellow, "Submitting jobs for sample QC ....", $normal, "\n";
+    $hold_job_file = $current_job_file;
+    $current_job_file = "j15_sampleqc_".$working_name.".sh";
+
+    my $lsf_out = $lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err = $lsf_file_dir."/".$current_job_file.".err";
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+    `rm $current_job_file`;
+
+    open(QC, ">$job_files_dir/$current_job_file") or die $!;
+    print QC "#!/bin/bash\n";
+    print QC "set -e\n";
+    print QC "python $script_dir/vaf_corr.nopd.py -i $run_dir -o $run_dir/vaf_corr.allpairs.tsv\n";
+    print QC "Rscript $script_dir/heatmap_cor.r -i $run_dir/vaf_corr.allpairs.tsv -o $run_dir/vaf_corr.allpairs.heatmap.pdf\n";
+    close QC;
+
+    my $sh_file = $job_files_dir."/".$current_job_file;
+
+    $bsub_com = "LSF_DOCKER_ENTRYPOINT=/bin/bash LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/seurat5.2.1_20250303)' -o $lsf_out -e $lsf_err bash $sh_file\n";
+
+   # print $bsub_com;
+    submit_with_dep_cmd($bsub_com);
+}
 
 exit;
 
@@ -1563,7 +1593,7 @@ sub bsub_rc{
 
 sub bsub_clean{
     #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
-    $current_job_file = "j15_clean_".$sample_name.".sh";
+    $current_job_file = "j16_clean_".$sample_name.".sh";
     
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
