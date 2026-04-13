@@ -7,7 +7,7 @@ use Getopt::Long;
 # ------------------------------------------------------------------------------
 # Version
 # ------------------------------------------------------------------------------
-my $version = '3.0.0';
+my $version = '3.0.1';
 
 # ------------------------------------------------------------------------------
 # Color handling
@@ -73,7 +73,8 @@ Step menu:
   __CYAN__[11]__NORMAL__   Generate MAF file
   __CYAN__[12]__NORMAL__   Generate merged MAF
   __CYAN__[13]__NORMAL__   Annotate DNPs and remove SNVs near indels
-  __RED__[14]__NORMAL__    Clean intermediate files
+  __CYAN__[14]__NORMAL__   Generate germline readcounts using curated variants (rs_markers.germlineMissense.hg38.loci)
+  __RED__[15]__NORMAL__   Clean intermediate files
   __PURPLE__[22]__NORMAL__ Run j2–j11
   __PURPLE__[23]__NORMAL__ Run j3–j11
   __PURPLE__[24]__NORMAL__ Run j4–j11
@@ -374,6 +375,8 @@ if (($step_number < 12 && $step_number>=0) || $step_number == 14 || $step_number
                 }elsif ($step_number == 11) {
                     &bsub_vcf_2_maf(1);
                 }elsif ($step_number == 14) {
+                    &bsub_rc(1);
+                }elsif ($step_number == 15) {
                     &bsub_clean(1);
                 } 
            }
@@ -1486,10 +1489,81 @@ sub bsub_vcf_2_maf{
 
  }
 
+sub bsub_rc{
+
+    my ($step_by_step) = @_;
+    if ($step_by_step) {
+        $hold_job_file = "";
+    }else{
+        $hold_job_file = $current_job_file;
+    }
+
+    $current_job_file = "j14_glrc_".$sample_name.".sh";
+    my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
+    my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
+
+ 
+   if(-e $lsf_out)
+    {
+    `rm $lsf_out`;
+    `rm $lsf_err`;
+    `rm $current_job_file`;
+    }
+
+    my $IN_bam_T = $sample_full_path."/".$sample_name.".T.bam";
+    my $IN_bam_N = $sample_full_path."/".$sample_name.".N.bam";
+    my $f_vcf = $script_dir."/loci/"."rs_markers.germlineMissense.hg38.loci";
+
+    my $f_vcf_cut =$sample_full_path."/rs_markers.germlineMissense.hg38.loci.cut.tsv";
+
+    open(OUT,">$f_vcf_cut");
+    my %chrpos;
+    my $chrpos2;
+    foreach my $l (`cat $f_vcf`)
+    {
+     my $ltr=$l;
+     my @t=split("\t",$ltr);
+     $chrpos2=$t[0]."-".$t[1]."-".$t[2];
+     if(!defined $chrpos{$chrpos2})
+     {
+     print OUT $t[0],"\t",$t[1],"\t",$t[2],"\n";
+     }
+
+    }
+    close OUT;
+
+    my $f_rc_t_out = $sample_full_path."/".$sample_name.".T.glrc.tsv";
+    my $f_rc_n_out = $sample_full_path."/".$sample_name.".N.glrc.tsv";
+    my $f_vaf_t_out = $sample_full_path."/".$sample_name.".T.glrc.vaf";
+    my $f_vaf_n_out = $sample_full_path."/".$sample_name.".N.glrc.vaf";
+
+    open(RC, ">$job_files_dir/$current_job_file") or die $!;
+    print RC "#!/bin/bash\n";
+    print RC "TBAM=".$sample_full_path."/".$sample_name.".T.bam\n";
+    print RC "NBAM=".$sample_full_path."/".$sample_name.".N.bam\n";
+    print RC "if [ -e \${TBAM} ]\n";
+    print RC "then\n";   
+    print RC "$bamreadcount -q 10 -b 10 \${TBAM} -f $h38_REF -l $f_vcf_cut > $f_rc_t_out","\n";  
+    print RC "     ".$run_script_path."bamReadcount2vaf.pl -s $sample_name -l $f_vcf $f_rc_t_out > $f_vaf_t_out","\n"; 
+    print RC "fi","\n";
+    print RC "if [ -e \${NBAM} ]\n";	 
+    print RC "then\n";
+    print RC "$bamreadcount -q 10 -b 10 \${NBAM} -f $h38_REF -l $f_vcf_cut > $f_rc_n_out","\n";
+    print RC "     ".$run_script_path."bamReadcount2vaf.pl -s $sample_name -l $f_vcf $f_rc_n_out > $f_vaf_n_out","\n"; 
+    print RC "fi","\n";  
+    close RC;
+
+    my $sh_file=$job_files_dir."/".$current_job_file;
+
+    $bsub_com = "LSF_DOCKER_ENTRYPOINT=/bin/bash LSF_DOCKER_PRESERVE_ENVIRONMENT=false bsub -g /$compute_username/$group_name -q $q_name -n 1 -R \"select[mem>50000] rusage[mem=50000]\" -M 50000000 -a \'docker(scao/dailybox)\' -o $lsf_out -e $lsf_err bash $sh_file\n";
+    print $bsub_com;
+    system ($bsub_com);
+
+}
 
 sub bsub_clean{
     #my $cdhitReport = $sample_full_path."/".$sample_name.".fa.cdhitReport";
-    $current_job_file = "j14_clean_".$sample_name.".sh";
+    $current_job_file = "j15_clean_".$sample_name.".sh";
     
     my $lsf_out=$lsf_file_dir."/".$current_job_file.".out";
     my $lsf_err=$lsf_file_dir."/".$current_job_file.".err";
