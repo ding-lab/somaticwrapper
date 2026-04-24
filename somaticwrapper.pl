@@ -786,7 +786,8 @@ sub bsub_parse_strelka{
     print STREKAP "streka.dbsnp.indel.passfile  = ./strelka.somatic.indel.all.gvip.dbsnp_pass.vcf\n";
     print STREKAP "streka.dbsnp.indel.dbsnpfile = ./strelka.somatic.indel.all.gvip.dbsnp_present.vcf\n";
     print STREKAP "EOF\n";
-    print STREKAP "FP_BAM=`awk '{if(NR==1){print $1}}' \${RUNDIR}/varscan/bamfilelist.inp`\n";
+    # print STREKAP "FP_BAM=`awk '{if(NR==1){print \\$1}}' \${RUNDIR}/varscan/bamfilelist.inp`\n";
+    # print STREKAP "FP_BAM=`awk '{if(NR==1){print $1}}' \${RUNDIR}/varscan/bamfilelist.inp`\n";
     print STREKAP "cat > \${RUNDIR}/strelka/strelka_out/results/strelka_fpfilter.snv.input <<EOF\n";
     print STREKAP "strelka.fpfilter.snv.bam_readcount = $bamreadcount\n";
     print STREKAP "strelka.fpfilter.snv.bam_file = $IN_bam_T\n";
