@@ -26,7 +26,7 @@ my $normal = "\e[0m";
 Somatic variant calling pipeline 
 Pipeline version: $version
 
-$yellow     Usage: perl \$0 --chr --step --sre --rdir --ref --log --q --exonic --groupname --users $normal
+$yellow     Usage: perl \$0 --chr --step --sre --rdir --ref --log --q --exonic --groupname --users --mincov_t --minvaf $normal
 
 <rdir> = full path of the folder holding files for this sequence run (required)
 <log>  = full path of the folder for saving log files (required)
@@ -46,6 +46,8 @@ Options:
 <groupname> job group name used as /<users>/<groupname> (required)
 <users>     compute1 username used in job group path (required)
 <exonic>    exonic output flag for reporting: 1 yes / 0 no (default 1)
+<mincov_t>  minimum tumor coverage for filter_mutect2.pl (default 14)
+<minvaf>    minimum tumor VAF for filter_mutect2.pl (default 0.05)
 
 Advanced (partial chains):
   step=12 : run j2 → j3 → j4 → j5  (start at j2; j3 waits on j2; j4 waits on j3; j5 waits on all j4)
@@ -78,6 +80,8 @@ GetOptions(
   "ref=s"       => \$h38_REF,
   "log=s"       => \$log_dir,
   "q=s"         => \$q_name,
+  "mincov_t=i"  => \$mincov_t,
+  "minvaf=f"    => \$minvaf,
 ) or die $usage;
 
 if (
@@ -88,12 +92,21 @@ if (
   exit 1;
 }
 
+if ($mincov_t < 0) {
+  die "ERROR: --mincov_t must be >= 0 (got $mincov_t)\n";
+}
+if ($minvaf < 0 || $minvaf > 1) {
+  die "ERROR: --minvaf must be between 0 and 1 (got $minvaf)\n";
+}
+
 print "run dir=$run_dir\n";
 print "log dir=$log_dir\n";
 print "step num=$step_number\n";
 print "status rerun=$status_rerun\n";
 print "status exonic=$status_exonic\n";
 print "queue name=$q_name\n";
+print "mincov_t=$mincov_t\n";
+print "minvaf=$minvaf\n";
 
 $run_dir =~ s/(.+)\/$/$1/;
 die $usage unless ($step_number >= 0 && $step_number <= 14);
@@ -119,15 +132,15 @@ my $GATK      = "/storage1/fs1/dinglab/Active/Projects/austins2/software/gatk-4.
 my $picardexe = "/storage1/fs1/songcao/Active/Software/picard/picard.jar";
 my $snpsift   = "/storage1/fs1/songcao/Active/Software/snpEff/20150522/SnpSift.jar";
 my $vepannot  = "/storage1/fs1/dinglab/Active/Projects/scao/gitshared/ensembl-vep/vep";
-my $vepcache  = "/storage1/fs1/songcao/Active/Database/hg38_database/vep/v102";
+my $vepcache  = "/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/vep/v102";
 
 # resources used by pipeline
-my $GNOMAD_VCF           = "/storage1/fs1/songcao/Active/Database/tonlydb/af-only-gnomad.hg38.vcf.gz";
+my $GNOMAD_VCF           = "/storage1/fs1/dinglab/Active/Projects/scao/Database/tonlydb/af-only-gnomad.hg38.vcf.gz";
 my $PANEL_OF_NORMALS_VCF = "/storage1/fs1/dinglab/Active/Projects/austins2/tools/somaticwrapper_tonly.v1.0/db/gatk/GDC-gatk4_panel_of_normals/6c4c4a48-3589-4fc0-b1fd-ce56e88c06e4/gatk4_mutect2_4136_pon.hg38.vcf.gz";
 my $COMMON_BIALLELIC     = "/storage1/fs1/dinglab/Active/Projects/austins2/tools/somaticwrapper_tonly.v1.0/db/gatk/mutect2_gatk-best-practices.broadIns/af-only-gnomad.hg38.common_biallelic.chr1-22XY.vcf";
-my $DB_SNP_NO_COSMIC     = "/storage1/fs1/songcao/Active/Database/hg38_database/cosmic/00-All.HG38.pass.cosmic.vcf";
-my $f_ref_annot          = "/storage1/fs1/songcao/Active/Database/hg38_database/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
-my $TSL_DB               = "/storage1/fs1/songcao/Active/Database/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
+my $DB_SNP_NO_COSMIC     = "/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/cosmic/00-All.HG38.pass.cosmic.vcf";
+my $f_ref_annot          = "/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
+my $TSL_DB               = "/storage1/fs1/dinglab/Active/Projects/scao/Database/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
 
 # infer chr prefix from ref (robust)
 my $first_line = `head -n 1 $h38_REF`;
