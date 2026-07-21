@@ -31,13 +31,13 @@ $yellow     Usage: perl \$0 --chr --step --sre --rdir --ref --log --q --exonic -
 <rdir> = full path of the folder holding files for this sequence run (required)
 <log>  = full path of the folder for saving log files (required)
 <chr>  = whether reference has 'chr' prefix (1 yes / 0 no; default 1; auto-detected if possible)
-<sre>  = rerun: 1 yes / 0 no (default 0)
+<sre>  = force rerun: 1 yes / 0 no (default 0). If 0, step 4 skips samples whose j4 LSF .out already contains \"Successfully completed\"
 <step> = run a stage (required): 
 $green [0] Submit all steps with dependencies
 $green [1] Run Mutect2
 $green [2] Filter Mutect2 result
 $green [3] Parse Mutect2 result
-$cyan  [4] Generate per-sample MAF
+$cyan  [4] Generate per-sample MAF (skips completed unless --sre 1)
 $cyan  [5] Generate merged run-level report$normal
 
 Options:
@@ -286,6 +286,21 @@ sub bsub_vcf_2_maf {
   my $current_job_file = "j4_vcf_2_maf.${sample_name}.sh";
   my $lsf_out = "$lsf_file_dir/$current_job_file.out";
   my $lsf_err = "$lsf_file_dir/$current_job_file.err";
+
+  # skip if previous j4 already succeeded (unless --sre 1)
+  if (!$status_rerun && -e $lsf_out) {
+    open(my $OUTFH, "<", $lsf_out) or die "Cannot open $lsf_out: $!\n";
+    my $done = 0;
+    while (<$OUTFH>) {
+      if (/Successfully completed/) { $done = 1; last; }
+    }
+    close $OUTFH;
+    if ($done) {
+      print $green, "Skip $sample_name: j4 already Successfully completed ($lsf_out)\n", $normal;
+      return;
+    }
+  }
+
   `rm -f $lsf_out $lsf_err`;
 
   my $f_m_vcf_in = "$sample_full_path/mutect2/mutect2.somatic.dbsnp_pass.vcf";
