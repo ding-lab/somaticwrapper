@@ -220,19 +220,19 @@ my $bamreadcount="/storage1/fs1/songcao/Active/Software/bam-readcount/0.7.4/bam-
 #my $vepannot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.pl";
 #my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v85";
 my $vepannot="/storage1/fs1/dinglab/Active/Projects/scao/gitshared/ensembl-vep/vep";
-my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v102";
+my $vepcache="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/vep/v102";
 
-my $DB_SNP_NO_CHR="/storage1/fs1/songcao/Active/Database/hg38_database/DBSNP/00-All.vcf";
-my $DB_SNP="/storage1/fs1/songcao/Active/Database/hg38_database/DBSNP/00-All.chr.vcf";
+my $DB_SNP_NO_CHR="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/DBSNP/00-All.vcf";
+my $DB_SNP="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/DBSNP/00-All.chr.vcf";
 
-my $DB_COSMIC="/storage1/fs1/songcao/Active/Database/hg38_database/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
-my $DB_COSMIC_NO_CHR="/storage1/fs1/songcao/Active/Database/hg38_database/cosmic/CosmicAllMuts.HG38.sort.vcf"; 
+my $DB_COSMIC="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
+my $DB_COSMIC_NO_CHR="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/cosmic/CosmicAllMuts.HG38.sort.vcf"; 
 
-my $DB_SNP_NO_COSMIC="/storage1/fs1/songcao/Active/Database/hg38_database/cosmic/00-All.HG38.pass.cosmic.vcf";
-my $f_ref_annot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
-my $TSL_DB="/storage1/fs1/songcao/Active/Database/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
+my $DB_SNP_NO_COSMIC="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/cosmic/00-All.HG38.pass.cosmic.vcf";
+my $f_ref_annot="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
+my $TSL_DB="/storage1/fs1/dinglab/Active/Projects/scao/Database/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
 my $h38_REF_bai=$h38_REF.".fai";
-my $f_gtf= "/storage1/fs1/songcao/Active/Database/hg38_database/GTF/Homo_sapiens.GRCh38.85.gtf";
+my $f_gtf= "/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/GTF/Homo_sapiens.GRCh38.85.gtf";
 
 my $first_line=`head -n 1 $h38_REF`;
 
