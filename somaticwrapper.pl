@@ -14,7 +14,7 @@ our @ALL_J4_JIDS  = ();   # collect all samples' j4 job IDs (for run-level deps)
 our $J5_JID       = '';   # run-level report job
 # --------------------------------
 
-my $version = 3.0;
+my $version = 3.1;
 
 # color for logs / usage
 my $yellow = "\e[33m";
