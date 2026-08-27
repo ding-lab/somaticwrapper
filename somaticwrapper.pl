@@ -31,7 +31,7 @@ $yellow     Usage: perl \$0 --chr --step --sre --rdir --ref --log --q --exonic -
 <rdir> = full path of the folder holding files for this sequence run (required)
 <log>  = full path of the folder for saving log files (required)
 <chr>  = whether reference has 'chr' prefix (1 yes / 0 no; default 1; auto-detected if possible)
-<sre>  = force rerun: 1 yes / 0 no (default 0). If 0, step 4 skips samples whose j4 LSF .out already contains \"Successfully completed\"
+<sre>  = force rerun: 1 yes / 0 no (default 0). If 0, step 1 skips existing chromosome VCFs and step 4 skips samples whose j4 LSF .out already contains \"Successfully completed\"
 <step> = run a stage (required): 
 $green [0] Submit all steps with dependencies
 $green [1] Run Mutect2
@@ -172,11 +172,27 @@ sub bsub_mutect2 {
     my $f_out_gz = "$out_mutect2/$chr1-f1r2.tar.gz"; 
     my $f_out_vcf= "$out_mutect2/$chr1-unfiltered.vcf";
 
+    if (!$status_rerun && -s $f_out_vcf) {
+      print $green, "Skip $sample_name $chr1: existing j1 VCF ($f_out_vcf)\n", $normal;
+      next;
+    }
+
     `rm -f $lsf_out $lsf_err`;
 
     open(my $FH, ">", "$job_files_dir/$current_job_file") or die $!;
     print $FH "#!/bin/bash\n";
-    print $FH "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK Mutect2 -I $IN_bam_T -R $h38_REF -L $chr1 --germline-resource $GNOMAD_VCF -pon $PANEL_OF_NORMALS_VCF --f1r2-tar-gz $f_out_gz -O $f_out_vcf\n";
+    print $FH "attempt=1\n";
+    print $FH "while [ \"\$attempt\" -le 10 ]; do\n";
+    print $FH "  $java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK Mutect2 -I $IN_bam_T -R $h38_REF -L $chr1 --germline-resource $GNOMAD_VCF -pon $PANEL_OF_NORMALS_VCF --f1r2-tar-gz $f_out_gz -O $f_out_vcf\n";
+    print $FH "  if [ -s \"$f_out_vcf\" ]; then break; fi\n";
+    print $FH "  echo \"WARNING: missing j1 VCF after Mutect2 attempt \$attempt for $sample_name $chr1; retrying\" >&2\n";
+    print $FH "  rm -f \"$f_out_vcf\" \"$f_out_vcf.idx\" \"$f_out_vcf.stats\" \"$f_out_gz\"\n";
+    print $FH "  attempt=\$((attempt + 1))\n";
+    print $FH "done\n";
+    print $FH "if [ ! -s \"$f_out_vcf\" ]; then\n";
+    print $FH "  echo \"ERROR: missing j1 VCF after retry for $sample_name $chr1: $f_out_vcf\" >&2\n";
+    print $FH "  exit 1\n";
+    print $FH "fi\n";
     close $FH;
 
     my $cmd = "bsub -q $q_name -g /$compute_username/$group_name -n 1 -R \"select[mem>30000] rusage[mem=30000]\" -M 30000000 -a 'docker(scao/dailybox)' -o $lsf_out -e $lsf_err bash $job_files_dir/$current_job_file";
@@ -222,6 +238,14 @@ sub bsub_filter_mutect2 {
 
   open(my $FH, ">", "$job_files_dir/$current_job_file") or die $!;
   print $FH "#!/bin/bash\n";
+  print $FH "missing_step1=0\n";
+  foreach my $chr (@chrlist) {
+    my $c = $chr_status ? "chr$chr" : $chr;
+    print $FH "for f in $out_mutect2/$c-unfiltered.vcf $out_mutect2/$c-unfiltered.vcf.stats $out_mutect2/$c-f1r2.tar.gz; do\n";
+    print $FH "  if [ ! -s \"\$f\" ]; then echo \"ERROR: missing step 1 output for $sample_name: \$f\" >&2; missing_step1=1; fi\n";
+    print $FH "done\n";
+  }
+  print $FH "if [ \"\$missing_step1\" -ne 0 ]; then echo \"ERROR: step 1 outputs are incomplete for $sample_name; aborting step 2\" >&2; exit 1; fi\n";
   print $FH "$java_bin -Xmx16g -jar $picardexe GatherVcfs $all_unfiltered_input O=$f_merged_vcf\n";
   print $FH "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK MergeMutectStats $all_unfiltered_stats_input -O $f_merged_status\n"; 
   print $FH "$java_bin -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -Xmx16g -jar $GATK LearnReadOrientationModel $all_f1r2_input -O $f_ori\n";
