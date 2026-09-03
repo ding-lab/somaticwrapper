@@ -65,7 +65,7 @@ mkdir -p /storage1/fs1/songcao/Active/Projects/somatic/example_run_somatic_2025/
 #### Option A – Run all steps automatically (recommended)
 Use **`--step 0`** to run Steps 1–14 sequentially with built-in job dependencies:
 ```bash
-perl somaticwrapper.pl   --step 0   --rdir /storage1/fs1/songcao/Active/Projects/somatic/example_run_somatic_2025   --log  /storage1/fs1/songcao/Active/Projects/somatic/example_run_somatic_2025/log   --ref /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa   --smg /storage1/fs1/songcao/Active/Database/SMG/smg_list.txt   --groupname example_run_somatic_2025   --users scao   --wgs 0   --srg 1   --sre 0   --exonic 1   --q long   --mincovt 14 --mincovn 8 --minvaf 0.05 --maxindsize 100
+perl somaticwrapper.pl   --step 0   --rdir /storage1/fs1/songcao/Active/Projects/somatic/example_run_somatic_2025   --log  /storage1/fs1/songcao/Active/Projects/somatic/example_run_somatic_2025/log   --ref /storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa   --smg /storage1/fs1/dinglab/Active/Projects/scao/Database/SMG/smg_list.txt   --groupname example_run_somatic_2025   --users scao   --wgs 0   --srg 1   --sre 0   --exonic 1   --q long   --mincovt 14 --mincovn 8 --minvaf 0.05 --maxindsize 100
 ```
 
 #### Option B – Run a specific step manually
