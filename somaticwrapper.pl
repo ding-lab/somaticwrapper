@@ -68,7 +68,7 @@ $normal
 <maxindsize> default <=100
 <exonic> output exonic region: 1 Yes, 0 No
 <smg> use smg list for calling
-hg38: /storage1/fs1/songcao/Active/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa
+hg38: /storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/GRCh38.d1.vd1/GRCh38.d1.vd1.fa
  
 $green [1]  Run streka
 $green [2]  Run Varscan
@@ -232,24 +232,24 @@ my $samtools="/storage1/fs1/songcao/Active/Software/samtools/1.2/bin";
 my $samtoolsexe="/storage1/fs1/songcao/Active/Software/samtools/1.2/bin/samtools";
 my $varscan="/storage1/fs1/songcao/Active/Software/varscan/2.3.8.ndown";
 my $bamreadcount="/storage1/fs1/songcao/Active/Software/bam-readcount/0.7.4/bam-readcount";
-#my $vepannot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.v102.pl";
+#my $vepannot="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/vep/ensembl-tools-release-85/scripts/variant_effect_predictor/variant_effect_predictor.v102.pl";
 my $vepannot="/storage1/fs1/dinglab/Active/Projects/scao/gitshared/ensembl-vep/vep";
 
-#my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v85";
+#my $vepcache="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/vep/v85";
 
-my $vepcache="/storage1/fs1/songcao/Active/Database/hg38_database/vep/v102";
+my $vepcache="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/vep/v102";
 
-my $DB_SNP_NO_CHR="/storage1/fs1/songcao/Active/Database/hg38_database/DBSNP/00-All.vcf";
-my $DB_SNP="/storage1/fs1/songcao/Active/Database/hg38_database/DBSNP/00-All.chr.vcf";
+my $DB_SNP_NO_CHR="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/DBSNP/00-All.vcf";
+my $DB_SNP="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/DBSNP/00-All.chr.vcf";
 
-my $DB_COSMIC="/storage1/fs1/songcao/Active/Database/hg38_database/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
-my $DB_COSMIC_NO_CHR="/storage1/fs1/songcao/Active/Database/hg38_database/cosmic/CosmicAllMuts.HG38.sort.vcf"; 
+my $DB_COSMIC="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/cosmic/CosmicAllMuts.HG38.sort.chr.vcf";
+my $DB_COSMIC_NO_CHR="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/cosmic/CosmicAllMuts.HG38.sort.vcf"; 
 
-my $DB_SNP_NO_COSMIC="/storage1/fs1/songcao/Active/Database/hg38_database/cosmic/00-All.HG38.pass.cosmic.vcf";
-my $f_ref_annot="/storage1/fs1/songcao/Active/Database/hg38_database/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
-my $TSL_DB="/storage1/fs1/songcao/Active/Database/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
+my $DB_SNP_NO_COSMIC="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/cosmic/00-All.HG38.pass.cosmic.vcf";
+my $f_ref_annot="/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/vep/Homo_sapiens.GRCh38.dna.primary_assembly.fa";
+my $TSL_DB="/storage1/fs1/dinglab/Active/Projects/scao/Database/tsl/wgEncodeGencodeTranscriptionSupportLevelV23.txt";
 my $h38_REF_bai=$h38_REF.".fai";
-my $f_gtf= "/storage1/fs1/songcao/Active/Database/hg38_database/GTF/Homo_sapiens.GRCh38.85.gtf";
+my $f_gtf= "/storage1/fs1/dinglab/Active/Projects/scao/Database/hg38_database/GTF/Homo_sapiens.GRCh38.85.gtf";
 
 my $first_line=`head -n 1 $h38_REF`;
 
