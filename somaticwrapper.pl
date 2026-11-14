@@ -118,7 +118,7 @@ my $status = &GetOptions (
       "srg=i" => \$status_rg,
       "sre=i" => \$status_rerun,	
       "wgs=i"  => \$s_wgs, 
-      "groupname=s" => \$group_name,
+  "groupname=s" => \$group_name,
       "users=s" => \$compute_username,	
        "exonic=i" => \$status_exonic,
       "rdir=s" => \$run_dir,
